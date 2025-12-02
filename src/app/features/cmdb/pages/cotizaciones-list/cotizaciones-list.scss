@@ -1,0 +1,39 @@
+/* Row/cell highlight for contracts nearing expiry */
+.warning-row td,
+.warning-cell {
+    background-color: #fff3cd;
+    /* pastel warning (light yellow) */
+}
+
+.contratos-container {
+    h2 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* warning icon style */
+.warning-icon {
+    margin-right: 0.5rem;
+    vertical-align: middle;
+    font-size: 1.05rem;
+}
+
+/* severity color variants for the icon */
+.warning-icon.low {
+    color: #856404;
+    /* dark yellow/brown */
+}
+
+.warning-icon.medium {
+    color: #b45309;
+    /* orange-ish */
+}
+
+.warning-icon.high {
+    color: #842029;
+    /* red-ish */
+}
+
+:host ::ng-deep .nowrap-col {
+    white-space: nowrap !important;
+}

@@ -1,0 +1,157 @@
+<div class="contratos-container">
+    <h2>Contratos y Cotizaciones</h2>
+
+    <div *ngIf="error" class="error-message p-3">
+        <p style="color: #e53238;">⚠️ {{ error }}</p>
+    </div>
+
+    <div class="filters mb-3" style="display:flex; gap:10px; flex-wrap:wrap;">
+
+        <input pInputText placeholder="RUT" [(ngModel)]="filters.rut" appRutInput />
+        <small *ngIf="rutInvalido" class="p-error">
+            ⚠️ RUT inválido
+        </small>
+        <input pInputText placeholder="Cliente" [(ngModel)]="filters.cliente" />
+        <input pInputText placeholder="Cód CHI" [(ngModel)]="filters.codChi" />
+        <input pInputText placeholder="Cód SISON" [(ngModel)]="filters.codSison" />
+        <input pInputText placeholder="Cód SAP" [(ngModel)]="filters.codSap" />
+
+        <p-select placeholder="Estado" [options]="[
+            {label: 'Vigente', value: 'vigente'},
+            {label: 'Por expirar', value: 'por-expirar'},
+            {label: 'Expirado', value: 'expirado'},
+        ]" [(ngModel)]="filters.estado">
+        </p-select>
+
+        <button pButton label="Buscar" icon="pi pi-search" (click)="buscar()"></button>
+    </div>
+
+
+    <p-table [value]="contratos" [loading]="loading" [paginator]="true" [rows]="pageSize" [totalRecords]="totalRecords"
+        [lazy]="true" (onLazyLoad)="onPageChange($event)" class="p-datatable-sm" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="idContrato" style="display: none;">
+                    ID Contrato <p-sortIcon field="idContrato"></p-sortIcon>
+                </th>
+                <th pSortableColumn="rutCliente" style="text-align:center;" class="nowrap-col">
+                    RUT <p-sortIcon field="rutCliente"></p-sortIcon>
+                </th>
+                <th pSortableColumn="nombreCliente" style="text-align:center;">
+                    Cliente <p-sortIcon field="nombreCliente"></p-sortIcon>
+                </th>
+                <th pSortableColumn="fechaInicio" style="text-align:center;">
+                    Inicio <p-sortIcon field="fechaInicio"></p-sortIcon>
+                </th>
+                <th pSortableColumn="fechaTermino" style="text-align:center;">
+                    Término <p-sortIcon field="fechaTermino"></p-sortIcon>
+                </th>
+                <th pSortableColumn="nombreTipoPago" style="text-align:center;">
+                    Tipo de Pago <p-sortIcon field="nombreTipoPago"></p-sortIcon>
+                </th>
+                <th pSortableColumn="codChi" style="text-align:center;" class="nowrap-col">
+                    Cód. CHI <p-sortIcon field="codChi"></p-sortIcon>
+                </th>
+                <th pSortableColumn="codSison" style="text-align:center;" class="nowrap-col">
+                    Cód. SISON <p-sortIcon field="codSison"></p-sortIcon>
+                </th>
+                <th pSortableColumn="codSap" style="text-align:center;" class="nowrap-col">
+                    Cód. SAP <p-sortIcon field="codSap"></p-sortIcon>
+                </th>
+                <th>Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+            <tr>
+                <td style="display: none;" [style.background]="expiryBg(row)">
+                    <a (click)="verDetalle(row)" style="cursor:pointer; color:blue; text-decoration:underline;">
+                        {{ row.idContrato }}
+                    </a>
+                </td>
+                <td [style.background]="expiryBg(row)" style="text-align: right;" class="nowrap-col">
+                    <span class="p-tag p-tag-info">
+                        <i *ngIf="expirySeverity(row)" class="pi pi-exclamation-triangle warning-icon"
+                            [ngClass]="{'high': expirySeverity(row) === 'high', 'medium': expirySeverity(row) === 'medium', 'low': expirySeverity(row) === 'low'}"
+                            [pTooltip]="getExpiryTooltip(row)" tooltipPosition="top" aria-hidden="true"></i>
+
+                        {{ row.rutCliente | formatRut }}
+                    </span>
+                </td>
+                <td [style.background]="expiryBg(row)">
+                    <span class="p-tag p-tag-info">
+                        {{ row.nombreCliente }}
+                    </span>
+                </td>
+                <td [style.background]="expiryBg(row)">{{ row.fechaInicio | date: 'dd/MM/yyyy' }}
+                </td>
+                <td [style.background]="expiryBg(row)">{{ row.fechaTermino | date: 'dd/MM/yyyy' }}</td>
+                <td [style.background]="expiryBg(row)">
+                    <span class="p-tag p-tag-info">
+                        {{ row.nombreTipoPago }}
+                    </span>
+                </td>
+                <td [style.background]="expiryBg(row)" class="nowrap-col">
+                    <span class="p-tag p-tag-info">
+                        {{ row.codChi }}
+                    </span>
+                </td>
+                <td [style.background]="expiryBg(row)" class="nowrap-col">
+                    <span class="p-tag p-tag-info">
+                        {{ row.codSison }}
+                    </span>
+                </td>
+                <td [style.background]="expiryBg(row)" class="nowrap-col">
+                    <span class="p-tag p-tag-info">
+                        {{ row.codSap }}
+                    </span>
+                </td>
+                <td>
+                    <button pButton label="Ver Cotización" icon="pi pi-eye" (click)="verDetalle(row)"
+                        class="p-button-sm p-button-info"></button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4" class="text-center p-4">
+                    No hay contratos disponibles
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <p-dialog [(visible)]="showDetalleDialog" [modal]="true" [style]="{width: '900px'}" (onHide)="closeDetalle()"
+        header="Detalle de Cotización">
+        <div *ngIf="selectedRow">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label><strong>RUT</strong></label>
+                    <div>{{ selectedRow.rutCliente | formatRut }}</div>
+                </div>
+                <div>
+                    <label><strong>Cliente</strong></label>
+                    <div>{{ selectedRow.nombreCliente }}</div>
+                </div>
+
+                <div>
+                    <label><strong>Código Proyecto</strong></label>
+                    <div>{{ projectCode(selectedRow) || 'N/A' }}</div>
+                </div>
+                <div>
+                    <label><strong>Tipo de Pago</strong></label>
+                    <div>{{ selectedRow.nombreTipoPago }}</div>
+                </div>
+                <div>
+                    <label><strong>Moneda</strong></label>
+                    <div>{{ selectedRow.nombreTipoMoneda }}</div>
+                </div>
+            </div>
+
+            <h4 style="margin-top:1rem">Ítems / Servicio</h4>
+            <app-cotizacion-detalle [idContrato]="selectedRow.idContrato" [isModal]="true"></app-cotizacion-detalle>
+        </div>
+    </p-dialog>
+</div>
