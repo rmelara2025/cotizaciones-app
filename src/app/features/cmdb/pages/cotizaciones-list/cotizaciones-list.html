@@ -7,11 +7,9 @@
 
     <div class="filters mb-3" style="display:flex; gap:10px; flex-wrap:wrap;">
 
-        <input pInputText placeholder="RUT" [(ngModel)]="filters.rut" appRutInput />
-        <small *ngIf="rutInvalido" class="p-error">
-            ⚠️ RUT inválido
-        </small>
-        <input pInputText placeholder="Cliente" [(ngModel)]="filters.cliente" />
+        <input pInputText placeholder="RUT" [(ngModel)]="filters.rutCliente" appRutInput />
+
+        <input pInputText placeholder="Cliente" [(ngModel)]="filters.nombreCliente" />
         <input pInputText placeholder="Cód CHI" [(ngModel)]="filters.codChi" />
         <input pInputText placeholder="Cód SISON" [(ngModel)]="filters.codSison" />
         <input pInputText placeholder="Cód SAP" [(ngModel)]="filters.codSap" />

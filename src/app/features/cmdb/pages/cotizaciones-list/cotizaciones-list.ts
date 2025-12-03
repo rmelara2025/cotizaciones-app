@@ -41,8 +41,8 @@ export class CotizacionesList implements OnInit {
 
   // Filtros del usuario
   filters = {
-    rut: '',
-    cliente: '',
+    rutCliente: '',
+    nombreCliente: '',
     codChi: '',
     codSap: '',
     codSison: '',
@@ -184,35 +184,6 @@ export class CotizacionesList implements OnInit {
     );
   }
 
-  rutInvalido = false;
 
-  validateRut() {
-    const rut = this.filters.rut;
-
-    if (!rut) {
-      this.rutInvalido = false;
-      return;
-    }
-
-    this.rutInvalido = !validarRut(rut);
-  }
-
-  validarInputRut() {
-    // Solo permitir números, puntos, guion y K/k
-    this.filters.rut = this.filters.rut
-      .replace(/[^0-9kK\.\-]/g, '')
-      .toUpperCase();
-  }
-
-  validarRutFinal() {
-    const rut = this.filters.rut;
-
-    if (!rut) {
-      this.rutInvalido = false;
-      return;
-    }
-
-    this.rutInvalido = !validarRut(rut);
-  }
 }
 

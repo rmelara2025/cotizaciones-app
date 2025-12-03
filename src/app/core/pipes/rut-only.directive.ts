@@ -39,8 +39,18 @@ export class RutInputDirective implements ControlValueAccessor, Validator {
         const formatted = this.formatRut(raw);
 
         this.el.nativeElement.value = formatted;
-        this.onChange(raw);
+        // 🔥 Enviar al ngModel el RUT limpio pero CONSERVANDO el GUION
+        const cleanRut = this.cleanRut(formatted); // quita puntos, deja guion
+        this.onChange(cleanRut);
     }
+
+    private cleanRut(value: string): string {
+        // Mantiene el guion
+        return value.replace(/\./g, '');
+    }
+
+
+
 
     // Formato 12.345.678-K
     private formatRut(value: string): string {
