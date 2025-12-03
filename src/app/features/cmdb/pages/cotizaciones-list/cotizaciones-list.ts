@@ -8,6 +8,8 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ContratosService, IContrato } from '../../../../core/services/contratos.service';
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
 import { CotizacionDetalle } from '../cotizacion-detalle/cotizacion-detalle';
@@ -29,7 +31,8 @@ import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
     InputTextModule,
     FormsModule,
     SelectModule,
-    RutInputDirective
+    RutInputDirective,
+    InputGroupModule, InputGroupAddonModule
   ],
   templateUrl: './cotizaciones-list.html',
   styleUrl: './cotizaciones-list.scss',
@@ -46,7 +49,7 @@ export class CotizacionesList implements OnInit {
     codChi: '',
     codSap: '',
     codSison: '',
-    estado: ''  // vigente | expira | expirado
+    estado: 'todos'  // vigente | expira | expirado | todos
   };
 
 
@@ -76,7 +79,7 @@ export class CotizacionesList implements OnInit {
 
   ngOnInit() {
     console.log('🚀 CotizacionesList component initialized');
-    this.contratosService.loadContratos(0, 10, 'fechaInicio', 'desc', this.filters);
+    this.contratosService.loadContratos(0, 10, 'fechaInicio', 'asc', this.filters);
     console.log('📞 loadContratos called');
   }
 
@@ -177,9 +180,9 @@ export class CotizacionesList implements OnInit {
   buscar() {
     this.contratosService.loadContratos(
       0,
-      this.pageSize,
+      10,
       'fechaInicio',
-      'desc',
+      'asc',
       this.filters
     );
   }

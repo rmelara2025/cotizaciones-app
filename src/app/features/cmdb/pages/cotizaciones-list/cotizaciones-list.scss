@@ -37,3 +37,8 @@
 :host ::ng-deep .nowrap-col {
     white-space: nowrap !important;
 }
+
+.clear-btn.hidden {
+    visibility: hidden;
+    /* ocupa espacio pero no se ve */
+}

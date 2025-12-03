@@ -5,23 +5,82 @@
         <p style="color: #e53238;">⚠️ {{ error }}</p>
     </div>
 
-    <div class="filters mb-3 p-3" style="display:flex; gap:10px; flex-wrap:wrap;">
+    <div class="grid p-2">
+        <div class="col-12 md:col-3">
+            <p-inputGroup>
+                <input pInputText placeholder="RUT" [(ngModel)]="filters.rutCliente" appRutInput />
+                <p-inputGroupAddon>
+                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                        (click)="filters.rutCliente = ''" [class.hidden]="!filters.rutCliente">
+                    </button>
+                </p-inputGroupAddon>
+            </p-inputGroup>
+        </div>
+        <div class="col-12 md:col-3">
+            <p-inputGroup>
+                <input pInputText placeholder="Nombre del Cliente" [(ngModel)]="filters.nombreCliente" />
+                <p-inputGroupAddon>
+                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                        (click)="filters.nombreCliente = ''" [class.hidden]="!filters.nombreCliente">
+                    </button>
+                </p-inputGroupAddon>
+            </p-inputGroup>
+        </div>
 
-        <input pInputText placeholder="RUT" [(ngModel)]="filters.rutCliente" appRutInput />
-
-        <input pInputText placeholder="Cliente" [(ngModel)]="filters.nombreCliente" />
-        <input pInputText placeholder="Cód CHI" [(ngModel)]="filters.codChi" />
-        <input pInputText placeholder="Cód SISON" [(ngModel)]="filters.codSison" />
-        <input pInputText placeholder="Cód SAP" [(ngModel)]="filters.codSap" />
-
-        <p-select placeholder="Estado" [options]="[
-            {label: 'Vigente', value: 'vigente'},
-            {label: 'Por expirar', value: 'por-expirar'},
-            {label: 'Expirado', value: 'expirado'},
+        <div class="col-12 md:col-3">
+            <p-inputGroup>
+                <p-select placeholder="Estado" [options]="[
+            {label: 'Todos los contratos', value: 'todos', },
+            {label: 'Sólo Vigentes', value: 'vigente'},
+            {label: 'Sólo por Expirar', value: 'por-expirar'},
+            {label: 'Sólo Expirados', value: 'expirado'},
         ]" [(ngModel)]="filters.estado">
-        </p-select>
+                </p-select>
+            </p-inputGroup>
 
-        <button pButton label="Buscar" icon="pi pi-search" (click)="buscar()"></button>
+        </div>
+
+        <div class="col-12 md:col-12 p-0"></div>
+        <div class="col-12 md:col-3">
+            <p-inputGroup>
+                <input pInputText placeholder="Cód CHI" [(ngModel)]="filters.codChi" />
+                <p-inputGroupAddon>
+                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                        (click)="filters.codChi = ''" [class.hidden]="!filters.codChi">
+                    </button>
+                </p-inputGroupAddon>
+            </p-inputGroup>
+
+        </div>
+        <div class="col-12 md:col-3">
+            <p-inputGroup>
+                <input pInputText placeholder="Cód SISON" [(ngModel)]="filters.codSison" />
+                <p-inputGroupAddon>
+                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                        (click)="filters.codSison = ''" [class.hidden]="!filters.codSison">
+                    </button>
+                </p-inputGroupAddon>
+            </p-inputGroup>
+        </div>
+        <div class="col-12 md:col-3">
+            <p-inputGroup>
+                <input pInputText placeholder="Cód SAP" [(ngModel)]="filters.codSap" />
+                <p-inputGroupAddon>
+                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                        (click)="filters.codSap = ''" [class.hidden]="!filters.codSap">
+                    </button>
+                </p-inputGroupAddon>
+            </p-inputGroup>
+        </div>
+
+        <div class="col-12 md:col-2">
+            <p-inputGroup>
+                <button pButton label="Buscar" icon="pi pi-search" (click)="buscar()"></button>
+            </p-inputGroup>
+        </div>
+
+
+
     </div>
 
 
