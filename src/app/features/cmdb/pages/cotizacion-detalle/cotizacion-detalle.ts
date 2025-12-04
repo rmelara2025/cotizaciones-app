@@ -3,12 +3,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 import { CotizacionesService, CotizacionDetalle as ICotizacionDetalle } from '../../../../core/services/cotizaciones.service';
 
 @Component({
   selector: 'app-cotizacion-detalle',
   standalone: true,
-  imports: [CommonModule, TableModule, ButtonModule],
+  imports: [CommonModule, TableModule, ButtonModule, TooltipModule],
   templateUrl: './cotizacion-detalle.html',
   styleUrl: './cotizacion-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,11 +1,11 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { providePrimeNG } from 'primeng/config';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
-import Lara from '@primeuix/themes/lara';
+import Aura from '@primeuix/themes/aura';
+import { providePrimeNG } from 'primeng/config'
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,9 +16,10 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     providePrimeNG({
       theme: {
-        preset: Lara,
+        preset: Aura,
         options: {
-          prefix: 'p'
+          prefix: 'p',
+          darkModeSelector: '.app-dark'
         }
       },
       ripple: true

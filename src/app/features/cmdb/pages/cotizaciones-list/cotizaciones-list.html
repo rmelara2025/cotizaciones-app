@@ -1,87 +1,91 @@
 <div class="contratos-container">
     <h2>Contratos y Cotizaciones</h2>
 
-    <div *ngIf="error" class="error-message p-3">
+    <div *ngIf="error" class="error-message px-3">
         <p style="color: #e53238;">⚠️ {{ error }}</p>
     </div>
 
-    <div class="grid p-2">
-        <div class="col-12 md:col-3">
-            <p-inputGroup>
-                <input pInputText placeholder="RUT" [(ngModel)]="filters.rutCliente" appRutInput />
-                <p-inputGroupAddon>
-                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                        (click)="filters.rutCliente = ''" [class.hidden]="!filters.rutCliente">
-                    </button>
-                </p-inputGroupAddon>
-            </p-inputGroup>
-        </div>
-        <div class="col-12 md:col-3">
-            <p-inputGroup>
-                <input pInputText placeholder="Nombre del Cliente" [(ngModel)]="filters.nombreCliente" />
-                <p-inputGroupAddon>
-                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                        (click)="filters.nombreCliente = ''" [class.hidden]="!filters.nombreCliente">
-                    </button>
-                </p-inputGroupAddon>
-            </p-inputGroup>
-        </div>
+    <p-fieldset legend="Filtros de búsqueda" class="my-fieldset">
 
-        <div class="col-12 md:col-3">
-            <p-inputGroup>
-                <p-select placeholder="Estado" [options]="[
+        <div class="grid compact">
+            <div class="col-12 md:col-3">
+                <p-inputGroup>
+                    <input pInputText placeholder="RUT" [(ngModel)]="filters.rutCliente" appRutInput />
+                    <p-inputGroupAddon>
+                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                            (click)="filters.rutCliente = ''" [class.hidden]="!filters.rutCliente">
+                        </button>
+                    </p-inputGroupAddon>
+                </p-inputGroup>
+            </div>
+            <div class="col-12 md:col-3">
+                <p-inputGroup>
+                    <input pInputText placeholder="Nombre del Cliente" [(ngModel)]="filters.nombreCliente" />
+                    <p-inputGroupAddon>
+                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                            (click)="filters.nombreCliente = ''" [class.hidden]="!filters.nombreCliente">
+                        </button>
+                    </p-inputGroupAddon>
+                </p-inputGroup>
+            </div>
+
+            <div class="col-12 md:col-3">
+                <p-inputGroup>
+                    <p-select placeholder="Estado" [options]="[
             {label: 'Todos los contratos', value: 'todos', },
             {label: 'Sólo Vigentes', value: 'vigente'},
             {label: 'Sólo por Expirar', value: 'por-expirar'},
             {label: 'Sólo Expirados', value: 'expirado'},
-        ]" [(ngModel)]="filters.estado">
-                </p-select>
-            </p-inputGroup>
+        ]" [(ngModel)]="filters.estado" size="small">
+                    </p-select>
+                </p-inputGroup>
+
+            </div>
+
+            <div class="col-12 md:col-12 p-0"></div>
+            <div class="col-12 md:col-3">
+                <p-inputGroup>
+                    <input pInputText placeholder="Cód CHI" [(ngModel)]="filters.codChi" />
+                    <p-inputGroupAddon>
+                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                            (click)="filters.codChi = ''" [class.hidden]="!filters.codChi">
+                        </button>
+                    </p-inputGroupAddon>
+                </p-inputGroup>
+
+            </div>
+            <div class="col-12 md:col-3">
+                <p-inputGroup>
+                    <input pInputText placeholder="Cód SISON" [(ngModel)]="filters.codSison" />
+                    <p-inputGroupAddon>
+                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                            (click)="filters.codSison = ''" [class.hidden]="!filters.codSison">
+                        </button>
+                    </p-inputGroupAddon>
+                </p-inputGroup>
+            </div>
+            <div class="col-12 md:col-3">
+                <p-inputGroup>
+                    <input pInputText placeholder="Cód SAP" [(ngModel)]="filters.codSap" />
+                    <p-inputGroupAddon>
+                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
+                            (click)="filters.codSap = ''" [class.hidden]="!filters.codSap">
+                        </button>
+                    </p-inputGroupAddon>
+                </p-inputGroup>
+            </div>
+
+            <div class="col-12 md:col-2">
+                <p-inputGroup>
+                    <button pButton label="Buscar" icon="pi pi-search" (click)="buscar()"></button>
+                </p-inputGroup>
+            </div>
+
+
 
         </div>
+    </p-fieldset>
 
-        <div class="col-12 md:col-12 p-0"></div>
-        <div class="col-12 md:col-3">
-            <p-inputGroup>
-                <input pInputText placeholder="Cód CHI" [(ngModel)]="filters.codChi" />
-                <p-inputGroupAddon>
-                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                        (click)="filters.codChi = ''" [class.hidden]="!filters.codChi">
-                    </button>
-                </p-inputGroupAddon>
-            </p-inputGroup>
-
-        </div>
-        <div class="col-12 md:col-3">
-            <p-inputGroup>
-                <input pInputText placeholder="Cód SISON" [(ngModel)]="filters.codSison" />
-                <p-inputGroupAddon>
-                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                        (click)="filters.codSison = ''" [class.hidden]="!filters.codSison">
-                    </button>
-                </p-inputGroupAddon>
-            </p-inputGroup>
-        </div>
-        <div class="col-12 md:col-3">
-            <p-inputGroup>
-                <input pInputText placeholder="Cód SAP" [(ngModel)]="filters.codSap" />
-                <p-inputGroupAddon>
-                    <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                        (click)="filters.codSap = ''" [class.hidden]="!filters.codSap">
-                    </button>
-                </p-inputGroupAddon>
-            </p-inputGroup>
-        </div>
-
-        <div class="col-12 md:col-2">
-            <p-inputGroup>
-                <button pButton label="Buscar" icon="pi pi-search" (click)="buscar()"></button>
-            </p-inputGroup>
-        </div>
-
-
-
-    </div>
 
 
     <p-table [value]="contratos" [loading]="loading" [paginator]="true" [rows]="pageSize" [totalRecords]="totalRecords"
@@ -164,15 +168,15 @@
                     </span>
                 </td>
                 <td>
-                    <button pButton label="Ver Cotización" icon="pi pi-eye" (click)="verDetalle(row)"
-                        class="p-button-sm p-button-info"></button>
+                    <button pButton pTooltip="Ver cotización" tooltipPosition="left" icon="pi pi-eye"
+                        (click)="verDetalle(row)" class="p-button-sm p-button-info"></button>
                 </td>
             </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="4" class="text-center p-4">
+                <td colspan="10" class="text-center p-4">
                     No hay contratos disponibles
                 </td>
             </tr>
@@ -207,7 +211,10 @@
                 </div>
             </div>
 
-            <h4 style="margin-top:1rem">Ítems / Servicio</h4>
+            <h4 style="margin-top:1rem">Ítems / Servicio
+                <p-button icon="pi pi-plus" [raised]="true" [rounded]="true" size="small" class="p-1" severity="success"
+                    pTooltip="Agregar servicio" tooltipPosition="right"></p-button>
+            </h4>
             <app-cotizacion-detalle [idContrato]="selectedRow.idContrato" [isModal]="true"></app-cotizacion-detalle>
         </div>
     </p-dialog>

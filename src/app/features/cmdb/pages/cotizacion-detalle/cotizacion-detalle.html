@@ -20,6 +20,7 @@
                     <th style="text-align: right;">Cantidad</th>
                     <th style="text-align: right;">Recurrente</th>
                     <th>Moneda</th>
+                    <th>Acciones</th>
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-det>
@@ -30,11 +31,17 @@
                     <td style="text-align: right;">{{ det.cantidad }}</td>
                     <td style="text-align: right;">{{ convertCurrency(det)}}</td>
                     <td>{{ det.nombreTipoMoneda }}</td>
+                    <td>
+                        <p-button icon="pi pi-pencil" [raised]="true" pTooltip="Modificar" [rounded]="true" size="small"
+                            class="p-1" severity="warn"></p-button>
+                        <p-button icon="pi pi-trash" [raised]="true" pTooltip="Borrar" [rounded]="true" size="small"
+                            severity="danger"></p-button>
+                    </td>
                 </tr>
             </ng-template>
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td colspan="8">No hay detalles disponibles</td>
+                    <td colspan="7">No hay detalles disponibles</td>
                 </tr>
             </ng-template>
         </p-table>

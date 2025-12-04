@@ -9,12 +9,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { InputGroupModule } from 'primeng/inputgroup';
+import { FieldsetModule } from 'primeng/fieldset';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ContratosService, IContrato } from '../../../../core/services/contratos.service';
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
 import { CotizacionDetalle } from '../cotizacion-detalle/cotizacion-detalle';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
-import { validarRut } from '../../../../core/pipes/rut.validator';
 import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
 
 @Component({
@@ -32,7 +32,8 @@ import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
     FormsModule,
     SelectModule,
     RutInputDirective,
-    InputGroupModule, InputGroupAddonModule
+    InputGroupModule, InputGroupAddonModule,
+    FieldsetModule
   ],
   templateUrl: './cotizaciones-list.html',
   styleUrl: './cotizaciones-list.scss',

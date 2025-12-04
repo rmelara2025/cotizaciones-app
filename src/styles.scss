@@ -24,3 +24,12 @@ app-root {
 * {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
 }
+
+.my-fieldset .p-fieldset-content {
+    padding: 1rem !important;
+}
+
+.my-fieldset .p-fieldset-legend {
+    padding: 0.4rem 1rem !important;
+    font-size: 0.9rem;
+}
