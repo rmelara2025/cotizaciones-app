@@ -70,20 +70,20 @@ export class DashboardRecurrentes implements OnInit {
     console.log('🔧 Processing dashboard rows:', rows && rows.length);
     // Aggregate rows by moneda and estado (in case API returns multiple rows)
     const agg: Record<string, Record<string, { totalRecurrente: number; countContratos: number }>> = {};
-      for (const r of rows) {
-        // accept different possible property names returned by API
-        const monRaw = (r as any).moneda ?? (r as any).nombreTipoMoneda ?? '';
-        const mon = (monRaw || '').toString().trim().toUpperCase();
-        const est = (r as any).estado ?? (r as any).estadoContratacion ?? '';
-        // support different count property names: countContratos or cantidadContratos
-        const cnt = (r as any).countContratos ?? (r as any).cantidadContratos ?? 0;
-        const total = (r as any).totalRecurrente ?? (r as any).monto ?? 0;
-        console.log('  - row', { mon, est, totalRecurrente: total, countContratos: cnt });
-        if (!agg[mon]) agg[mon] = {};
-        if (!agg[mon][est]) agg[mon][est] = { totalRecurrente: 0, countContratos: 0 };
-        agg[mon][est].totalRecurrente += Number(total || 0);
-        agg[mon][est].countContratos += Number(cnt || 0);
-      }
+    for (const r of rows) {
+      // accept different possible property names returned by API
+      const monRaw = (r as any).moneda ?? (r as any).nombreTipoMoneda ?? '';
+      const mon = (monRaw || '').toString().trim().toUpperCase();
+      const est = (r as any).estado ?? (r as any).estadoContratacion ?? '';
+      // support different count property names: countContratos or cantidadContratos
+      const cnt = (r as any).countContratos ?? (r as any).cantidadContratos ?? 0;
+      const total = (r as any).totalRecurrente ?? (r as any).monto ?? 0;
+      console.log('  - row', { mon, est, totalRecurrente: total, countContratos: cnt });
+      if (!agg[mon]) agg[mon] = {};
+      if (!agg[mon][est]) agg[mon][est] = { totalRecurrente: 0, countContratos: 0 };
+      agg[mon][est].totalRecurrente += Number(total || 0);
+      agg[mon][est].countContratos += Number(cnt || 0);
+    }
     console.log('  agg result:', agg);
 
     // Ensure labels in fixed order and only those three currencies

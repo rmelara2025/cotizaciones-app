@@ -4,16 +4,16 @@ import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 
 interface SidenavItem {
-    label: string;
-    icon: string;
-    route: string;
+  label: string;
+  icon: string;
+  route: string;
 }
 
 @Component({
-    selector: 'app-sidenav',
-    standalone: true,
-    imports: [CommonModule, ButtonModule, RouterModule],
-    template: `
+  selector: 'app-sidenav',
+  standalone: true,
+  imports: [CommonModule, ButtonModule, RouterModule],
+  template: `
     <aside class="sidenav" [class.collapsed]="collapsed()">
       <div class="sidenav-top">
         <button pButton type="button" icon="pi pi-bars" class="hamburger" (click)="toggle()" aria-label="Toggle navigation"></button>
@@ -35,8 +35,8 @@ interface SidenavItem {
       </div>
     </aside>
   `,
-    styles: [
-        `
+  styles: [
+    `
     :host { display: block; }
     .sidenav {
       position: fixed;
@@ -71,43 +71,43 @@ interface SidenavItem {
       .sidenav { transform: translateX(-0%); position:fixed; }
     }
     `
-    ],
-    changeDetection: ChangeDetectionStrategy.OnPush
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SidenavComponent implements OnInit {
-    collapsed = signal(false);
+  collapsed = signal(false);
 
-    items: SidenavItem[] = [
-        { label: 'Cotizaciones', icon: 'pi-folder', route: '/cotizaciones' },
-        { label: 'Nueva cotización', icon: 'pi-plus', route: '/cotizaciones/nueva' },
-      { label: 'Dashboard Recurrentes', icon: 'pi-clock', route: '/dashboard' },
-        { label: 'Clientes', icon: 'pi-users', route: '/clientes' },
-        { label: 'Proveedores', icon: 'pi-box', route: '/proveedores' },
-        { label: 'Reportes', icon: 'pi-chart-bar', route: '/reportes' },
-        { label: 'Configuración', icon: 'pi-cog', route: '/config' }
-    ];
+  items: SidenavItem[] = [
+    { label: 'Cotizaciones', icon: 'pi-folder', route: '/cotizaciones' },
+    { label: 'Nueva cotización', icon: 'pi-plus', route: '/cotizaciones/nueva' },
+    { label: 'Dashboard Recurrentes', icon: 'pi-clock', route: '/dashboard' },
+    { label: 'Clientes', icon: 'pi-users', route: '/clientes' },
+    { label: 'Proveedores', icon: 'pi-box', route: '/proveedores' },
+    { label: 'Reportes', icon: 'pi-chart-bar', route: '/reportes' },
+    { label: 'Configuración', icon: 'pi-cog', route: '/config' }
+  ];
 
-    constructor(private router: Router) { }
+  constructor(private router: Router) { }
 
-    ngOnInit(): void {
-        this.applyCssVar();
+  ngOnInit(): void {
+    this.applyCssVar();
+  }
+
+  toggle() {
+    this.collapsed.update(v => !v);
+    this.applyCssVar();
+  }
+
+  onNavigate() {
+    // if small screen we could auto-close; leave behavior for later
+  }
+
+  private applyCssVar() {
+    const w = this.collapsed() ? '72px' : '240px';
+    try {
+      document.documentElement.style.setProperty('--sidenav-width', w);
+    } catch (e) {
+      /* noop during server-side or tests */
     }
-
-    toggle() {
-        this.collapsed.update(v => !v);
-        this.applyCssVar();
-    }
-
-    onNavigate() {
-        // if small screen we could auto-close; leave behavior for later
-    }
-
-    private applyCssVar() {
-        const w = this.collapsed() ? '72px' : '240px';
-        try {
-            document.documentElement.style.setProperty('--sidenav-width', w);
-        } catch (e) {
-            /* noop during server-side or tests */
-        }
-    }
+  }
 }
