@@ -31,6 +31,7 @@
     "@angular/router": "^20.3.0",
     "@ngneat/tailwind": "^7.0.3",
     "@primeuix/themes": "^1.2.5",
+    "chart.js": "^4.5.1",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primeng": "^20.3.0",
