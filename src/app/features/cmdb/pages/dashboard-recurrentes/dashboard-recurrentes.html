@@ -4,25 +4,25 @@
         <ng-template pTemplate="content">
             <div class="controls" style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;">
                 <button pButton type="button" label="Montos (recurrente)" (click)="toggleMetric('totalRecurrente')"
-                    [class.p-button-success]="metric==='totalRecurrente'"></button>
+                    [class.p-button-info]="metric==='totalRecurrente'"></button>
                 <button pButton type="button" label="Cantidad contratos" (click)="toggleMetric('countContratos')"
-                    [class.p-button-success]="metric==='countContratos'"></button>
+                    [class.p-button-info]="metric==='countContratos'"></button>
                 <div style="margin-left:auto;font-size:0.95rem;color:rgba(0,0,0,0.6);">Mostrando: <strong>{{ metric ===
                         'totalRecurrente' ? 'Total recurrente (dinero)' : 'Cantidad de contratos' }}</strong></div>
             </div>
-            <div class="chart-wrapper" style="height:360px;">
-                <p-chart type="bar" [data]="chartData" [options]="chartOptions"></p-chart>
+            <div class="chart-wrapper">
+                <p-chart type="bar" [data]="chartData" [options]="chartOptions" class="chart-container"></p-chart>
             </div>
         </ng-template>
     </p-card>
 
     <p-card class="summary-card">
-        <ng-template pTemplate="title">Resumen</ng-template>
+        <ng-template pTemplate="title">Resumen Recurrentes</ng-template>
         <ng-template pTemplate="content">
             <p-table [value]="summary" [paginator]="true" [rows]="10">
                 <ng-template pTemplate="header">
                     <tr>
-                        <th>Moneda</th>
+                        <th>Tipo Moneda</th>
                         <th>Estado</th>
                         <th>Total Recurrente</th>
                         <th>Cantidad Contratos</th>

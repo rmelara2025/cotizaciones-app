@@ -78,9 +78,9 @@ export class SidenavComponent implements OnInit {
   collapsed = signal(false);
 
   items: SidenavItem[] = [
+    { label: 'Dashboard', icon: 'pi-clock', route: '/dashboard' },
     { label: 'Cotizaciones', icon: 'pi-folder', route: '/cotizaciones' },
     { label: 'Nueva cotización', icon: 'pi-plus', route: '/cotizaciones/nueva' },
-    { label: 'Dashboard Recurrentes', icon: 'pi-clock', route: '/dashboard' },
     { label: 'Clientes', icon: 'pi-users', route: '/clientes' },
     { label: 'Proveedores', icon: 'pi-box', route: '/proveedores' },
     { label: 'Reportes', icon: 'pi-chart-bar', route: '/reportes' },

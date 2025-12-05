@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
@@ -23,6 +23,7 @@ interface SummaryRow {
 })
 export class DashboardRecurrentes implements OnInit {
   private dashboardService = inject(DashboardService);
+  private cdr = inject(ChangeDetectorRef);
 
   // Chart.js data/options
   chartData: any = { labels: [], datasets: [] };
@@ -109,8 +110,8 @@ export class DashboardRecurrentes implements OnInit {
       });
     };
 
-    // Assign to bindings on next tick to avoid ExpressionChangedAfterItHasBeenCheckedError
-    const chartPayload = { labels: monedas, datasets: buildDatasets(this.metric) };
+    // Always build with totalRecurrente metric on initial load
+    const chartPayload = { labels: monedas, datasets: buildDatasets('totalRecurrente') };
     const summaryRows: SummaryRow[] = [];
     for (const mon of monedas) {
       for (const est of this.estados) {
@@ -127,15 +128,48 @@ export class DashboardRecurrentes implements OnInit {
     setTimeout(() => {
       this.chartData = chartPayload;
       this.summary = summaryRows;
+      this.cdr.markForCheck();
     }, 0);
   }
 
   // Toggle metric and rebuild datasets
   toggleMetric(metric: 'totalRecurrente' | 'countContratos') {
     this.metric = metric;
-    // rebuild chart datasets based on existing summary/aggregation
-    // Recreate a small rows array from summary to reuse process
-    const rows: DashboardContrato[] = this.summary.map(s => ({ moneda: s.moneda, estado: s.estado === 'Por expirar' ? 'por-expirar' : s.estado.toLowerCase() as any, totalRecurrente: s.totalRecurrente, countContratos: s.countContratos }));
-    this.process(rows);
+    // Rebuild chart datasets with the new metric
+    const monedas = this.monedasOrder.slice();
+    const colors: Record<string, string> = {
+      'expirado': 'rgba(220,53,69,0.8)',
+      'por-expirar': 'rgba(255,193,7,0.85)',
+      'vigente': 'rgba(40,167,69,0.85)'
+    };
+
+    // Rebuild aggregation from summary rows
+    const agg: Record<string, Record<string, { totalRecurrente: number; countContratos: number }>> = {};
+    for (const s of this.summary) {
+      const mon = s.moneda;
+      const est = s.estado === 'Por expirar' ? 'por-expirar' : s.estado.toLowerCase();
+      if (!agg[mon]) agg[mon] = {};
+      agg[mon][est] = { totalRecurrente: s.totalRecurrente, countContratos: s.countContratos };
+    }
+
+    const buildDatasets = (m: 'totalRecurrente' | 'countContratos') => {
+      return this.estados.map(estado => {
+        const data = monedas.map(mon => {
+          const v = agg[mon] && agg[mon][estado] ? agg[mon][estado][m] : 0;
+          return Number(v || 0);
+        });
+        return {
+          label: this.estadoLabels[estado] || estado,
+          backgroundColor: colors[estado],
+          data
+        };
+      });
+    };
+
+    // Update chart immediately with new metric
+    setTimeout(() => {
+      this.chartData = { labels: monedas, datasets: buildDatasets(metric) };
+      this.cdr.markForCheck();
+    }, 0);
   }
 }
