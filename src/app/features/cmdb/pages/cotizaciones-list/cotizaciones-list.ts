@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -16,6 +16,7 @@ import { CotizacionesService } from '../../../../core/services/cotizaciones.serv
 import { CotizacionDetalle } from '../cotizacion-detalle/cotizacion-detalle';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
+import { Table } from 'primeng/table'
 
 @Component({
   selector: 'app-cotizaciones-list',
@@ -39,6 +40,7 @@ import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
   styleUrl: './cotizaciones-list.scss',
 })
 export class CotizacionesList implements OnInit {
+
   private router = inject(Router);
   private contratosService = inject(ContratosService);
   private cotizacionesService = inject(CotizacionesService);
@@ -114,71 +116,66 @@ export class CotizacionesList implements OnInit {
     return row.codChi || row.codSison || row.codSap || null;
   }
 
-  // Returns true when the contract's fechaTermino is within `days` days from today (inclusive)
-  isNearExpiry(row: IContrato, days = 90): boolean {
-    try {
-      const term = row?.fechaTermino ? new Date(row.fechaTermino) : null;
-      if (!term) return false;
-      const now = new Date();
-      // clear time portion for consistent day calculations
-      const msPerDay = 1000 * 60 * 60 * 24;
-      const diffDays = Math.ceil((term.getTime() - now.getTime()) / msPerDay);
-      return diffDays >= 0 && diffDays <= days;
-    } catch (e) {
-      console.warn('isNearExpiry error', e);
-      return false;
-    }
+  // use UTC midnight to avoid timezone/DST issues
+  private parseLocalDate(dateString: string): Date {
+    const [y, m, d] = dateString.split('-').map(Number);
+    return new Date(y, m - 1, d);   // <-- sin UTC, sin timezone shift
   }
 
-  // Returns the number of days until expiry (can be negative if already expired). Null if no fechaTermino.
   daysUntilExpiry(row: IContrato): number | null {
     if (!row?.fechaTermino) return null;
     try {
-      const term = new Date(row.fechaTermino);
+      const term = this.parseLocalDate(row.fechaTermino);
+      const termUTC = Date.UTC(term.getFullYear(), term.getMonth(), term.getDate());
+
       const now = new Date();
-      // normalize to start of day for stable diff in days
-      const startNow = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      const startTerm = new Date(term.getFullYear(), term.getMonth(), term.getDate()).getTime();
-      const msPerDay = 1000 * 60 * 60 * 24;
-      return Math.ceil((startTerm - startNow) / msPerDay);
+      const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+      const diffMs = termUTC - nowUTC;
+      const msPerDay = 24 * 60 * 60 * 1000;
+      //const diffDays = Math.round((startTermUtc - startNowUtc) / msPerDay);
+
+      return Math.round(diffMs / msPerDay);  // OJO → ahora usamos Math.round()
     } catch (e) {
       console.warn('daysUntilExpiry error', e);
       return null;
     }
   }
 
-  // 'high' = <=30 days, 'medium' = <=120, 'low' = <=180, null = not near expiry
+
+
   expirySeverity(row: IContrato): 'high' | 'medium' | 'low' | null {
     const d = this.daysUntilExpiry(row);
     if (d === null) return null;
-    if (d < 0) return 'high'; // already expired treat as high
-    if (d <= 31) return 'high';
-    if (d <= 120) return 'medium';
-    if (d <= 180) return 'low';
-    return null;
-  }
 
-  expiryBg(row: IContrato): string | null {
-    const sev = this.expirySeverity(row);
-    if (sev === 'high') return '#f8d7da'; // light red
-    if (sev === 'medium') return '#ffe5b4'; // light orange
-    if (sev === 'low') return '#fff3cd'; // light yellow
-    return null;
+    if (d < 0) return 'high';       // ya expirado → high
+    if (d === 0) return 'high';     // expira hoy -> tratar como alto
+    //if (d <= 31) return 'high';
+    if (d <= 120) return 'medium';
+    //if (d <= 180) return 'low';
+    return 'low';
   }
 
   getExpiryTooltip(row: any): string {
     const days = this.daysUntilExpiry(row);
-
-    if (days == null) {
-      return 'Sin fecha';
-    }
-
-    return days < 0
-      ? `Expirado hace ${Math.abs(days)} días`
-      : `Expira en ${days} días`;
+    if (days == null) return 'Sin fecha';
+    if (days < 0) return `Expirado hace ${Math.abs(days)} día${Math.abs(days) === 1 ? '' : 's'}`;
+    if (days === 0) return 'Expira hoy';
+    return `Expira en ${days} día${days === 1 ? '' : 's'}`;
   }
 
+
+  expiryBg(row: IContrato): string | null {
+    const sev = this.expirySeverity(row);
+    if (sev === 'high') return '#f8d7da'; // light red
+    if (sev === 'medium') return '#fff3cd'; // light orange
+    if (sev === 'low') return '#d1e7dd'; // light yellow
+    return '#fff';
+  }
+
+
   buscar() {
+
     this.contratosService.loadContratos(
       0,
       10,
