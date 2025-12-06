@@ -32,13 +32,18 @@ export class DashboardRecurrentes implements OnInit {
   // Table summary
   summary: SummaryRow[] = [];
 
-  // internal
-  readonly monedasOrder = ['CLP', 'USD', 'UF'];
-  private estados = ['expirado', 'por-expirar', 'vigente'];
-  private estadoLabels: Record<string, string> = {
+  // Constants for colors and labels
+  private readonly monedasOrder = ['CLP', 'USD', 'UF'];
+  private readonly estados = ['expirado', 'por-expirar', 'vigente'];
+  private readonly estadoLabels: Record<string, string> = {
     'expirado': 'Expirado',
     'por-expirar': 'Por expirar',
     'vigente': 'Vigente'
+  };
+  private readonly colors: Record<string, string> = {
+    'expirado': 'rgba(220,53,69,0.8)',
+    'por-expirar': 'rgba(255,193,7,0.85)',
+    'vigente': 'rgba(40,167,69,0.85)'
   };
 
   // current metric: 'totalRecurrente' or 'countContratos'
@@ -47,7 +52,6 @@ export class DashboardRecurrentes implements OnInit {
   ngOnInit(): void {
     this.dashboardService.getContratosDashboard().subscribe({
       next: (rows: DashboardContrato[]) => {
-        console.log('📡 Dashboard data received:', rows);
         this.process(rows);
       },
       error: (err) => console.error('Error loading dashboard data', err)
@@ -68,7 +72,6 @@ export class DashboardRecurrentes implements OnInit {
   }
 
   private process(rows: DashboardContrato[]) {
-    console.log('🔧 Processing dashboard rows:', rows && rows.length);
     // Aggregate rows by moneda and estado (in case API returns multiple rows)
     const agg: Record<string, Record<string, { totalRecurrente: number; countContratos: number }>> = {};
     for (const r of rows) {
@@ -79,22 +82,14 @@ export class DashboardRecurrentes implements OnInit {
       // support different count property names: countContratos or cantidadContratos
       const cnt = (r as any).countContratos ?? (r as any).cantidadContratos ?? 0;
       const total = (r as any).totalRecurrente ?? (r as any).monto ?? 0;
-      console.log('  - row', { mon, est, totalRecurrente: total, countContratos: cnt });
       if (!agg[mon]) agg[mon] = {};
       if (!agg[mon][est]) agg[mon][est] = { totalRecurrente: 0, countContratos: 0 };
       agg[mon][est].totalRecurrente += Number(total || 0);
       agg[mon][est].countContratos += Number(cnt || 0);
     }
-    console.log('  agg result:', agg);
 
     // Ensure labels in fixed order and only those three currencies
     const monedas = this.monedasOrder.slice();
-
-    const colors: Record<string, string> = {
-      'expirado': 'rgba(220,53,69,0.8)',
-      'por-expirar': 'rgba(255,193,7,0.85)',
-      'vigente': 'rgba(40,167,69,0.85)'
-    };
 
     const buildDatasets = (metric: 'totalRecurrente' | 'countContratos') => {
       return this.estados.map(estado => {
@@ -104,13 +99,13 @@ export class DashboardRecurrentes implements OnInit {
         });
         return {
           label: this.estadoLabels[estado] || estado,
-          backgroundColor: colors[estado],
+          backgroundColor: this.colors[estado],
           data
         };
       });
     };
 
-    // Always build with totalRecurrente metric on initial load
+    // Build initial chart and summary
     const chartPayload = { labels: monedas, datasets: buildDatasets('totalRecurrente') };
     const summaryRows: SummaryRow[] = [];
     for (const mon of monedas) {
@@ -137,11 +132,6 @@ export class DashboardRecurrentes implements OnInit {
     this.metric = metric;
     // Rebuild chart datasets with the new metric
     const monedas = this.monedasOrder.slice();
-    const colors: Record<string, string> = {
-      'expirado': 'rgba(220,53,69,0.8)',
-      'por-expirar': 'rgba(255,193,7,0.85)',
-      'vigente': 'rgba(40,167,69,0.85)'
-    };
 
     // Rebuild aggregation from summary rows
     const agg: Record<string, Record<string, { totalRecurrente: number; countContratos: number }>> = {};
@@ -160,7 +150,7 @@ export class DashboardRecurrentes implements OnInit {
         });
         return {
           label: this.estadoLabels[estado] || estado,
-          backgroundColor: colors[estado],
+          backgroundColor: this.colors[estado],
           data
         };
       });

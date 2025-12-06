@@ -45,6 +45,34 @@ export class ContratosService {
     // Separado: para cálculo de totales sin afectar tabla paginada
     todosParaTotales = signal<IContrato[]>([]);
 
+    /**
+     * Build HttpParams from pagination, sort, and filter parameters
+     * Shared utility to avoid duplication in load methods
+     */
+    private buildHttpParams(
+        page: number,
+        size: number,
+        sortField: string,
+        sortOrder: string,
+        filters?: any
+    ): HttpParams {
+        let params = new HttpParams()
+            .set('page', page.toString())
+            .set('size', size.toString())
+            .set('sort', `${sortField},${sortOrder}`);
+
+        // Add filters if provided
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] != null && filters[key] !== '' && filters[key] !== undefined) {
+                    params = params.set(key, filters[key]);
+                }
+            });
+        }
+
+        return params;
+    }
+
 
     loadContratos(
         page: number = 0,
@@ -53,28 +81,15 @@ export class ContratosService {
         sortOrder: 'asc' | 'desc' = 'desc',
         filters: any
     ) {
-        console.log('🔄 Loading contratos with params:', { page, size });
         this.loading.set(true);
         this.error.set(null);
         this.currentPage.set(page);
         this.pageSize.set(size);
 
-        let params = new HttpParams()
-            .set('page', page.toString())
-            .set('size', size.toString())
-            .set('sort', `${sortField},${sortOrder}`);
-
-        Object.keys(filters || {}).forEach(key => {
-            if (filters[key] != null && filters[key] !== '' && filters[key] !== undefined) {
-                params = params.set(key, filters[key]);
-            }
-        });
+        const params = this.buildHttpParams(page, size, sortField, sortOrder, filters);
 
         this.http.get<IPaginatedResponse>(`${this.API_URL}/contratos`, { params }).subscribe({
             next: (response) => {
-                console.log('✅ Contratos loaded successfully:', response);
-                console.log('📊 Content:', response.content);
-                console.log('📈 Total Records:', response.totalElements);
                 this.contratos.set(response.content || []);
                 this.totalRecords.set(response.totalElements || 0);
 
@@ -102,22 +117,10 @@ export class ContratosService {
         sortOrder: 'asc' | 'desc' = 'desc',
         filters: any
     ): Observable<IPaginatedResponse | null> {
-        console.log('🔄 Loading ALL contratos for totals calculation');
-
-        let params = new HttpParams()
-            .set('page', '0')
-            .set('size', '99999')  // Número grande para traer todos
-            .set('sort', `${sortField},${sortOrder}`);
-
-        Object.keys(filters || {}).forEach(key => {
-            if (filters[key] != null && filters[key] !== '' && filters[key] !== undefined) {
-                params = params.set(key, filters[key]);
-            }
-        });
+        const params = this.buildHttpParams(0, 99999, sortField, sortOrder, filters);
 
         return this.http.get<IPaginatedResponse>(`${this.API_URL}/contratos`, { params }).pipe(
             tap(response => {
-                console.log('✅ All contratos loaded for totals:', response.content?.length);
                 this.todosParaTotales.set(response.content || []);
 
                 // Calcular también el global aquí

@@ -1,10 +1,11 @@
 import { Component, OnInit, Input, inject, ChangeDetectionStrategy, effect } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { CotizacionesService, CotizacionDetalle as ICotizacionDetalle } from '../../../../core/services/cotizaciones.service';
+import { CurrencyService } from '../../../../core/services/currency.service';
 
 @Component({
   selector: 'app-cotizacion-detalle',
@@ -16,8 +17,8 @@ import { CotizacionesService, CotizacionDetalle as ICotizacionDetalle } from '..
 })
 export class CotizacionDetalle implements OnInit {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   protected cotizacionesService = inject(CotizacionesService);
+  private currencyService = inject(CurrencyService);
 
   @Input() idContrato?: string;
   @Input() isModal = false;
@@ -75,18 +76,13 @@ export class CotizacionDetalle implements OnInit {
   currentFirst = 0;
 
   onPageChange(event: any) {
-    // event.first = índice del primer registro
-    // event.rows = tamaño de página
-    //const page = Math.floor(event.first / event.rows);
-    //console.log('📄 Page changed:', { first: event.first, rows: event.rows, page });
-    //this.cotizacionesService.loadCotizacionDetalle(this.id, page, event.rows);
     if (this.block) return;
     this.block = true;
     setTimeout(() => (this.block = false), 50);
 
     const page = Math.floor(event.first / event.rows);
 
-    // ACTUALIZA FIRST → ESTO ARREGLA LA PÁGINA ACTIVA
+    // Update first to reflect current page position
     this.currentFirst = event.first;
 
     if (page === this.lastPage) {
@@ -99,26 +95,10 @@ export class CotizacionDetalle implements OnInit {
   }
 
   convertCurrency(row: ICotizacionDetalle): string {
-    const amount = typeof row?.recurrente === 'number' ? row.recurrente : Number(row?.recurrente) || 0;
+    const amount = typeof row?.recurrente === 'number'
+      ? row.recurrente
+      : Number(row?.recurrente) || 0;
 
-    switch (row?.nombreTipoMoneda) {
-      case 'USD': {
-        // Thousands: '.'  Decimals: ','  -> use de-DE locale
-        const fmt = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
-        return `$ ${fmt} USD`;
-      }
-      case 'UF': {
-        // Thousands: ','  Decimals: '.'  -> use en-US locale
-        const fmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
-        return `${fmt} UF`;
-      }
-      case 'CLP': {
-        // Thousands: '.'  No decimals -> use es-CL locale with 0 decimals
-        const fmt = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(amount);
-        return `$ ${fmt}`;
-      }
-      default:
-        return amount.toString();
-    }
+    return this.currencyService.format(amount, row?.nombreTipoMoneda);
   }
 }

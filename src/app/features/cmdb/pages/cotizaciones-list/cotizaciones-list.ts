@@ -1,5 +1,4 @@
 import { Component, OnInit, inject, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -13,9 +12,13 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ContratosService, IContrato } from '../../../../core/services/contratos.service';
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
+import { ExpiryService } from '../../../../core/services/expiry.service';
+import { CurrencyService } from '../../../../core/services/currency.service';
 import { CotizacionDetalle } from '../cotizacion-detalle/cotizacion-detalle';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
+import { ContratoFilters, DEFAULT_CONTRATO_FILTERS } from '../../../../core/models/filter.model';
+import { Totals, EMPTY_TOTALS } from '../../../../core/models/totals.model';
 import { Table } from 'primeng/table'
 
 @Component({
@@ -42,20 +45,13 @@ import { Table } from 'primeng/table'
 export class CotizacionesList implements OnInit {
   @ViewChild('dt') table?: Table;
 
-  private router = inject(Router);
   private contratosService = inject(ContratosService);
   private cotizacionesService = inject(CotizacionesService);
+  private expiryService = inject(ExpiryService);
+  private currencyService = inject(CurrencyService);
 
-  // Filtros del usuario
-  filters = {
-    rutCliente: '',
-    nombreCliente: '',
-    codChi: '',
-    codSap: '',
-    codSison: '',
-    estado: 'todos'  // vigente | expira | expirado | todos
-  };
-
+  // Typed filters
+  filters: ContratoFilters = { ...DEFAULT_CONTRATO_FILTERS };
 
   // UI state for dialog
   showDetalleDialog = false;
@@ -89,10 +85,8 @@ export class CotizacionesList implements OnInit {
 
 
   ngOnInit() {
-    console.log('🚀 CotizacionesList component initialized');
     // Carga inicial: la tabla + totales en paralelo para mejor rendimiento
     this.cargarTablayTotales(0, 10);
-
   }
 
   /**
@@ -120,15 +114,12 @@ export class CotizacionesList implements OnInit {
     // event.first = índice del primer registro
     // event.rows = tamaño de página
     const page = Math.floor(event.first / event.rows);
-    console.log('📄 Page changed:', { first: event.first, rows: event.rows, page });
     // Solo cargar la tabla (los totales no cambian cuando cambias de página)
     this.contratosService.loadContratos(page, event.rows, event.sortField, event.sortOrder === 1 ? 'asc' : 'desc', this.filters);
   }
 
   verDetalle(contrato: IContrato) {
     // Open dialog with detalle component inside
-    console.log('👁️ Opening detalle dialog for idContrato:', contrato?.idContrato);
-    console.log('📦 Full contrato object:', contrato);
     this.selectedRow = contrato;
     this.showDetalleDialog = true;
   }
@@ -147,66 +138,52 @@ export class CotizacionesList implements OnInit {
     return row.codChi || row.codSison || row.codSap || null;
   }
 
-  // use UTC midnight to avoid timezone/DST issues
-  private parseLocalDate(dateString: string): Date {
-    const [y, m, d] = dateString.split('-').map(Number);
-    return new Date(y, m - 1, d);   // <-- sin UTC, sin timezone shift
-  }
-
+  /**
+   * Get expiry days count
+   */
   daysUntilExpiry(row: IContrato): number | null {
-    if (!row?.fechaTermino) return null;
-    try {
-      const term = this.parseLocalDate(row.fechaTermino);
-      const termUTC = Date.UTC(term.getFullYear(), term.getMonth(), term.getDate());
-
-      const now = new Date();
-      const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-
-      const diffMs = termUTC - nowUTC;
-      const msPerDay = 24 * 60 * 60 * 1000;
-      //const diffDays = Math.round((startTermUtc - startNowUtc) / msPerDay);
-
-      return Math.round(diffMs / msPerDay);  // OJO → ahora usamos Math.round()
-    } catch (e) {
-      console.warn('daysUntilExpiry error', e);
-      return null;
-    }
+    return this.expiryService.getDaysUntilExpiry(row?.fechaTermino);
   }
 
-
-
+  /**
+   * Get expiry severity level
+   */
   expirySeverity(row: IContrato): 'high' | 'medium' | 'low' | null {
-    const d = this.daysUntilExpiry(row);
-    if (d === null) return null;
-
-    if (d < 0) return 'high';       // ya expirado → high
-    if (d === 0) return 'high';     // expira hoy -> tratar como alto
-    //if (d <= 31) return 'high';
-    if (d <= 120) return 'medium';
-    //if (d <= 180) return 'low';
-    return 'low';
-  }
-
-  getExpiryTooltip(row: any): string {
     const days = this.daysUntilExpiry(row);
-    if (days == null) return 'Sin fecha';
-    if (days < 0) return `Expirado hace ${Math.abs(days)} día${Math.abs(days) === 1 ? '' : 's'}`;
-    if (days === 0) return 'Expira hoy';
-    return `Expira en ${days} día${days === 1 ? '' : 's'}`;
+    return this.expiryService.getSeverity(days);
   }
 
+  /**
+   * Get expiry tooltip message
+   */
+  getExpiryTooltip(row: IContrato): string {
+    const days = this.daysUntilExpiry(row);
+    return this.expiryService.getTooltip(days);
+  }
 
+  /**
+   * Get expiry background color
+   */
   expiryBg(row: IContrato): string | null {
-    const sev = this.expirySeverity(row);
-    if (sev === 'high') return '#f8d7da'; // light red
-    if (sev === 'medium') return '#fff3cd'; // light orange
-    if (sev === 'low') return '#d1e7dd'; // light yellow
-    return '#fff';
+    const severity = this.expirySeverity(row);
+    return this.expiryService.getBackgroundColor(severity);
   }
 
+  /**
+   * Format currency amount according to type
+   */
+  convertCurrency(row: IContrato): string {
+    const amount = typeof row?.totalRecurrente === 'number'
+      ? row.totalRecurrente
+      : Number(row?.totalRecurrente) || 0;
 
+    return this.currencyService.format(amount, row?.nombreTipoMoneda);
+  }
+
+  /**
+   * Handle search button click
+   */
   buscar() {
-    console.log('🔍 Búsqueda iniciada con filtros:', this.filters);
     // Reset del paginator
     this.table?.reset();
     // Cargar tabla + totales en paralelo. Run in microtask to ensure ngModel updates applied
@@ -214,37 +191,12 @@ export class CotizacionesList implements OnInit {
   }
 
   /**
-   * Handler para cambios en el select 'estado'.
-   * Usa el nuevo valor, actualiza el filtro y recarga tabla+totales.
+   * Handler para cambios en el select 'estado'
    */
   onEstadoChange(newValue: any) {
     this.filters.estado = newValue;
     // Run in microtask to avoid race with template/model propagation
     Promise.resolve().then(() => this.cargarTablayTotales(0, 10));
-  }
-
-  convertCurrency(row: IContrato): string {
-    const amount = typeof row?.totalRecurrente === 'number' ? row.totalRecurrente : Number(row?.totalRecurrente) || 0;
-
-    switch (row?.nombreTipoMoneda) {
-      case 'USD': {
-        // Thousands: '.'  Decimals: ','  -> use de-DE locale
-        const fmt = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
-        return `$ ${fmt} USD`;
-      }
-      case 'UF': {
-        // Thousands: ','  Decimals: '.'  -> use en-US locale
-        const fmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
-        return `${fmt} UF`;
-      }
-      case 'CLP': {
-        // Thousands: '.'  No decimals -> use es-CL locale with 0 decimals
-        const fmt = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(amount);
-        return `$ ${fmt}`;
-      }
-      default:
-        return amount.toString();
-    }
   }
 
   totalesPorMoneda: { [moneda: string]: number } = {};
@@ -253,12 +205,11 @@ export class CotizacionesList implements OnInit {
   /**
    * Recalcula los totales por moneda leyendo la señal `todosParaTotales`
    */
-  recalcularTotales() {
-    // IMPORTANTE: Leer de todosParaTotales, NO de contratos
+  private recalcularTotales() {
+    // Leer de todosParaTotales, NO de contratos
     // contratos es solo los 10 registros paginados de la tabla
     // todosParaTotales contiene TODOS los registros para calcular totales correctos
     const rows = this.contratosService.todosParaTotales();
-    console.log('📊 Recalculando totales - Filas en todosParaTotales:', rows?.length || 0, 'Primeros 3:', rows?.slice(0, 3));
 
     // Total global
     this.totalRecurrenteFiltrado = rows.reduce((acc, r) => {
@@ -277,10 +228,6 @@ export class CotizacionesList implements OnInit {
     });
 
     this.totalesPorMoneda = mapa;
-    console.log('✅ Totales calculados:', { totalRecurrenteFiltrado: this.totalRecurrenteFiltrado, totalesPorMoneda: this.totalesPorMoneda });
   }
-
 }
-
-
 

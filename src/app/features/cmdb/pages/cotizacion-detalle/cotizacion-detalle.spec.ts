@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { CotizacionDetalle } from './cotizacion-detalle';
 
 describe('CotizacionDetalle', () => {
@@ -8,9 +7,8 @@ describe('CotizacionDetalle', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CotizacionDetalle]
-    })
-    .compileComponents();
+      imports: [CotizacionDetalle]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(CotizacionDetalle);
     component = fixture.componentInstance;

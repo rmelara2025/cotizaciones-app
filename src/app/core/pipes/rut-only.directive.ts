@@ -1,5 +1,6 @@
 import { Directive, HostListener, ElementRef, forwardRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR, NG_VALIDATORS, Validator, AbstractControl, ValidationErrors, ControlValueAccessor } from '@angular/forms';
+import { validateRut, formatRut, cleanRut, isValidRutCharacter } from '../utils/rut.utils';
 
 @Directive({
     selector: '[appRutInput]',
@@ -26,8 +27,7 @@ export class RutInputDirective implements ControlValueAccessor, Validator {
     // Solo permitir dígitos y K/k
     @HostListener('keypress', ['$event'])
     onKeyPress(event: KeyboardEvent) {
-        const allowed = /[0-9kK]/;
-        if (!allowed.test(event.key)) {
+        if (!isValidRutCharacter(event.key)) {
             event.preventDefault();
         }
     }
@@ -36,12 +36,12 @@ export class RutInputDirective implements ControlValueAccessor, Validator {
     @HostListener('input', ['$event'])
     onInput(event: any) {
         const raw = event.target.value.replace(/[.\-]/g, '').toUpperCase();
-        const formatted = this.formatRut(raw);
+        const formatted = formatRut(raw);
 
         this.el.nativeElement.value = formatted;
         // 🔥 Enviar al ngModel el RUT limpio pero CONSERVANDO el GUION
-        const cleanRut = this.cleanRut(formatted); // quita puntos, deja guion
-        this.onChange(cleanRut);
+        const cleanedValue = cleanRut(formatted);
+        this.onChange(cleanedValue);
     }
 
     private cleanRut(value: string): string {
@@ -49,24 +49,9 @@ export class RutInputDirective implements ControlValueAccessor, Validator {
         return value.replace(/\./g, '');
     }
 
-
-
-
-    // Formato 12.345.678-K
-    private formatRut(value: string): string {
-        if (!value) return '';
-
-        let body = value.slice(0, -1);
-        let dv = value.slice(-1);
-
-        body = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-        return body + '-' + dv;
-    }
-
     writeValue(value: any): void {
         if (value) {
-            this.el.nativeElement.value = this.formatRut(value);
+            this.el.nativeElement.value = formatRut(value);
         } else {
             this.el.nativeElement.value = '';
         }
@@ -80,33 +65,10 @@ export class RutInputDirective implements ControlValueAccessor, Validator {
         const value = control.value;
         if (!value) return null;
 
-        if (!this.validateRut(value)) {
+        if (!validateRut(value)) {
             return { rutInvalid: true };
         }
 
         return null;
-    }
-
-    // Cálculo de dígito verificador
-    private validateRut(rut: string): boolean {
-        const clean = rut.replace(/\./g, '').replace('-', '');
-
-        if (clean.length < 2) return false;
-
-        const body = clean.slice(0, -1);
-        let dv = clean.slice(-1).toUpperCase();
-
-        let sum = 0;
-        let multiplier = 2;
-
-        for (let i = body.length - 1; i >= 0; i--) {
-            sum += Number(body[i]) * multiplier;
-            multiplier = multiplier === 7 ? 2 : multiplier + 1;
-        }
-
-        let expectedDv: any = 11 - (sum % 11);
-        expectedDv = expectedDv === 11 ? '0' : expectedDv === 10 ? 'K' : expectedDv.toString();
-
-        return dv === expectedDv;
     }
 }

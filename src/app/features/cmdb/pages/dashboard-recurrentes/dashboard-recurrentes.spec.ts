@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { DashboardRecurrentes } from './dashboard-recurrentes';
 
 describe('DashboardRecurrentes', () => {
@@ -8,9 +7,8 @@ describe('DashboardRecurrentes', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DashboardRecurrentes]
-    })
-    .compileComponents();
+      imports: [DashboardRecurrentes]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardRecurrentes);
     component = fixture.componentInstance;
