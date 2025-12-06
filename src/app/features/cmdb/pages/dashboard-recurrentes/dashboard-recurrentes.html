@@ -1,5 +1,5 @@
-<div class="dashboard-root">
-    <p-card>
+<div class="contratos-container pl-3 pt-3">
+    <p-card class="px-5">
         <ng-template pTemplate="title">Dashboard Recurrentes</ng-template>
         <ng-template pTemplate="content">
             <div class="controls" style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;">
@@ -16,10 +16,10 @@
         </ng-template>
     </p-card>
 
-    <p-card class="summary-card">
+    <p-card class="summary-card px-5 mt-4">
         <ng-template pTemplate="title">Resumen Recurrentes</ng-template>
         <ng-template pTemplate="content">
-            <p-table [value]="summary" [paginator]="true" [rows]="10">
+            <p-table [value]="summary" [paginator]="false" [rows]="10">
                 <ng-template pTemplate="header">
                     <tr>
                         <th>Tipo Moneda</th>

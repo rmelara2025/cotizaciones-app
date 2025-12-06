@@ -40,6 +40,7 @@ import { Table } from 'primeng/table'
   styleUrl: './cotizaciones-list.scss',
 })
 export class CotizacionesList implements OnInit {
+  @ViewChild('dt') table?: Table;
 
   private router = inject(Router);
   private contratosService = inject(ContratosService);
@@ -80,10 +81,39 @@ export class CotizacionesList implements OnInit {
     return this.contratosService.pageSize();
   }
 
+  // dentro de CotizacionesList
+  get totalRecurrenteGlobal(): number {
+    return this.contratosService.totalRecurrenteGlobal();
+  }
+
+
+
   ngOnInit() {
     console.log('🚀 CotizacionesList component initialized');
-    this.contratosService.loadContratos(0, 10, 'fechaInicio', 'asc', this.filters);
-    console.log('📞 loadContratos called');
+    // Carga inicial: la tabla + totales en paralelo para mejor rendimiento
+    this.cargarTablayTotales(0, 10);
+
+  }
+
+  /**
+   * Carga simultáneamente la tabla paginada y los totales globales
+   * Se usa en ngOnInit y cuando el usuario cambia filtros
+   */
+  private cargarTablayTotales(page: number, size: number) {
+    // Cargar tabla paginada
+    this.contratosService.loadContratos(page, size, 'fechaInicio', 'asc', this.filters);
+
+    // Cargar todos los datos para totales (sin esperar a que termine la tabla)
+    // El servicio devuelve un observable; nos suscribimos y recalculamos cuando termina
+    this.contratosService.cargarTodosParaTotales('fechaInicio', 'asc', this.filters)
+      .subscribe({
+        next: () => {
+          this.recalcularTotales();
+        },
+        error: (err) => {
+          console.error('❌ Error cargando todosParaTotales desde componente:', err);
+        }
+      });
   }
 
   onPageChange(event: any) {
@@ -91,6 +121,7 @@ export class CotizacionesList implements OnInit {
     // event.rows = tamaño de página
     const page = Math.floor(event.first / event.rows);
     console.log('📄 Page changed:', { first: event.first, rows: event.rows, page });
+    // Solo cargar la tabla (los totales no cambian cuando cambias de página)
     this.contratosService.loadContratos(page, event.rows, event.sortField, event.sortOrder === 1 ? 'asc' : 'desc', this.filters);
   }
 
@@ -175,16 +206,81 @@ export class CotizacionesList implements OnInit {
 
 
   buscar() {
-
-    this.contratosService.loadContratos(
-      0,
-      10,
-      'fechaInicio',
-      'asc',
-      this.filters
-    );
+    console.log('🔍 Búsqueda iniciada con filtros:', this.filters);
+    // Reset del paginator
+    this.table?.reset();
+    // Cargar tabla + totales en paralelo. Run in microtask to ensure ngModel updates applied
+    Promise.resolve().then(() => this.cargarTablayTotales(0, 10));
   }
 
+  /**
+   * Handler para cambios en el select 'estado'.
+   * Usa el nuevo valor, actualiza el filtro y recarga tabla+totales.
+   */
+  onEstadoChange(newValue: any) {
+    this.filters.estado = newValue;
+    // Run in microtask to avoid race with template/model propagation
+    Promise.resolve().then(() => this.cargarTablayTotales(0, 10));
+  }
+
+  convertCurrency(row: IContrato): string {
+    const amount = typeof row?.totalRecurrente === 'number' ? row.totalRecurrente : Number(row?.totalRecurrente) || 0;
+
+    switch (row?.nombreTipoMoneda) {
+      case 'USD': {
+        // Thousands: '.'  Decimals: ','  -> use de-DE locale
+        const fmt = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+        return `$ ${fmt} USD`;
+      }
+      case 'UF': {
+        // Thousands: ','  Decimals: '.'  -> use en-US locale
+        const fmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+        return `${fmt} UF`;
+      }
+      case 'CLP': {
+        // Thousands: '.'  No decimals -> use es-CL locale with 0 decimals
+        const fmt = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(amount);
+        return `$ ${fmt}`;
+      }
+      default:
+        return amount.toString();
+    }
+  }
+
+  totalesPorMoneda: { [moneda: string]: number } = {};
+  totalRecurrenteFiltrado: number = 0;
+
+  /**
+   * Recalcula los totales por moneda leyendo la señal `todosParaTotales`
+   */
+  recalcularTotales() {
+    // IMPORTANTE: Leer de todosParaTotales, NO de contratos
+    // contratos es solo los 10 registros paginados de la tabla
+    // todosParaTotales contiene TODOS los registros para calcular totales correctos
+    const rows = this.contratosService.todosParaTotales();
+    console.log('📊 Recalculando totales - Filas en todosParaTotales:', rows?.length || 0, 'Primeros 3:', rows?.slice(0, 3));
+
+    // Total global
+    this.totalRecurrenteFiltrado = rows.reduce((acc, r) => {
+      const val = Number(r.totalRecurrente) || 0;
+      return acc + val;
+    }, 0);
+
+    // Totales por moneda
+    const mapa: { [m: string]: number } = {};
+
+    rows.forEach(r => {
+      const m = r.nombreTipoMoneda;
+      const val = Number(r.totalRecurrente) || 0;
+      if (!mapa[m]) mapa[m] = 0;
+      mapa[m] += val;
+    });
+
+    this.totalesPorMoneda = mapa;
+    console.log('✅ Totales calculados:', { totalRecurrenteFiltrado: this.totalRecurrenteFiltrado, totalesPorMoneda: this.totalesPorMoneda });
+  }
 
 }
+
+
 

@@ -36,7 +36,7 @@
             {label: 'Sólo Vigentes', value: 'vigente'},
             {label: 'Sólo por Expirar', value: 'por-expirar'},
             {label: 'Sólo Expirados', value: 'expirado'},
-        ]" [(ngModel)]="filters.estado" size="small">
+        ]" [(ngModel)]="filters.estado" (ngModelChange)="onEstadoChange($event)" size="small">
                     </p-select>
                 </p-inputGroup>
 
@@ -110,6 +110,9 @@
                 <th pSortableColumn="nombreTipoPago" style="text-align:center;">
                     Tipo de Pago <p-sortIcon field="nombreTipoPago"></p-sortIcon>
                 </th>
+                <th pSortableColumn="totalRecurrente" style="text-align:center;">
+                    Total Recurrente <p-sortIcon field="totalRecurrente"></p-sortIcon>
+                </th>
                 <th pSortableColumn="codChi" style="text-align:center;" class="nowrap-col">
                     Cód. CHI <p-sortIcon field="codChi"></p-sortIcon>
                 </th>
@@ -152,6 +155,11 @@
                         {{ row.nombreTipoPago }}
                     </span>
                 </td>
+                <td [style.background]="expiryBg(row)" style="text-align: right;">
+                    <span class="p-tag p-tag-info">
+                        {{ convertCurrency(row) }}
+                    </span>
+                </td>
                 <td [style.background]="expiryBg(row)" class="nowrap-col">
                     <span class="p-tag p-tag-info">
                         {{ row.codChi }}
@@ -174,11 +182,29 @@
             </tr>
         </ng-template>
 
+
+
         <ng-template pTemplate="emptymessage">
             <tr>
                 <td colspan="10" class="text-center p-4">
                     No hay contratos disponibles
                 </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="footer">
+            <tr style="background-color: #f5f5f5; font-weight: bold;">
+                <td colspan="6" style="text-align: right; padding-right: 1rem;">
+                    TOTALES POR MONEDA:
+                </td>
+                <td style="text-align: right;">
+                    <div *ngFor="let moneda of (totalesPorMoneda | keyvalue)">
+                        <span *ngIf="moneda.value > 0">
+                            {{ moneda.key }}: {{ moneda.value | number:'1.0-0' }}
+                        </span>
+                    </div>
+                </td>
+                <td colspan="3"></td>
             </tr>
         </ng-template>
     </p-table>
