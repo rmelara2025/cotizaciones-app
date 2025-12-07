@@ -1,7 +1,7 @@
 /**
  * Typed filter interface for Contrato search/filtering
  */
-export interface ContratoFilters {
+export interface IContratoFilters {
     rutCliente: string;
     nombreCliente: string;
     codChi: string;
@@ -13,11 +13,11 @@ export interface ContratoFilters {
 /**
  * Default/empty filters object
  */
-export const DEFAULT_CONTRATO_FILTERS: ContratoFilters = {
+export const DEFAULT_CONTRATO_FILTERS: IContratoFilters = {
     rutCliente: '',
     nombreCliente: '',
     codChi: '',
     codSap: '',
     codSison: '',
-    estado: 'todos'
+    estado: 'todos',
 };

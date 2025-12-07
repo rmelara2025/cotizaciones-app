@@ -7,7 +7,7 @@ describe('DashboardRecurrentes', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DashboardRecurrentes]
+      imports: [DashboardRecurrentes],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardRecurrentes);

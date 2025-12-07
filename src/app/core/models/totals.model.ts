@@ -1,12 +1,12 @@
 /**
  * Totals model and calculation interface
  */
-export interface Totals {
+export interface ITotals {
     totalRecurrenteFiltrado: number;
     totalesPorMoneda: Record<string, number>;
 }
 
-export const EMPTY_TOTALS: Totals = {
+export const EMPTY_TOTALS: ITotals = {
     totalRecurrenteFiltrado: 0,
-    totalesPorMoneda: {}
+    totalesPorMoneda: {},
 };

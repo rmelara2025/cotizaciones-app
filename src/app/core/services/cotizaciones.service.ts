@@ -1,38 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-
-export interface CotizacionDetalle {
-    idDetalle: string;
-    numItem: number;
-    versionCotizacion: number;
-    idContrato: string;
-    idServicio: number;
-    cantidad: number;
-    recurrente: number;
-    atributos: any;
-    fechaRegistro: string;
-    nombreServicio: string;
-    nombreFamilia: string;
-    nombreTipoMoneda: string;
-    [key: string]: any;
-}
-
-export interface IPaginatedResponse {
-    content: CotizacionDetalle[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
-    size: number;
-    [key: string]: any;
-}
+import { ICotizacionDetalle, IPaginatedCotizacionResponse } from '../models';
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: 'root',
 })
 export class CotizacionesService {
     private http = inject(HttpClient);
     private readonly API_URL = 'http://localhost:8080/api';
-    cotizacionDetalle = signal<CotizacionDetalle[]>([]);
+    cotizacionDetalle = signal<ICotizacionDetalle[]>([]);
     totalRecords = signal(0);
     currentPage = signal(0);
     pageSize = signal(10);
@@ -52,7 +28,7 @@ export class CotizacionesService {
 
         const url = `${this.API_URL}/cotizaciones/${idContrato}/detalle`;
 
-        this.http.get<IPaginatedResponse>(url, { params }).subscribe({
+        this.http.get<IPaginatedCotizacionResponse>(url, { params }).subscribe({
             next: (response) => {
                 this.cotizacionDetalle.set(response.content || []);
                 this.totalRecords.set(response.totalElements || 0);
@@ -65,7 +41,7 @@ export class CotizacionesService {
                 console.error('❌ Error loading cotizacion detalle:', err);
                 this.error.set('No se pudo cargar el detalle de la cotización: ' + err.message);
                 this.loading.set(false);
-            }
+            },
         });
     }
 }

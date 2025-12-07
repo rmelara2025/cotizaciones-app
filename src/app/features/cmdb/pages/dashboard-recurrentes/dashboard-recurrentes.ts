@@ -1,13 +1,19 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { DashboardService } from '../../../../core/services/dashboard.service';
-import { DashboardContrato } from '../../models/dashboard/dashboard.model';
+import { IDashboardContrato } from '../../../../core/models';
 
-interface SummaryRow {
+interface ISummaryRow {
   moneda: string;
   estado: string;
   totalRecurrente: number;
@@ -30,20 +36,20 @@ export class DashboardRecurrentes implements OnInit {
   chartOptions: any = {};
 
   // Table summary
-  summary: SummaryRow[] = [];
+  summary: ISummaryRow[] = [];
 
   // Constants for colors and labels
   private readonly monedasOrder = ['CLP', 'USD', 'UF'];
   private readonly estados = ['expirado', 'por-expirar', 'vigente'];
   private readonly estadoLabels: Record<string, string> = {
-    'expirado': 'Expirado',
+    expirado: 'Expirado',
     'por-expirar': 'Por expirar',
-    'vigente': 'Vigente'
+    vigente: 'Vigente',
   };
   private readonly colors: Record<string, string> = {
-    'expirado': 'rgba(220,53,69,0.8)',
+    expirado: 'rgba(220,53,69,0.8)',
     'por-expirar': 'rgba(255,193,7,0.85)',
-    'vigente': 'rgba(40,167,69,0.85)'
+    vigente: 'rgba(40,167,69,0.85)',
   };
 
   // current metric: 'totalRecurrente' or 'countContratos'
@@ -51,10 +57,10 @@ export class DashboardRecurrentes implements OnInit {
 
   ngOnInit(): void {
     this.dashboardService.getContratosDashboard().subscribe({
-      next: (rows: DashboardContrato[]) => {
+      next: (rows: IDashboardContrato[]) => {
         this.process(rows);
       },
-      error: (err) => console.error('Error loading dashboard data', err)
+      error: (err) => console.error('Error loading dashboard data', err),
     });
 
     this.chartOptions = {
@@ -62,18 +68,21 @@ export class DashboardRecurrentes implements OnInit {
       maintainAspectRatio: false,
       plugins: {
         legend: { position: 'top' },
-        tooltip: { mode: 'index', intersect: false }
+        tooltip: { mode: 'index', intersect: false },
       },
       scales: {
         x: { stacked: true },
-        y: { stacked: true }
-      }
+        y: { stacked: true },
+      },
     };
   }
 
-  private process(rows: DashboardContrato[]) {
+  private process(rows: IDashboardContrato[]) {
     // Aggregate rows by moneda and estado (in case API returns multiple rows)
-    const agg: Record<string, Record<string, { totalRecurrente: number; countContratos: number }>> = {};
+    const agg: Record<
+      string,
+      Record<string, { totalRecurrente: number; countContratos: number }>
+    > = {};
     for (const r of rows) {
       // accept different possible property names returned by API
       const monRaw = (r as any).moneda ?? (r as any).nombreTipoMoneda ?? '';
@@ -92,30 +101,31 @@ export class DashboardRecurrentes implements OnInit {
     const monedas = this.monedasOrder.slice();
 
     const buildDatasets = (metric: 'totalRecurrente' | 'countContratos') => {
-      return this.estados.map(estado => {
-        const data = monedas.map(mon => {
+      return this.estados.map((estado) => {
+        const data = monedas.map((mon) => {
           const v = agg[mon] && agg[mon][estado] ? agg[mon][estado][metric] : 0;
           return Number(v || 0);
         });
         return {
           label: this.estadoLabels[estado] || estado,
           backgroundColor: this.colors[estado],
-          data
+          data,
         };
       });
     };
 
     // Build initial chart and summary
     const chartPayload = { labels: monedas, datasets: buildDatasets('totalRecurrente') };
-    const summaryRows: SummaryRow[] = [];
+    const summaryRows: ISummaryRow[] = [];
     for (const mon of monedas) {
       for (const est of this.estados) {
-        const found = agg[mon] && agg[mon][est] ? agg[mon][est] : { totalRecurrente: 0, countContratos: 0 };
+        const found =
+          agg[mon] && agg[mon][est] ? agg[mon][est] : { totalRecurrente: 0, countContratos: 0 };
         summaryRows.push({
           moneda: mon,
           estado: this.estadoLabels[est] || est,
           totalRecurrente: found.totalRecurrente,
-          countContratos: found.countContratos
+          countContratos: found.countContratos,
         });
       }
     }
@@ -134,7 +144,10 @@ export class DashboardRecurrentes implements OnInit {
     const monedas = this.monedasOrder.slice();
 
     // Rebuild aggregation from summary rows
-    const agg: Record<string, Record<string, { totalRecurrente: number; countContratos: number }>> = {};
+    const agg: Record<
+      string,
+      Record<string, { totalRecurrente: number; countContratos: number }>
+    > = {};
     for (const s of this.summary) {
       const mon = s.moneda;
       const est = s.estado === 'Por expirar' ? 'por-expirar' : s.estado.toLowerCase();
@@ -143,15 +156,15 @@ export class DashboardRecurrentes implements OnInit {
     }
 
     const buildDatasets = (m: 'totalRecurrente' | 'countContratos') => {
-      return this.estados.map(estado => {
-        const data = monedas.map(mon => {
+      return this.estados.map((estado) => {
+        const data = monedas.map((mon) => {
           const v = agg[mon] && agg[mon][estado] ? agg[mon][estado][m] : 0;
           return Number(v || 0);
         });
         return {
           label: this.estadoLabels[estado] || estado,
           backgroundColor: this.colors[estado],
-          data
+          data,
         };
       });
     };

@@ -4,7 +4,8 @@ import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
-import { CotizacionesService, CotizacionDetalle as ICotizacionDetalle } from '../../../../core/services/cotizaciones.service';
+import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
+import { ICotizacionDetalle } from '../../../../core/models';
 import { CurrencyService } from '../../../../core/services/currency.service';
 
 @Component({
@@ -13,7 +14,7 @@ import { CurrencyService } from '../../../../core/services/currency.service';
   imports: [CommonModule, TableModule, ButtonModule, TooltipModule],
   templateUrl: './cotizacion-detalle.html',
   styleUrl: './cotizacion-detalle.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CotizacionDetalle implements OnInit {
   private route = inject(ActivatedRoute);
@@ -95,9 +96,8 @@ export class CotizacionDetalle implements OnInit {
   }
 
   convertCurrency(row: ICotizacionDetalle): string {
-    const amount = typeof row?.recurrente === 'number'
-      ? row.recurrente
-      : Number(row?.recurrente) || 0;
+    const amount =
+      typeof row?.recurrente === 'number' ? row.recurrente : Number(row?.recurrente) || 0;
 
     return this.currencyService.format(amount, row?.nombreTipoMoneda);
   }

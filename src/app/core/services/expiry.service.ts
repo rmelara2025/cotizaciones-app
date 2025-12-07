@@ -1,14 +1,8 @@
 import { Injectable } from '@angular/core';
-
-export interface ExpiryInfo {
-    days: number | null;
-    severity: 'high' | 'medium' | 'low' | null;
-    tooltip: string;
-    backgroundColor: string;
-}
+import { IExpiryInfo } from '../models';
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: 'root',
 })
 export class ExpiryService {
     /**
@@ -66,10 +60,10 @@ export class ExpiryService {
      */
     getBackgroundColor(severity: 'high' | 'medium' | 'low' | null): string {
         const colorMap = {
-            'high': '#f8d7da',      // light red
-            'medium': '#fff3cd',    // light orange
-            'low': '#d1e7dd',       // light green
-            'null': '#fff'          // white
+            high: '#f8d7da', // light red
+            medium: '#fff3cd', // light orange
+            low: '#d1e7dd', // light green
+            null: '#fff', // white
         };
         return colorMap[severity || 'null'] || '#fff';
     }
@@ -77,7 +71,7 @@ export class ExpiryService {
     /**
      * Get complete expiry info object in one call
      */
-    getExpiryInfo(fechaTermino: string | null | undefined): ExpiryInfo {
+    getExpiryInfo(fechaTermino: string | null | undefined): IExpiryInfo {
         const days = this.getDaysUntilExpiry(fechaTermino);
         const severity = this.getSeverity(days);
 
@@ -85,7 +79,7 @@ export class ExpiryService {
             days,
             severity,
             tooltip: this.getTooltip(days),
-            backgroundColor: this.getBackgroundColor(severity)
+            backgroundColor: this.getBackgroundColor(severity),
         };
     }
 }

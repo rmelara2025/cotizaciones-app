@@ -1,11 +1,15 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  provideBrowserGlobalErrorListeners,
+  provideZonelessChangeDetection,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import Aura from '@primeuix/themes/aura';
-import { providePrimeNG } from 'primeng/config'
+import { providePrimeNG } from 'primeng/config';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,10 +23,10 @@ export const appConfig: ApplicationConfig = {
         preset: Aura,
         options: {
           prefix: 'p',
-          darkModeSelector: '.app-dark'
-        }
+          darkModeSelector: '.app-dark',
+        },
       },
-      ripple: true
-    })
-  ]
+      ripple: true,
+    }),
+  ],
 };

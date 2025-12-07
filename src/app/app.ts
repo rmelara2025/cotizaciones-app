@@ -7,7 +7,7 @@ import { SidenavComponent } from './layout/sidenav.component';
   standalone: true,
   imports: [RouterOutlet, SidenavComponent],
   templateUrl: './app.html',
-  styleUrls: ['./app.scss']
+  styleUrls: ['./app.scss'],
 })
 export class App {
   protected readonly title = signal('cotizaciones-app');

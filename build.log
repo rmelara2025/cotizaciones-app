@@ -1,0 +1,33 @@
+﻿
+> cotizaciones-app@0.0.0 build
+> ng build
+
+[33mÔØ»[39m Building...
+[32mÔ£ö[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mstyles-AUKOHNJM.css[39m[2m | [22m[2mstyles[22m               [2m | [22m[36m370.46 kB[39m[2m | [22m               [36m20.81 kB[39m
+[32mchunk-J3HKCP5L.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m333.00 kB[39m[2m | [22m               [36m84.67 kB[39m
+[32mmain-V6U5EMCE.js[39m   [2m | [22m[2mmain[22m                 [2m | [22m[36m172.09 kB[39m[2m | [22m               [36m29.51 kB[39m
+[32mchunk-NKPSHRAP.js[39m  [2m | [22m[2m-[22m                    [2m | [22m [36m88.80 kB[39m[2m | [22m               [36m22.48 kB[39m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m        [2m | [22m[1m[93m964.35 kB[39m[22m[2m | [22m              [1m157.46 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mchunk-XTY5QNWS.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m699.49 kB[39m[2m | [22m              [36m146.53 kB[39m
+[32mchunk-SUKPWZZV.js[39m  [2m | [22m[2mcmdb-module[22m          [2m | [22m [36m78.95 kB[39m[2m | [22m               [36m17.63 kB[39m
+[32mchunk-LP6AWSJU.js[39m  [2m | [22m[2mdashboard-recurrentes[22m[2m | [22m[36m103 bytes[39m[2m | [22m              [36m103 bytes[39m
+
+Application bundle generation complete. [9.670 seconds] - 2025-12-07T03:11:55.930Z
+
+node.exe : [1m[33m[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mbundle initial exceeded maximum budget. Budget 500.00 kB was not 
+met by 464.35 kB with a total of 964.35 kB.[0m
+En línea: 1 Carácter: 1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\zf701439\AppData\Roami ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([1m[33m[33mÔ... 964.35 kB.[0m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+[39m[22m
+Output location: C:\Users\zf701439\Documents\cotizaciones-app\dist\cotizaciones-app
+

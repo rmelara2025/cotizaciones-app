@@ -7,11 +7,11 @@ import { DashboardRecurrentes } from './pages/dashboard-recurrentes/dashboard-re
 const routes: Routes = [
   { path: '', component: CotizacionesList },
   { path: ':id', component: CotizacionDetalle },
-  { path: 'dashboard', component: DashboardRecurrentes }
+  { path: 'dashboard', component: DashboardRecurrentes },
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class CmdbRoutingModule { }
+export class CmdbRoutingModule {}

@@ -10,16 +10,22 @@ import { FormsModule } from '@angular/forms';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { FieldsetModule } from 'primeng/fieldset';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
-import { ContratosService, IContrato } from '../../../../core/services/contratos.service';
+import { ContratosService } from '../../../../core/services/contratos.service';
+
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
 import { ExpiryService } from '../../../../core/services/expiry.service';
 import { CurrencyService } from '../../../../core/services/currency.service';
 import { CotizacionDetalle } from '../cotizacion-detalle/cotizacion-detalle';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
-import { ContratoFilters, DEFAULT_CONTRATO_FILTERS } from '../../../../core/models/filter.model';
-import { Totals, EMPTY_TOTALS } from '../../../../core/models/totals.model';
-import { Table } from 'primeng/table'
+import {
+  IContrato,
+  IContratoFilters,
+  DEFAULT_CONTRATO_FILTERS,
+  ITotals,
+  EMPTY_TOTALS,
+} from '../../../../core/models';
+import { Table } from 'primeng/table';
 
 @Component({
   selector: 'app-cotizaciones-list',
@@ -36,8 +42,9 @@ import { Table } from 'primeng/table'
     FormsModule,
     SelectModule,
     RutInputDirective,
-    InputGroupModule, InputGroupAddonModule,
-    FieldsetModule
+    InputGroupModule,
+    InputGroupAddonModule,
+    FieldsetModule,
   ],
   templateUrl: './cotizaciones-list.html',
   styleUrl: './cotizaciones-list.scss',
@@ -51,7 +58,7 @@ export class CotizacionesList implements OnInit {
   private currencyService = inject(CurrencyService);
 
   // Typed filters
-  filters: ContratoFilters = { ...DEFAULT_CONTRATO_FILTERS };
+  filters: IContratoFilters = { ...DEFAULT_CONTRATO_FILTERS };
 
   // UI state for dialog
   showDetalleDialog = false;
@@ -82,8 +89,6 @@ export class CotizacionesList implements OnInit {
     return this.contratosService.totalRecurrenteGlobal();
   }
 
-
-
   ngOnInit() {
     // Carga inicial: la tabla + totales en paralelo para mejor rendimiento
     this.cargarTablayTotales(0, 10);
@@ -99,15 +104,14 @@ export class CotizacionesList implements OnInit {
 
     // Cargar todos los datos para totales (sin esperar a que termine la tabla)
     // El servicio devuelve un observable; nos suscribimos y recalculamos cuando termina
-    this.contratosService.cargarTodosParaTotales('fechaInicio', 'asc', this.filters)
-      .subscribe({
-        next: () => {
-          this.recalcularTotales();
-        },
-        error: (err) => {
-          console.error('❌ Error cargando todosParaTotales desde componente:', err);
-        }
-      });
+    this.contratosService.cargarTodosParaTotales('fechaInicio', 'asc', this.filters).subscribe({
+      next: () => {
+        this.recalcularTotales();
+      },
+      error: (err) => {
+        console.error('❌ Error cargando todosParaTotales desde componente:', err);
+      },
+    });
   }
 
   onPageChange(event: any) {
@@ -115,7 +119,13 @@ export class CotizacionesList implements OnInit {
     // event.rows = tamaño de página
     const page = Math.floor(event.first / event.rows);
     // Solo cargar la tabla (los totales no cambian cuando cambias de página)
-    this.contratosService.loadContratos(page, event.rows, event.sortField, event.sortOrder === 1 ? 'asc' : 'desc', this.filters);
+    this.contratosService.loadContratos(
+      page,
+      event.rows,
+      event.sortField,
+      event.sortOrder === 1 ? 'asc' : 'desc',
+      this.filters,
+    );
   }
 
   verDetalle(contrato: IContrato) {
@@ -173,9 +183,10 @@ export class CotizacionesList implements OnInit {
    * Format currency amount according to type
    */
   convertCurrency(row: IContrato): string {
-    const amount = typeof row?.totalRecurrente === 'number'
-      ? row.totalRecurrente
-      : Number(row?.totalRecurrente) || 0;
+    const amount =
+      typeof row?.totalRecurrente === 'number'
+        ? row.totalRecurrente
+        : Number(row?.totalRecurrente) || 0;
 
     return this.currencyService.format(amount, row?.nombreTipoMoneda);
   }
@@ -220,7 +231,7 @@ export class CotizacionesList implements OnInit {
     // Totales por moneda
     const mapa: { [m: string]: number } = {};
 
-    rows.forEach(r => {
+    rows.forEach((r) => {
       const m = r.nombreTipoMoneda;
       const val = Number(r.totalRecurrente) || 0;
       if (!mapa[m]) mapa[m] = 0;
@@ -230,4 +241,3 @@ export class CotizacionesList implements OnInit {
     this.totalesPorMoneda = mapa;
   }
 }
-

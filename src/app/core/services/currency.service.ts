@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: 'root',
 })
 export class CurrencyService {
     /**
@@ -11,9 +11,9 @@ export class CurrencyService {
      * CLP: es-CL (Thousands: '.', No decimals)
      */
     private readonly localeMap: Record<string, string> = {
-        'USD': 'de-DE',
-        'UF': 'en-US',
-        'CLP': 'es-CL'
+        USD: 'en-US',
+        UF: 'en-US',
+        CLP: 'es-CL',
     };
 
     /**
@@ -39,7 +39,7 @@ export class CurrencyService {
         // USD and UF use 2 decimal places
         return {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+            maximumFractionDigits: 2,
         };
     }
 

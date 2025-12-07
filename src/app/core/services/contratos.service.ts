@@ -2,33 +2,10 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-
-export interface IContrato {
-    idContrato: string;
-    rutCliente: string;
-    nombreTipoMoneda: string;
-    nombreTipoPago: string;
-    nombreCliente: string;
-    fechaInicio: string;
-    fechaTermino: string;
-    codSap: string | null;
-    codChi: string;
-    codSison: string | null;
-    totalRecurrente: number;
-    [key: string]: any;
-}
-
-export interface IPaginatedResponse {
-    content: IContrato[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
-    size: number;
-    [key: string]: any;
-}
+import { IContrato, IPaginatedContratoResponse } from '../models';
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: 'root',
 })
 export class ContratosService {
     private http = inject(HttpClient);
@@ -54,7 +31,7 @@ export class ContratosService {
         size: number,
         sortField: string,
         sortOrder: string,
-        filters?: any
+        filters?: any,
     ): HttpParams {
         let params = new HttpParams()
             .set('page', page.toString())
@@ -63,7 +40,7 @@ export class ContratosService {
 
         // Add filters if provided
         if (filters) {
-            Object.keys(filters).forEach(key => {
+            Object.keys(filters).forEach((key) => {
                 if (filters[key] != null && filters[key] !== '' && filters[key] !== undefined) {
                     params = params.set(key, filters[key]);
                 }
@@ -73,13 +50,12 @@ export class ContratosService {
         return params;
     }
 
-
     loadContratos(
         page: number = 0,
         size: number = 10,
         sortField: string = 'fechaInicio',
         sortOrder: 'asc' | 'desc' = 'desc',
-        filters: any
+        filters: any,
     ) {
         this.loading.set(true);
         this.error.set(null);
@@ -88,14 +64,16 @@ export class ContratosService {
 
         const params = this.buildHttpParams(page, size, sortField, sortOrder, filters);
 
-        this.http.get<IPaginatedResponse>(`${this.API_URL}/contratos`, { params }).subscribe({
+        this.http.get<IPaginatedContratoResponse>(`${this.API_URL}/contratos`, { params }).subscribe({
             next: (response) => {
                 this.contratos.set(response.content || []);
                 this.totalRecords.set(response.totalElements || 0);
 
                 this.totalRecurrenteGlobal.set(
-                    (response.content || [])
-                        .reduce((acc, row) => acc + (Number(row.totalRecurrente) || 0), 0)
+                    (response.content || []).reduce(
+                        (acc, row) => acc + (Number(row.totalRecurrente) || 0),
+                        0,
+                    ),
                 );
 
                 this.loading.set(false);
@@ -104,7 +82,7 @@ export class ContratosService {
                 console.error('❌ Error loading contratos:', err);
                 this.error.set('No se pudieron cargar los contratos: ' + err.message);
                 this.loading.set(false);
-            }
+            },
         });
     }
 
@@ -115,25 +93,26 @@ export class ContratosService {
     cargarTodosParaTotales(
         sortField: string = 'fechaInicio',
         sortOrder: 'asc' | 'desc' = 'desc',
-        filters: any
-    ): Observable<IPaginatedResponse | null> {
+        filters: any,
+    ): Observable<IPaginatedContratoResponse | null> {
         const params = this.buildHttpParams(0, 99999, sortField, sortOrder, filters);
 
-        return this.http.get<IPaginatedResponse>(`${this.API_URL}/contratos`, { params }).pipe(
-            tap(response => {
+        return this.http.get<IPaginatedContratoResponse>(`${this.API_URL}/contratos`, { params }).pipe(
+            tap((response) => {
                 this.todosParaTotales.set(response.content || []);
 
                 // Calcular también el global aquí
                 this.totalRecurrenteGlobal.set(
-                    (response.content || [])
-                        .reduce((acc, row) => acc + (Number(row.totalRecurrente) || 0), 0)
+                    (response.content || []).reduce(
+                        (acc, row) => acc + (Number(row.totalRecurrente) || 0),
+                        0,
+                    ),
                 );
             }),
-            catchError(err => {
+            catchError((err) => {
                 console.error('❌ Error loading all contratos for totals:', err);
                 return of(null);
-            })
+            }),
         );
     }
 }
-

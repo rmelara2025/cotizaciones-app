@@ -7,7 +7,7 @@ describe('CotizacionesList', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CotizacionesList]
+      imports: [CotizacionesList],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CotizacionesList);

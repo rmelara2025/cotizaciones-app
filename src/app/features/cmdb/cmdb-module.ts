@@ -6,13 +6,9 @@ import { RutInputDirective } from '../../core/pipes/rut-only.directive';
 //import { DashboardRecurrentes } from './pages/dashboard-recurrentes/dashboard-recurrentes';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    CmdbRoutingModule,
-    RutInputDirective
-  ],
+  imports: [CommonModule, CmdbRoutingModule, RutInputDirective],
   declarations: [
     //DashboardRecurrentes
-  ]
+  ],
 })
-export class CmdbModule { }
+export class CmdbModule {}
