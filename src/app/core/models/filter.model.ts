@@ -13,11 +13,11 @@ export interface IContratoFilters {
 /**
  * Default/empty filters object
  */
-export const DEFAULT_CONTRATO_FILTERS: IContratoFilters = {
-    rutCliente: '',
-    nombreCliente: '',
-    codChi: '',
-    codSap: '',
-    codSison: '',
-    estado: 'todos',
+export const DEFAULT_CONTRATO_FILTER: IContratoFilters = {
+  rutCliente: '',
+  nombreCliente: '',
+  codChi: '',
+  codSap: '',
+  codSison: '',
+  estado: 'todos',
 };

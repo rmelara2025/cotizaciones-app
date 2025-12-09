@@ -21,7 +21,7 @@ import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
 import {
   IContrato,
   IContratoFilters,
-  DEFAULT_CONTRATO_FILTERS,
+  DEFAULT_CONTRATO_FILTER,
   ITotals,
   EMPTY_TOTALS,
 } from '../../../../core/models';
@@ -58,7 +58,7 @@ export class CotizacionesList implements OnInit {
   private currencyService = inject(CurrencyService);
 
   // Typed filters
-  filters: IContratoFilters = { ...DEFAULT_CONTRATO_FILTERS };
+  filters: IContratoFilters = { ...DEFAULT_CONTRATO_FILTER };
 
   // UI state for dialog
   showDetalleDialog = false;
@@ -240,4 +240,14 @@ export class CotizacionesList implements OnInit {
 
     this.totalesPorMoneda = mapa;
   }
+
+  addItem() {
+    this.showDetalleDialog = true; // ya lo haces
+    setTimeout(() => {
+      const child = document.querySelector('app-cotizacion-detalle') as any;
+      if (child?.addNewRow) child.addNewRow();
+    }, 50);
+  }
+
+
 }
