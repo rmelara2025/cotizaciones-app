@@ -15,8 +15,8 @@
             <ng-template pTemplate="header">
                 <tr>
                     <th>#</th>
-                    <th>Servicio</th>
                     <th>Familia</th>
+                    <th>Servicio</th>
                     <th style="text-align: right;">Cantidad</th>
                     <th style="text-align: right;">Recurrente</th>
                     <th>Moneda</th>
@@ -24,18 +24,26 @@
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-det>
-                <tr>
+                <tr [ngClass]="{'edit-row': editingId() === det.idDetalle}">
                     <td>{{ det.numItem }}</td>
-                    <td>{{ det.nombreServicio }}</td>
                     <td>{{ det.nombreFamilia }}</td>
+                    <td>{{ det.nombreServicio }}</td>
                     <td style="text-align: right;">{{ det.cantidad }}</td>
-                    <td style="text-align: right;">{{ convertCurrency(det)}}</td>
+                    <td style="text-align: right;">{{ convertCurrency(det) }}</td>
                     <td>{{ det.nombreTipoMoneda }}</td>
                     <td>
-                        <p-button icon="pi pi-pencil" [raised]="true" pTooltip="Modificar" [rounded]="true" size="small"
-                            class="p-1" severity="warn"></p-button>
-                        <p-button icon="pi pi-trash" [raised]="true" pTooltip="Borrar" [rounded]="true" size="small"
-                            severity="danger"></p-button>
+                        <ng-container *ngIf="editingId() === det.idDetalle; else readActions">
+                            <p-button icon="pi pi-save" [raised]="true" [rounded]="true" size="small" class="p-1"
+                                severity="success" pTooltip="Guardar" (click)="saveRow(editingRow())"></p-button>
+                            <p-button icon="pi pi-times" [raised]="true" [rounded]="true" size="small" class="p-1"
+                                severity="secondary" pTooltip="Cancelar" (click)="cancelEdit(det)"></p-button>
+                        </ng-container>
+                        <ng-template #readActions>
+                            <p-button icon="pi pi-pencil" [raised]="true" pTooltip="Modificar" [rounded]="true"
+                                size="small" class="p-1" severity="warn" (click)="startEdit(det)"></p-button>
+                            <p-button icon="pi pi-trash" [raised]="true" pTooltip="Borrar" [rounded]="true" size="small"
+                                severity="danger" (click)="deleteRow(det)"></p-button>
+                        </ng-template>
                     </td>
                 </tr>
             </ng-template>
@@ -50,4 +58,40 @@
     <div *ngIf="!detalle || detalle.length === 0 && !loading && !error" class="p-3">
         <p>No se encontraron detalles para esta cotización.</p>
     </div>
+
+    <!-- Modal de edición con selects -->
+    <p-dialog [visible]="showEditModal()" (visibleChange)="closeModal($event)" [modal]="true" [style]="{width: '500px'}"
+        header="Editar Detalle" [resizable]="false" [draggable]="false">
+        <ng-container *ngIf="editingRow() as row">
+            <div class="grid">
+                <div class="col-12">
+                    <label>Familia</label>
+                    <p-select placeholder="Seleccionar familia" [options]="familias()" optionLabel="nombreFamilia"
+                        optionValue="idFamilia" [(ngModel)]="row.idFamilia"
+                        (onChange)="onFamiliaChange(row, $event.value)" [appendTo]="body">
+                    </p-select>
+                </div>
+                <div class="col-12">
+                    <label>Servicio</label>
+                    <p-select placeholder="Seleccionar servicio" [options]="currentServicios()"
+                        optionLabel="nombreServicio" optionValue="idServicio" [(ngModel)]="row.idServicio"
+                        (onChange)="onServicioChange(row, $event.value)" [appendTo]="body">
+                    </p-select>
+                </div>
+                <div class="col-6">
+                    <label>Cantidad</label>
+                    <input pInputText type="number" [(ngModel)]="row.cantidad" min="1" />
+                </div>
+                <div class="col-6">
+                    <label>Recurrente</label>
+                    <input pInputText type="number" [(ngModel)]="row.recurrente" min="0" step="0.01" />
+                </div>
+            </div>
+        </ng-container>
+        <ng-template pTemplate="footer">
+            <p-button label="Cancelar" icon="pi pi-times" (click)="cancelEdit(editingRow())"
+                severity="secondary"></p-button>
+            <p-button label="Guardar" icon="pi pi-save" (click)="saveRow(editingRow())" severity="success"></p-button>
+        </ng-template>
+    </p-dialog>
 </div>

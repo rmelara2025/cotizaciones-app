@@ -51,6 +51,7 @@ import { Table } from 'primeng/table';
 })
 export class CotizacionesList implements OnInit {
   @ViewChild('dt') table?: Table;
+  @ViewChild(CotizacionDetalle) detalleCmp?: CotizacionDetalle;
 
   private contratosService = inject(ContratosService);
   private cotizacionesService = inject(CotizacionesService);
@@ -242,11 +243,9 @@ export class CotizacionesList implements OnInit {
   }
 
   addItem() {
-    this.showDetalleDialog = true; // ya lo haces
-    setTimeout(() => {
-      const child = document.querySelector('app-cotizacion-detalle') as any;
-      if (child?.addNewRow) child.addNewRow();
-    }, 50);
+    this.showDetalleDialog = true;
+    // Deja que el diálogo se monte y luego agrega la fila editable
+    setTimeout(() => this.detalleCmp?.addNewRow(), 50);
   }
 
 

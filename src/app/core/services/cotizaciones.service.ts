@@ -44,4 +44,43 @@ export class CotizacionesService {
             },
         });
     }
+
+    createDetalle(idContrato: string, payload: Partial<ICotizacionDetalle>) {
+        return this.http.post<ICotizacionDetalle>(`${this.API_URL}/cotizaciones/${idContrato}/detalle`, payload);
+    }
+
+    // Crea un ítem de cotización usando el endpoint global /api/cotizaciones
+    createCotizacionItem(payload: {
+        idContrato: string;
+        idServicio: number;
+        cantidad: number;
+        recurrente: number;
+        atributos: string;
+    }) {
+        return this.http.post<ICotizacionDetalle>(`${this.API_URL}/cotizaciones`, payload);
+    }
+
+    // Edita un ítem de cotización usando PUT /api/cotizaciones/editar
+    updateCotizacionItem(payload: {
+        idDetalle: string;
+        numItem: number;
+        idContrato: string;
+        idServicio: number;
+        cantidad: number;
+        recurrente: number;
+        atributos: string;
+    }) {
+        return this.http.put<ICotizacionDetalle>(`${this.API_URL}/cotizaciones/editar`, payload);
+    }
+
+    updateDetalle(idContrato: string, idDetalle: string, payload: Partial<ICotizacionDetalle>) {
+        return this.http.put<ICotizacionDetalle>(
+            `${this.API_URL}/cotizaciones/${idContrato}/detalle/${idDetalle}`,
+            payload,
+        );
+    }
+
+    deleteDetalle(idContrato: string, idDetalle: string) {
+        return this.http.delete<void>(`${this.API_URL}/cotizaciones/${idContrato}/detalle/${idDetalle}`);
+    }
 }

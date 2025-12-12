@@ -239,7 +239,7 @@
 
             <h4 style="margin-top:1rem">Ítems / Servicio
                 <p-button icon="pi pi-plus" [raised]="true" [rounded]="true" size="small" class="p-1" severity="success"
-                    pTooltip="Agregar servicio" tooltipPosition="right"></p-button>
+                    pTooltip="Agregar servicio" tooltipPosition="right" id="btnAgregar" (click)="addItem()"></p-button>
             </h4>
             <app-cotizacion-detalle [idContrato]="selectedRow.idContrato" [isModal]="true"></app-cotizacion-detalle>
         </div>

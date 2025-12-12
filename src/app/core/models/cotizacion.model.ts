@@ -4,6 +4,7 @@ export interface ICotizacionDetalle {
     versionCotizacion: number;
     idContrato: string;
     idServicio: number;
+    idFamilia: number;
     cantidad: number;
     recurrente: number;
     atributos: any;

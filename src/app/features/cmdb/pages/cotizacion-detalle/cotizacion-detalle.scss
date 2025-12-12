@@ -1,0 +1,10 @@
+/* Modal con selectores encima */
+::ng-deep .p-dialog {
+    z-index: 1000 !important;
+}
+
+/* Asegurar que los paneles de select estén al frente del modal */
+::ng-deep .p-select-panel {
+    z-index: 1002 !important;
+    position: fixed !important;
+}
