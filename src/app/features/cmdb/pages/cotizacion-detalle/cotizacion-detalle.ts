@@ -218,21 +218,21 @@ export class CotizacionDetalle implements OnInit {
     // Para editar usamos PUT /api/cotizaciones/editar
     const request$ = row.idDetalle.startsWith('new-')
       ? this.cotizacionesService.createCotizacionItem({
-          idContrato: this.id,
-          idServicio: row.idServicio,
-          cantidad: row.cantidad,
-          recurrente: row.recurrente,
-          atributos: '{}',
-        })
+        idContrato: this.id,
+        idServicio: row.idServicio,
+        cantidad: row.cantidad,
+        recurrente: row.recurrente,
+        atributos: '{}',
+      })
       : this.cotizacionesService.updateCotizacionItem({
-          idDetalle: row.idDetalle,
-          numItem: row.numItem,
-          idContrato: this.id,
-          idServicio: row.idServicio,
-          cantidad: row.cantidad,
-          recurrente: row.recurrente,
-          atributos: '{}',
-        });
+        idDetalle: row.idDetalle,
+        numItem: row.numItem,
+        idContrato: this.id,
+        idServicio: row.idServicio,
+        cantidad: row.cantidad,
+        recurrente: row.recurrente,
+        atributos: '{}',
+      });
 
     request$.subscribe({
       next: () => {
