@@ -7,16 +7,24 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SelectModule } from 'primeng/select';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { FormsModule } from '@angular/forms';
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
 import { IFamilia, IServicioFamilia, FamiliaService } from '../../../../core/services/familia.service';
 import { ICotizacionDetalle } from '../../../../core/models';
 import { CurrencyService } from '../../../../core/services/currency.service';
 
+
+type CurrencyConfig = {
+  currency: string;
+  locale: string;
+  decimals: number;
+}
+
 @Component({
   selector: 'app-cotizacion-detalle',
   standalone: true,
-  imports: [CommonModule, TableModule, ButtonModule, TooltipModule, SelectModule, InputTextModule, DialogModule, FormsModule],
+  imports: [CommonModule, TableModule, ButtonModule, TooltipModule, SelectModule, InputTextModule, DialogModule, FormsModule, InputNumberModule],
   templateUrl: './cotizacion-detalle.html',
   styleUrl: './cotizacion-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,6 +72,21 @@ export class CotizacionDetalle implements OnInit {
     // Acceder al signal de servicios para mantener la reactividad
     const servicios = this.serviciosPorFamilia()[idFamilia];
     return Array.isArray(servicios) ? servicios : [];
+  }
+
+  // Retorna la configuración de moneda según el tipo
+  getCurrencyConfig(moneda: string): CurrencyConfig {
+    switch (moneda) {
+      case 'CLP':
+        return { currency: 'CLP', locale: 'es-CL', decimals: 0 };
+      case 'USD':
+        return { currency: 'USD', locale: 'en-US', decimals: 2 };
+      case 'UF':
+        // UF es una unidad chilena sin símbolo estándar ISO, usamos formato personalizado
+        return { currency: 'CLF', locale: 'es-CL', decimals: 2 };
+      default:
+        return { currency: 'CLP', locale: 'es-CL', decimals: 0 };
+    }
   }
 
   get loading() {
@@ -162,6 +185,7 @@ export class CotizacionDetalle implements OnInit {
     // Abrir el modal para editar la nueva fila
     this.editingRowData.set(newRow);
     setTimeout(() => {
+
       this.showEditModal.set(true);
     }, 100);
   }
@@ -327,4 +351,6 @@ export class CotizacionDetalle implements OnInit {
     this.cotizacionesService.error.set(message);
     console.error(message);
   }
+
+
 }

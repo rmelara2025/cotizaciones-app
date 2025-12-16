@@ -60,31 +60,58 @@
     </div>
 
     <!-- Modal de edición con selects -->
-    <p-dialog [visible]="showEditModal()" (visibleChange)="closeModal($event)" [modal]="true" [style]="{width: '500px'}"
+    <p-dialog [visible]="showEditModal()" (visibleChange)="closeModal($event)" [modal]="true" [style]="{width: '550px'}"
         header="Editar Detalle" [resizable]="false" [draggable]="false">
         <ng-container *ngIf="editingRow() as row">
-            <div class="grid">
-                <div class="col-12">
+            <div class="grid compact">
+
+                <div class="col-2 md:col-2">
                     <label>Familia</label>
+                </div>
+                <div class="col-10 md:col-10">
+
                     <p-select placeholder="Seleccionar familia" [options]="familias()" optionLabel="nombreFamilia"
                         optionValue="idFamilia" [(ngModel)]="row.idFamilia"
-                        (onChange)="onFamiliaChange(row, $event.value)" [appendTo]="body">
+                        (onChange)="onFamiliaChange(row, $event.value)" [appendTo]="body" size="small">
                     </p-select>
                 </div>
-                <div class="col-12">
+
+                <div class="col-2 md:col-2">
                     <label>Servicio</label>
+                </div>
+
+                <div class="col-10 md:col-10">
+
                     <p-select placeholder="Seleccionar servicio" [options]="currentServicios()"
                         optionLabel="nombreServicio" optionValue="idServicio" [(ngModel)]="row.idServicio"
-                        (onChange)="onServicioChange(row, $event.value)" [appendTo]="body">
+                        (onChange)="onServicioChange(row, $event.value)" [appendTo]="body" size="small">
                     </p-select>
                 </div>
-                <div class="col-6">
+
+
+
+                <div class="col-2 md:col-2">
                     <label>Cantidad</label>
-                    <input pInputText type="number" [(ngModel)]="row.cantidad" min="1" />
                 </div>
-                <div class="col-6">
+
+                <div class="col-2">
+                    <input pInputText type="number" pSize="small" fluid [(ngModel)]="row.cantidad" min="1" />
+                </div>
+
+                <div class="col-8">
+
+                </div>
+
+                <div class="col-2 md:col-2">
                     <label>Recurrente</label>
-                    <input pInputText type="number" [(ngModel)]="row.recurrente" min="0" step="0.01" />
+                </div>
+                <div class="col-4 md:col-4">
+                    <p-inputnumber [(ngModel)]="row.recurrente" mode="currency"
+                        [currency]="getCurrencyConfig(row.nombreTipoMoneda || 'CLP').currency"
+                        [locale]="getCurrencyConfig(row.nombreTipoMoneda || 'CLP').locale"
+                        [minFractionDigits]="getCurrencyConfig(row.nombreTipoMoneda || 'CLP').decimals"
+                        [maxFractionDigits]="getCurrencyConfig(row.nombreTipoMoneda || 'CLP').decimals" size="small"
+                        fluid />
                 </div>
             </div>
         </ng-container>

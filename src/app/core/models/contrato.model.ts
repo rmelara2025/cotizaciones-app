@@ -10,6 +10,7 @@ export interface IContrato {
     codChi: string;
     codSison: string | null;
     totalRecurrente: number;
+    version: number;
     [key: string]: any;
 }
 
