@@ -1,3 +1,36 @@
 .chart-container {
     height: 20rem;
 }
+
+/* Estilos para filas de subtotales */
+.summary-card {
+    /* Color pastel tenue para filas de subtotal - cambiar aquí para modificar fácilmente */
+    --subtotal-bg-color: #e3f2fd; /* azul pastel muy tenue */
+    --subtotal-bg-hover: #bbdefb; /* azul pastel un poco más oscuro para hover */
+
+    ::ng-deep .p-datatable {
+        .p-datatable-tbody>tr {
+            /* Estilos para filas de subtotales */
+            &.subtotal-row {
+                background-color: var(--subtotal-bg-color);
+                border-top: 2px solid var(--primary-color);
+                font-weight: 600;
+
+                td {
+                    padding: 0.85rem 0.75rem;
+                    border-top: 2px solid var(--primary-color);
+                }
+
+                &:hover {
+                    background-color: var(--subtotal-bg-hover);
+                }
+            }
+        }
+
+        /* Celdas de subtotales */
+        .subtotal-cell {
+            background-color: var(--subtotal-bg-color);
+            font-weight: 700;
+        }
+    }
+}

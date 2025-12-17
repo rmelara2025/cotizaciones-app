@@ -19,21 +19,35 @@
     <p-card class="summary-card px-5 mt-4">
         <ng-template pTemplate="title">Resumen Recurrentes</ng-template>
         <ng-template pTemplate="content">
-            <p-table [value]="summary" [paginator]="false" [rows]="10">
+            <p-table [value]="summaryConSubtotales" [paginator]="false" [rows]="10" styleClass="p-datatable-sm">
                 <ng-template pTemplate="header">
                     <tr>
                         <th>Tipo Moneda</th>
                         <th>Estado</th>
-                        <th>Total Recurrente</th>
-                        <th>Cantidad Contratos</th>
+                        <th style="text-align: right">Total Recurrente</th>
+                        <th style="text-align: right">Cantidad Contratos</th>
+                        <th style="text-align: right">% del Total</th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-row>
-                    <tr>
-                        <td>{{ row.moneda }}</td>
-                        <td>{{ row.estado }}</td>
-                        <td>{{ row.totalRecurrente | number:'1.0-2' }}</td>
-                        <td>{{ row.countContratos }}</td>
+                    <tr [ngClass]="{'subtotal-row': row.isSubtotal}">
+                        <td [attr.colspan]="row.isSubtotal ? 2 : null">
+                            <strong *ngIf="row.isSubtotal">Total {{ row.moneda }}</strong>
+                            <span *ngIf="!row.isSubtotal">{{ row.moneda }}</span>
+                        </td>
+                        <td *ngIf="!row.isSubtotal">{{ row.estado }}</td>
+                        <td style="text-align: right" [ngClass]="{'subtotal-cell': row.isSubtotal}">
+                            <strong *ngIf="row.isSubtotal">{{ formatCurrency(row.totalRecurrente, row.moneda) }}</strong>
+                            <span *ngIf="!row.isSubtotal">{{ formatCurrency(row.totalRecurrente, row.moneda) }}</span>
+                        </td>
+                        <td style="text-align: right" [ngClass]="{'subtotal-cell': row.isSubtotal}">
+                            <strong *ngIf="row.isSubtotal">{{ row.countContratos || 0 }}</strong>
+                            <span *ngIf="!row.isSubtotal">{{ row.countContratos || 0 }}</span>
+                        </td>
+                        <td style="text-align: right" [ngClass]="{'subtotal-cell': row.isSubtotal}">
+                            <strong *ngIf="row.isSubtotal">{{ row.porcentaje | number:'1.0-1' }}%</strong>
+                            <span *ngIf="!row.isSubtotal">{{ row.porcentaje | number:'1.0-1' }}%</span>
+                        </td>
                     </tr>
                 </ng-template>
             </p-table>

@@ -55,6 +55,89 @@ export class DashboardRecurrentes implements OnInit {
   // current metric: 'totalRecurrente' or 'countContratos'
   metric: 'totalRecurrente' | 'countContratos' = 'totalRecurrente';
 
+  /**
+   * Retorna los datos de resumen agrupados por moneda con subtotales
+   */
+  get summaryConSubtotales() {
+    if (!this.summary || this.summary.length === 0) {
+      return [];
+    }
+
+    const result: any[] = [];
+    const groupedByMoneda: { [key: string]: any[] } = {};
+
+    // Agrupar por tipo de moneda
+    this.summary.forEach(item => {
+      const moneda = item.moneda;
+      if (!groupedByMoneda[moneda]) {
+        groupedByMoneda[moneda] = [];
+      }
+      groupedByMoneda[moneda].push(item);
+    });
+
+    // Construir array con items + subtotales y porcentajes
+    Object.keys(groupedByMoneda).forEach(moneda => {
+      const grupo = groupedByMoneda[moneda];
+      
+      // Calcular subtotal primero para porcentajes
+      const subtotalContratos = grupo.reduce((sum, item) => sum + (item.countContratos || 0), 0);
+      const subtotalRecurrente = grupo.reduce((sum, item) => sum + (item.totalRecurrente || 0), 0);
+
+      // Agregar todos los items del grupo con su porcentaje
+      grupo.forEach(item => {
+        const porcentaje = subtotalRecurrente > 0 
+          ? (item.totalRecurrente / subtotalRecurrente) * 100 
+          : 0;
+        result.push({
+          ...item,
+          porcentaje: porcentaje,
+        });
+      });
+
+      // Agregar fila de subtotal
+      result.push({
+        isSubtotal: true,
+        moneda: moneda,
+        estado: '',
+        totalRecurrente: subtotalRecurrente,
+        countContratos: subtotalContratos,
+        porcentaje: 100, // El subtotal siempre es 100%
+      });
+    });
+
+    return result;
+  }
+
+  /**
+   * Formatea un valor numérico según el tipo de moneda
+   * - CLP: sin decimales, punto como separador de miles (ej: 1.000.000)
+   * - UF: 2 decimales, punto como separador de miles, coma para decimales (ej: 1.000,00)
+   * - USD: 2 decimales, punto como separador de miles, coma para decimales (ej: 1.000,00)
+   */
+  formatCurrency(value: number, moneda: string): string {
+    if (value == null || isNaN(value)) {
+      return '0';
+    }
+
+    const tipoMoneda = (moneda || '').toUpperCase();
+
+    if (tipoMoneda === 'CLP') {
+      // Sin decimales, punto como separador de miles
+      return Math.round(value)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    } else if (tipoMoneda === 'UF' || tipoMoneda === 'USD') {
+      // 2 decimales, punto como separador de miles, coma para decimales
+      const partes = value.toFixed(2).split('.');
+      const entero = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      const decimal = partes[1];
+      return `${entero},${decimal}`;
+    } else {
+      // Formato genérico por defecto
+      return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+  }
+
   ngOnInit(): void {
     this.dashboardService.getContratosDashboard().subscribe({
       next: (rows: IDashboardContrato[]) => {
