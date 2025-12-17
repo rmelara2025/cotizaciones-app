@@ -37,7 +37,8 @@
                         </td>
                         <td *ngIf="!row.isSubtotal">{{ row.estado }}</td>
                         <td style="text-align: right" [ngClass]="{'subtotal-cell': row.isSubtotal}">
-                            <strong *ngIf="row.isSubtotal">{{ formatCurrency(row.totalRecurrente, row.moneda) }}</strong>
+                            <strong *ngIf="row.isSubtotal">{{ formatCurrency(row.totalRecurrente, row.moneda)
+                                }}</strong>
                             <span *ngIf="!row.isSubtotal">{{ formatCurrency(row.totalRecurrente, row.moneda) }}</span>
                         </td>
                         <td style="text-align: right" [ngClass]="{'subtotal-cell': row.isSubtotal}">

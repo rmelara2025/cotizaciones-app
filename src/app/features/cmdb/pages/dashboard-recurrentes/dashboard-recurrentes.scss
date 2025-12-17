@@ -5,11 +5,14 @@
 /* Estilos para filas de subtotales */
 .summary-card {
     /* Color pastel tenue para filas de subtotal - cambiar aquí para modificar fácilmente */
-    --subtotal-bg-color: #e3f2fd; /* azul pastel muy tenue */
-    --subtotal-bg-hover: #bbdefb; /* azul pastel un poco más oscuro para hover */
+    --subtotal-bg-color: #e3f2fd;
+    /* azul pastel muy tenue */
+    --subtotal-bg-hover: #bbdefb;
+    /* azul pastel un poco más oscuro para hover */
 
     ::ng-deep .p-datatable {
         .p-datatable-tbody>tr {
+
             /* Estilos para filas de subtotales */
             &.subtotal-row {
                 background-color: var(--subtotal-bg-color);

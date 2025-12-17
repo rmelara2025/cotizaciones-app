@@ -78,15 +78,15 @@ export class DashboardRecurrentes implements OnInit {
     // Construir array con items + subtotales y porcentajes
     Object.keys(groupedByMoneda).forEach(moneda => {
       const grupo = groupedByMoneda[moneda];
-      
+
       // Calcular subtotal primero para porcentajes
       const subtotalContratos = grupo.reduce((sum, item) => sum + (item.countContratos || 0), 0);
       const subtotalRecurrente = grupo.reduce((sum, item) => sum + (item.totalRecurrente || 0), 0);
 
       // Agregar todos los items del grupo con su porcentaje
       grupo.forEach(item => {
-        const porcentaje = subtotalRecurrente > 0 
-          ? (item.totalRecurrente / subtotalRecurrente) * 100 
+        const porcentaje = subtotalRecurrente > 0
+          ? (item.totalRecurrente / subtotalRecurrente) * 100
           : 0;
         result.push({
           ...item,
