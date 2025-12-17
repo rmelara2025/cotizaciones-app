@@ -208,6 +208,39 @@
         </ng-template>
     </p-table>
 
+    <!-- Tabla Resumen de Recurrentes por Moneda -->
+    <div class="resumen-section mt-4">
+        <h3 class="mb-3">Resumen de Recurrentes por Moneda</h3>
+        <p-table [value]="resumenRecurrentes" styleClass="p-datatable-sm" [tableStyle]="{ 'min-width': '420px' }">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 30%">Moneda</th>
+                    <th style="width: 25%">Estado</th>
+                    <th style="width: 20%; text-align: right">Contratos</th>
+                    <th style="width: 25%; text-align: right">Total Recurrente</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-item>
+                <tr>
+                    <td>{{ item.nombreTipoMoneda }}</td>
+                    <td>{{ item.estado }}</td>
+                    <td style="text-align: right">{{ item.cantidadContratos || 0 }}</td>
+                    <td style="text-align: right; font-weight: 500">{{ item.totalRecurrente | number:'1.0-0' }}</td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="2" class="text-center p-3">
+                        <span *ngIf="!loadingResumen">No hay datos de recurrentes</span>
+                        <span *ngIf="loadingResumen">Cargando resumen...</span>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
     <p-dialog [(visible)]="showDetalleDialog" [modal]="true" [style]="{width: '900px'}" (onHide)="closeDetalle()"
         header="Detalle de Cotización">
         <div *ngIf="selectedRow">

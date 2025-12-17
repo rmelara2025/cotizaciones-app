@@ -15,6 +15,7 @@ import { ContratosService } from '../../../../core/services/contratos.service';
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
 import { ExpiryService } from '../../../../core/services/expiry.service';
 import { CurrencyService } from '../../../../core/services/currency.service';
+import { DashboardService } from '../../../../core/services/dashboard.service';
 import { CotizacionDetalle } from '../cotizacion-detalle/cotizacion-detalle';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
@@ -57,6 +58,7 @@ export class CotizacionesList implements OnInit {
   private cotizacionesService = inject(CotizacionesService);
   private expiryService = inject(ExpiryService);
   private currencyService = inject(CurrencyService);
+  private dashboardService = inject(DashboardService);
 
   // Typed filters
   filters: IContratoFilters = { ...DEFAULT_CONTRATO_FILTER };
@@ -85,6 +87,15 @@ export class CotizacionesList implements OnInit {
     return this.contratosService.pageSize();
   }
 
+  // Getters para el resumen de recurrentes
+  get resumenRecurrentes() {
+    return this.dashboardService.resumenRecurrentes();
+  }
+
+  get loadingResumen() {
+    return this.dashboardService.loadingResumen();
+  }
+
   // dentro de CotizacionesList
   get totalRecurrenteGlobal(): number {
     return this.contratosService.totalRecurrenteGlobal();
@@ -93,6 +104,8 @@ export class CotizacionesList implements OnInit {
   ngOnInit() {
     // Carga inicial: la tabla + totales en paralelo para mejor rendimiento
     this.cargarTablayTotales(0, 10);
+    // Cargar resumen de recurrentes sin filtros (universo completo)
+    this.dashboardService.loadResumenRecurrentes();
   }
 
   /**
@@ -177,7 +190,11 @@ export class CotizacionesList implements OnInit {
     // Reset del paginator
     this.table?.reset();
     // Cargar tabla + totales en paralelo. Run in microtask to ensure ngModel updates applied
-    Promise.resolve().then(() => this.cargarTablayTotales(0, 10));
+    Promise.resolve().then(() => {
+      this.cargarTablayTotales(0, 10);
+      // Cargar resumen con filtros
+      this.cargarResumenConFiltros();
+    });
   }
 
   /**
@@ -186,7 +203,29 @@ export class CotizacionesList implements OnInit {
   onEstadoChange(newValue: any) {
     this.filters.estado = newValue;
     // Run in microtask to avoid race with template/model propagation
-    Promise.resolve().then(() => this.cargarTablayTotales(0, 10));
+    Promise.resolve().then(() => {
+      this.cargarTablayTotales(0, 10);
+      this.cargarResumenConFiltros();
+    });
+  }
+
+  /**
+   * Carga el resumen de recurrentes aplicando filtros
+   */
+  private cargarResumenConFiltros() {
+    const filterPayload: any = {};
+
+    // Preparar el payload según los filtros aplicados
+    if (this.filters.rutCliente) {
+      // Remover puntos del RUT, mantener solo el guion
+      filterPayload.rut = this.filters.rutCliente.replace(/\./g, '');
+    } else if (this.filters.nombreCliente) {
+      filterPayload.nombre = this.filters.nombreCliente;
+    }
+
+    // Si hay filtros, pasar el objeto; si no, pasar undefined para traer universo completo
+    const hasFilters = Object.keys(filterPayload).length > 0;
+    this.dashboardService.loadResumenRecurrentes(hasFilters ? filterPayload : undefined);
   }
 
   // totalesPorMoneda: { [moneda: string]: number } = {};
@@ -204,6 +243,8 @@ export class CotizacionesList implements OnInit {
     this.filters = { ...DEFAULT_CONTRATO_FILTER };
     this.table?.reset();
     this.cargarTablayTotales(0, this.pageSize);
+    // Cargar resumen sin filtros (universo completo)
+    this.dashboardService.loadResumenRecurrentes();
   }
 
 }
