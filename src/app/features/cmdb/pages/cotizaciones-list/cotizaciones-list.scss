@@ -48,8 +48,10 @@
 /* Estilos para la sección de resumen */
 .resumen-section {
     /* Color pastel tenue para filas de subtotal - cambiar aquí para modificar fácilmente */
-    --subtotal-bg-color: #e3f2fd; /* azul pastel muy tenue */
-    --subtotal-bg-hover: #bbdefb; /* azul pastel un poco más oscuro para hover */
+    --subtotal-bg-color: #e3f2fd;
+    /* azul pastel muy tenue */
+    --subtotal-bg-hover: #bbdefb;
+    /* azul pastel un poco más oscuro para hover */
 
     padding: 1.5rem;
     background-color: var(--surface-50);
