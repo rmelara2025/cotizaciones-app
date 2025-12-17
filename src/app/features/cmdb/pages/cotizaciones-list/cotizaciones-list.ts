@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { FieldsetModule } from 'primeng/fieldset';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { DrawerModule } from 'primeng/drawer';
 import { ContratosService } from '../../../../core/services/contratos.service';
 
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
@@ -46,6 +47,7 @@ import { Table } from 'primeng/table';
     InputGroupModule,
     InputGroupAddonModule,
     FieldsetModule,
+    DrawerModule,
   ],
   templateUrl: './cotizaciones-list.html',
   styleUrl: './cotizaciones-list.scss',
@@ -66,6 +68,7 @@ export class CotizacionesList implements OnInit {
   // UI state for dialog
   showDetalleDialog = false;
   selectedRow: IContrato | null = null;
+  showResumenDrawer = false;
 
   get contratos() {
     return this.contratosService.contratos();
@@ -94,6 +97,81 @@ export class CotizacionesList implements OnInit {
 
   get loadingResumen() {
     return this.dashboardService.loadingResumen();
+  }
+
+  /**
+   * Retorna los datos de resumen agrupados por moneda con subtotales
+   */
+  get resumenConSubtotales() {
+    const items = this.resumenRecurrentes;
+    if (!items || items.length === 0) {
+      return [];
+    }
+
+    const result: any[] = [];
+    const groupedByMoneda: { [key: string]: any[] } = {};
+
+    // Agrupar por tipo de moneda
+    items.forEach(item => {
+      const moneda = item.nombreTipoMoneda;
+      if (!groupedByMoneda[moneda]) {
+        groupedByMoneda[moneda] = [];
+      }
+      groupedByMoneda[moneda].push(item);
+    });
+
+    // Construir array con items + subtotales
+    Object.keys(groupedByMoneda).forEach(moneda => {
+      const grupo = groupedByMoneda[moneda];
+
+      // Agregar todos los items del grupo
+      grupo.forEach(item => result.push(item));
+
+      // Calcular subtotal
+      const subtotalContratos = grupo.reduce((sum, item) => sum + (item.cantidadContratos || 0), 0);
+      const subtotalRecurrente = grupo.reduce((sum, item) => sum + (item.totalRecurrente || 0), 0);
+
+      // Agregar fila de subtotal
+      result.push({
+        isSubtotal: true,
+        nombreTipoMoneda: moneda,
+        estado: '',
+        cantidadContratos: subtotalContratos,
+        totalRecurrente: subtotalRecurrente,
+      });
+    });
+
+    return result;
+  }
+
+  /**
+   * Formatea un valor numérico según el tipo de moneda
+   * - CLP: sin decimales, punto como separador de miles (ej: 1.000.000)
+   * - UF: 2 decimales, punto como separador de miles, coma para decimales (ej: 1.000,00)
+   * - USD: 2 decimales, punto como separador de miles, coma para decimales (ej: 1.000,00)
+   */
+  formatCurrency(value: number, moneda: string): string {
+    if (value == null || isNaN(value)) {
+      return '0';
+    }
+
+    const tipoMoneda = (moneda || '').toUpperCase();
+
+    if (tipoMoneda === 'CLP') {
+      // Sin decimales, punto como separador de miles
+      return Math.round(value)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    } else if (tipoMoneda === 'UF' || tipoMoneda === 'USD') {
+      // 2 decimales, punto como separador de miles, coma para decimales
+      const partes = value.toFixed(2).split('.');
+      const entero = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      const decimal = partes[1];
+      return `${entero},${decimal}`;
+    } else {
+      // Formato genérico por defecto
+      return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
   }
 
   // dentro de CotizacionesList
