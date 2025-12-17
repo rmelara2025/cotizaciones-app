@@ -4,3 +4,4 @@ export * from './totals.model';
 export * from './cotizacion.model';
 export * from './dashboard.model';
 export * from './expiry.model';
+export * from './cliente.model';

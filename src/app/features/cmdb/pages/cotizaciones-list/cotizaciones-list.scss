@@ -44,26 +44,3 @@
     visibility: hidden;
     /* ocupa espacio pero no se ve */
 }
-
-/* Tamaño compacto general */
-.compact .p-inputtext,
-.compact .p-dropdown,
-.compact .p-button {
-    font-size: 0.80rem;
-    /* reduce la fuente */
-    padding: 0.4rem 0.5rem !important;
-    /* reduce altura */
-    height: 2rem !important;
-    /* alto fijo */
-}
-
-/* InputGroup también compacto */
-.compact .p-inputgroup-addon {
-    padding: 0.4rem 0.5rem !important;
-    font-size: 0.80rem;
-}
-
-/* Botón de limpiar */
-.compact .clear-btn .p-button {
-    padding: 0.2rem !important;
-}

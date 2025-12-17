@@ -1,0 +1,41 @@
+.clientes-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.filters-card {
+    background: var(--surface-card);
+}
+
+.error-banner {
+    display: flex;
+    align-items: center;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-success {
+    background-color: #c8e6c9;
+    color: #2e7d32;
+}
+
+.badge-danger {
+    background-color: #ffcdd2;
+    color: #c62828;
+}
+
+/*::ng-deep .p-datatable .p-datatable-thead > tr > th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}*/
+
+::ng-deep .p-datatable-striped .p-datatable-tbody>tr:nth-child(even) {
+    background-color: var(--surface-50);
+}

@@ -1,0 +1,110 @@
+import { Component, OnInit, inject, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
+import { InputTextModule } from 'primeng/inputtext';
+import { FormsModule } from '@angular/forms';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { ClientesService } from '../../../../core/services/clientes.service';
+import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
+import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
+import { ICliente, IClienteFilters, DEFAULT_CLIENTE_FILTER } from '../../../../core/models';
+import { Table } from 'primeng/table';
+
+@Component({
+    selector: 'app-clientes-list',
+    standalone: true,
+    imports: [
+        CommonModule,
+        TableModule,
+        ButtonModule,
+        TooltipModule,
+        FormatRutPipe,
+        InputTextModule,
+        FormsModule,
+        RutInputDirective,
+        InputGroupModule,
+        InputGroupAddonModule,
+    ],
+    templateUrl: './clientes-list.html',
+    styleUrl: './clientes-list.scss',
+})
+export class ClientesList implements OnInit {
+    @ViewChild('dt') table?: Table;
+
+    private clientesService = inject(ClientesService);
+
+    // Filtros tipados
+    filters: IClienteFilters = { ...DEFAULT_CLIENTE_FILTER };
+
+    get clientes() {
+        return this.clientesService.clientes();
+    }
+
+    get loading() {
+        return this.clientesService.loading();
+    }
+
+    get error() {
+        return this.clientesService.error();
+    }
+
+    get totalRecords() {
+        return this.clientesService.totalRecords();
+    }
+
+    get pageSize() {
+        return this.clientesService.pageSize();
+    }
+
+    ngOnInit() {
+        // Carga inicial sin filtros
+        this.clientesService.loadClientes(0, 10);
+    }
+
+    /**
+     * Handler para paginación lazy de PrimeNG
+     */
+    onPageChange(event: any) {
+        const page = Math.floor(event.first / event.rows);
+        const size = event.rows;
+        const sortField = event.sortField || 'rutCliente';
+        const sortOrder = event.sortOrder === 1 ? 'asc' : 'desc';
+
+        this.clientesService.loadClientes(page, size, sortField, sortOrder, this.filters);
+    }
+
+    /**
+     * Buscar clientes aplicando filtros
+     */
+    buscarClientes() {
+        // Reiniciar a la primera página cuando se busca
+        this.table?.reset();
+        this.clientesService.loadClientes(0, this.pageSize, 'rutCliente', 'desc', this.filters);
+    }
+
+    /**
+     * Limpiar filtros y recargar todos los datos
+     */
+    limpiarFiltros() {
+        this.filters = { ...DEFAULT_CLIENTE_FILTER };
+        this.table?.reset();
+        this.clientesService.loadClientes(0, this.pageSize);
+    }
+
+    /**
+     * Helper para mostrar el estado del cliente
+     */
+    getEstadoLabel(estado: number): string {
+        return estado === 1 ? 'Activo' : 'Inactivo';
+    }
+
+    /**
+     * Helper para el color del badge de estado
+     */
+    getEstadoSeverity(estado: number): 'success' | 'danger' {
+        return estado === 1 ? 'success' : 'danger';
+    }
+}

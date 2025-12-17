@@ -1,7 +1,6 @@
 export interface IContrato {
     idContrato: string;
     rutCliente: string;
-    nombreTipoMoneda: string;
     nombreTipoPago: string;
     nombreCliente: string;
     fechaInicio: string;
@@ -9,7 +8,6 @@ export interface IContrato {
     codSap: string | null;
     codChi: string;
     codSison: string | null;
-    totalRecurrente: number;
     version: number;
     [key: string]: any;
 }

@@ -102,17 +102,6 @@ export class CotizacionesList implements OnInit {
   private cargarTablayTotales(page: number, size: number) {
     // Cargar tabla paginada
     this.contratosService.loadContratos(page, size, 'fechaInicio', 'asc', this.filters);
-
-    // Cargar todos los datos para totales (sin esperar a que termine la tabla)
-    // El servicio devuelve un observable; nos suscribimos y recalculamos cuando termina
-    this.contratosService.cargarTodosParaTotales('fechaInicio', 'asc', this.filters).subscribe({
-      next: () => {
-        this.recalcularTotales();
-      },
-      error: (err) => {
-        console.error('❌ Error cargando todosParaTotales desde componente:', err);
-      },
-    });
   }
 
   onPageChange(event: any) {
@@ -180,17 +169,6 @@ export class CotizacionesList implements OnInit {
     return this.expiryService.getBackgroundColor(severity);
   }
 
-  /**
-   * Format currency amount according to type
-   */
-  convertCurrency(row: IContrato): string {
-    const amount =
-      typeof row?.totalRecurrente === 'number'
-        ? row.totalRecurrente
-        : Number(row?.totalRecurrente) || 0;
-
-    return this.currencyService.format(amount, row?.nombreTipoMoneda);
-  }
 
   /**
    * Handle search button click
@@ -211,36 +189,10 @@ export class CotizacionesList implements OnInit {
     Promise.resolve().then(() => this.cargarTablayTotales(0, 10));
   }
 
-  totalesPorMoneda: { [moneda: string]: number } = {};
+  // totalesPorMoneda: { [moneda: string]: number } = {};
   totalRecurrenteFiltrado: number = 0;
 
-  /**
-   * Recalcula los totales por moneda leyendo la señal `todosParaTotales`
-   */
-  private recalcularTotales() {
-    // Leer de todosParaTotales, NO de contratos
-    // contratos es solo los 10 registros paginados de la tabla
-    // todosParaTotales contiene TODOS los registros para calcular totales correctos
-    const rows = this.contratosService.todosParaTotales();
 
-    // Total global
-    this.totalRecurrenteFiltrado = rows.reduce((acc, r) => {
-      const val = Number(r.totalRecurrente) || 0;
-      return acc + val;
-    }, 0);
-
-    // Totales por moneda
-    const mapa: { [m: string]: number } = {};
-
-    rows.forEach((r) => {
-      const m = r.nombreTipoMoneda;
-      const val = Number(r.totalRecurrente) || 0;
-      if (!mapa[m]) mapa[m] = 0;
-      mapa[m] += val;
-    });
-
-    this.totalesPorMoneda = mapa;
-  }
 
   addItem() {
     this.showDetalleDialog = true;
@@ -248,5 +200,10 @@ export class CotizacionesList implements OnInit {
     setTimeout(() => this.detalleCmp?.addNewRow(), 50);
   }
 
+  limpiarFiltros() {
+    this.filters = { ...DEFAULT_CONTRATO_FILTER };
+    this.table?.reset();
+    this.cargarTablayTotales(0, this.pageSize);
+  }
 
 }

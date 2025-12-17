@@ -20,7 +20,7 @@ export class ContratosService {
     totalRecurrenteGlobal = signal(0);
 
     // Separado: para cálculo de totales sin afectar tabla paginada
-    todosParaTotales = signal<IContrato[]>([]);
+    //todosParaTotales = signal<IContrato[]>([]);
 
     /**
      * Build HttpParams from pagination, sort, and filter parameters
@@ -69,12 +69,12 @@ export class ContratosService {
                 this.contratos.set(response.content || []);
                 this.totalRecords.set(response.totalElements || 0);
 
-                this.totalRecurrenteGlobal.set(
-                    (response.content || []).reduce(
-                        (acc, row) => acc + (Number(row.totalRecurrente) || 0),
-                        0,
-                    ),
-                );
+                // this.totalRecurrenteGlobal.set(
+                //     (response.content || []).reduce(
+                //         (acc, row) => acc + (Number(row.totalRecurrente) || 0),
+                //         0,
+                //     ),
+                // );
 
                 this.loading.set(false);
             },
@@ -99,15 +99,15 @@ export class ContratosService {
 
         return this.http.get<IPaginatedContratoResponse>(`${this.API_URL}/contratos`, { params }).pipe(
             tap((response) => {
-                this.todosParaTotales.set(response.content || []);
+                //this.todosParaTotales.set(response.content || []);
 
                 // Calcular también el global aquí
-                this.totalRecurrenteGlobal.set(
-                    (response.content || []).reduce(
-                        (acc, row) => acc + (Number(row.totalRecurrente) || 0),
-                        0,
-                    ),
-                );
+                // this.totalRecurrenteGlobal.set(
+                //     (response.content || []).reduce(
+                //         (acc, row) => acc + (Number(row.totalRecurrente) || 0),
+                //         0,
+                //     ),
+                // );
             }),
             catchError((err) => {
                 console.error('❌ Error loading all contratos for totals:', err);

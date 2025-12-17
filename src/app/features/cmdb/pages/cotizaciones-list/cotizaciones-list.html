@@ -5,38 +5,43 @@
         <p style="color: #e53238;">⚠️ {{ error }}</p>
     </div>
 
-    <p-fieldset legend="Filtros de búsqueda" class="my-fieldset">
 
+    <div class="filters-card p-3 mb-3 surface-card border-round shadow-1">
         <div class="grid compact">
             <div class="col-12 md:col-3">
+                <label for="rutCliente" class="block mb-2 font-semibold">RUT</label>
                 <p-inputGroup>
-                    <input pInputText placeholder="RUT" [(ngModel)]="filters.rutCliente" appRutInput />
+                    <input pInputText id="rutCliente" [(ngModel)]="filters.rutCliente" placeholder="12345678-9"
+                        appRutInput (keyup.enter)="buscar()" class="w-full" />
                     <p-inputGroupAddon>
-                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                            (click)="filters.rutCliente = ''" [class.hidden]="!filters.rutCliente">
-                        </button>
+                        <i class="pi pi-id-card"></i>
                     </p-inputGroupAddon>
                 </p-inputGroup>
             </div>
             <div class="col-12 md:col-3">
+                <label for="nombreCliente" class="block mb-2 font-semibold">Nombre Cliente</label>
                 <p-inputGroup>
-                    <input pInputText placeholder="Nombre del Cliente" [(ngModel)]="filters.nombreCliente" />
+                    <input pInputText id="nombreCliente" [(ngModel)]="filters.nombreCliente"
+                        placeholder="Telefonica Chile" (keyup.enter)="buscar()" class="w-full" />
                     <p-inputGroupAddon>
-                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                            (click)="filters.nombreCliente = ''" [class.hidden]="!filters.nombreCliente">
-                        </button>
+                        <i class="pi pi-user"></i>
                     </p-inputGroupAddon>
                 </p-inputGroup>
+
+
+
             </div>
 
             <div class="col-12 md:col-3">
+
+                <label for="estado" class="block mb-2 font-semibold">Estado del Contrato</label>
                 <p-inputGroup>
                     <p-select placeholder="Estado" [options]="[
-            {label: 'Todos los contratos', value: 'todos', },
+            {label: 'Todos', value: 'todos', },
             {label: 'Sólo Vigentes', value: 'vigente'},
             {label: 'Sólo por Expirar', value: 'por-expirar'},
             {label: 'Sólo Expirados', value: 'expirado'},
-        ]" [(ngModel)]="filters.estado" (ngModelChange)="onEstadoChange($event)" size="small">
+        ]" [(ngModel)]="filters.estado" (ngModelChange)="onEstadoChange($event)">
                     </p-select>
                 </p-inputGroup>
 
@@ -44,52 +49,66 @@
 
             <div class="col-12 md:col-12 p-0"></div>
             <div class="col-12 md:col-3">
+
+
+
+                <label for="codChi" class="block mb-2 font-semibold">Código CHI</label>
                 <p-inputGroup>
-                    <input pInputText placeholder="Cód CHI" [(ngModel)]="filters.codChi" />
+                    <input pInputText id="codChi" [(ngModel)]="filters.codChi" placeholder="CC-CHI-0000012345"
+                        (keyup.enter)="buscar()" class="w-full" />
                     <p-inputGroupAddon>
-                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                            (click)="filters.codChi = ''" [class.hidden]="!filters.codChi">
-                        </button>
+                        <i class="pi pi-folder"></i>
                     </p-inputGroupAddon>
                 </p-inputGroup>
 
             </div>
             <div class="col-12 md:col-3">
+
+
+                <label for="codSison" class="block mb-2 font-semibold">Código SISON</label>
                 <p-inputGroup>
-                    <input pInputText placeholder="Cód SISON" [(ngModel)]="filters.codSison" />
+                    <input pInputText id="codSison" [(ngModel)]="filters.codSison" placeholder="201817664-1"
+                        (keyup.enter)="buscar()" class="w-full" />
                     <p-inputGroupAddon>
-                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                            (click)="filters.codSison = ''" [class.hidden]="!filters.codSison">
-                        </button>
+                        <i class="pi pi-folder"></i>
                     </p-inputGroupAddon>
                 </p-inputGroup>
+
             </div>
             <div class="col-12 md:col-3">
+
+                <label for="codSap" class="block mb-2 font-semibold">Código SAP</label>
                 <p-inputGroup>
-                    <input pInputText placeholder="Cód SAP" [(ngModel)]="filters.codSap" />
+                    <input pInputText id="codSap" [(ngModel)]="filters.codSap" placeholder="C-12345600012"
+                        (keyup.enter)="buscar()" class="w-full" />
                     <p-inputGroupAddon>
-                        <button pButton icon="pi pi-times" class="p-button-text p-button-sm clear-btn"
-                            (click)="filters.codSap = ''" [class.hidden]="!filters.codSap">
-                        </button>
+                        <i class="pi pi-folder"></i>
                     </p-inputGroupAddon>
                 </p-inputGroup>
+
+
             </div>
 
-            <div class="col-12 md:col-2">
-                <p-inputGroup>
-                    <button pButton label="Buscar" icon="pi pi-search" (click)="buscar()"></button>
-                </p-inputGroup>
+            <div class="col-12 md:col-2 flex align-items-end">
+
+
+                <p-button label="Buscar" icon="pi pi-search" (click)="buscar()" class="mr-2"></p-button>
+                <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (click)="limpiarFiltros()"></p-button>
             </div>
 
 
 
         </div>
-    </p-fieldset>
+    </div>
+
+
 
 
 
     <p-table [value]="contratos" [loading]="loading" [paginator]="true" [rows]="pageSize" [totalRecords]="totalRecords"
-        [lazy]="true" (onLazyLoad)="onPageChange($event)" class="p-datatable-sm" responsiveLayout="scroll">
+        [lazy]="true" (onLazyLoad)="onPageChange($event)" class="p-datatable-sm" responsiveLayout="scroll"
+        [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} clientes"
+        [rowsPerPageOptions]="[10, 25, 50]">
         <ng-template pTemplate="header">
             <tr>
                 <th pSortableColumn="idContrato" style="display: none;">
@@ -110,18 +129,11 @@
                 <th pSortableColumn="nombreTipoPago" style="text-align:center;">
                     Tipo de Pago <p-sortIcon field="nombreTipoPago"></p-sortIcon>
                 </th>
-                <th pSortableColumn="totalRecurrente" style="text-align:center;">
-                    Total Recurrente <p-sortIcon field="totalRecurrente"></p-sortIcon>
-                </th>
+
                 <th pSortableColumn="codChi" style="text-align:center;" class="nowrap-col">
-                    Cód. CHI <p-sortIcon field="codChi"></p-sortIcon>
+                    Cód. Proyecto <p-sortIcon field="codChi"></p-sortIcon>
                 </th>
-                <th pSortableColumn="codSison" style="text-align:center;" class="nowrap-col">
-                    Cód. SISON <p-sortIcon field="codSison"></p-sortIcon>
-                </th>
-                <th pSortableColumn="codSap" style="text-align:center;" class="nowrap-col">
-                    Cód. SAP <p-sortIcon field="codSap"></p-sortIcon>
-                </th>
+
                 <th>Acciones</th>
             </tr>
         </ng-template>
@@ -155,26 +167,13 @@
                         {{ row.nombreTipoPago }}
                     </span>
                 </td>
-                <td [style.background]="expiryBg(row)" style="text-align: right;">
-                    <span class="p-tag p-tag-info">
-                        {{ convertCurrency(row) }}
-                    </span>
-                </td>
+
                 <td [style.background]="expiryBg(row)" class="nowrap-col">
                     <span class="p-tag p-tag-info">
-                        {{ row.codChi }}
+                        {{ row.codSap ? row.codSap : (row.codChi ? row.codChi : row.codSison) }}
                     </span>
                 </td>
-                <td [style.background]="expiryBg(row)" class="nowrap-col">
-                    <span class="p-tag p-tag-info">
-                        {{ row.codSison }}
-                    </span>
-                </td>
-                <td [style.background]="expiryBg(row)" class="nowrap-col">
-                    <span class="p-tag p-tag-info">
-                        {{ row.codSap }}
-                    </span>
-                </td>
+
                 <td>
                     <button pButton pTooltip="Ver cotización" tooltipPosition="left" icon="pi pi-eye"
                         (click)="verDetalle(row)" class="p-button-sm p-button-info"></button>
@@ -193,7 +192,7 @@
         </ng-template>
 
         <ng-template pTemplate="footer">
-            <tr style="background-color: #f5f5f5; font-weight: bold;">
+            <!-- <tr style="background-color: #f5f5f5; font-weight: bold;">
                 <td colspan="6" style="text-align: right; padding-right: 1rem;">
                     TOTALES POR MONEDA:
                 </td>
@@ -205,46 +204,48 @@
                     </div>
                 </td>
                 <td colspan="3"></td>
-            </tr>
+            </tr> -->
         </ng-template>
     </p-table>
 
     <p-dialog [(visible)]="showDetalleDialog" [modal]="true" [style]="{width: '900px'}" (onHide)="closeDetalle()"
         header="Detalle de Cotización">
         <div *ngIf="selectedRow">
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-                <div>
-                    <label><strong>RUT</strong></label>
-                    <div>{{ selectedRow.rutCliente | formatRut }}</div>
-                </div>
-                <div>
-                    <label><strong>Cliente</strong></label>
-                    <div>{{ selectedRow.nombreCliente }}</div>
-                </div>
 
-                <div>
-                    <label><strong>Código Proyecto</strong></label>
-                    <div>{{ projectCode(selectedRow) || 'N/A' }}</div>
-                </div>
-                <div>
-                    <label><strong>Tipo de Pago</strong></label>
-                    <div>{{ selectedRow.nombreTipoPago }}</div>
-                </div>
-                <div>
-                    <label><strong>Moneda</strong></label>
-                    <div>{{ selectedRow.nombreTipoMoneda }}</div>
-                </div>
-                <div>
-                    <label><strong>Versión</strong></label>
-                    <div>{{ selectedRow.version }}</div>
+            <div class="filters-card p-3 mb-3 surface-card border-round shadow-1">
+                <div class="grid">
+                    <div class="col-12 md:col-3">
+                        <label class="block mb-2 font-semibold">RUT</label>
+                        <div>{{ selectedRow.rutCliente | formatRut }}</div>
+                    </div>
+                    <div class="col-12 md:col-5">
+                        <label class="block mb-2 font-semibold">Cliente</label>
+                        <div>{{ selectedRow.nombreCliente }}</div>
+                    </div>
+
+                    <div class="col-12 md:col-4">
+                        <label class="block mb-2 font-semibold">Código Proyecto</label>
+                        <div>{{ projectCode(selectedRow) || 'N/A' }}</div>
+                    </div>
+                    <div class="col-12 md:col-3">
+                        <label class="block mb-2 font-semibold">Tipo de Pago</label>
+                        <div>{{ selectedRow.nombreTipoPago }}</div>
+                    </div>
+                    <div class="col-12 md:col-5">
+
+                    </div>
+                    <div class="col-12 md:col-4">
+                        <label class="block mb-2 font-semibold">Versión Cotización</label>
+                        <div>{{ selectedRow.version }}</div>
+                    </div>
                 </div>
             </div>
 
-            <h4 style="margin-top:1rem">Ítems / Servicio
+
+            <h3 style="margin-top:1rem">Ítems / Servicio
                 <p-button icon="pi pi-plus" [raised]="true" [rounded]="true" size="small" class="p-1" severity="success"
                     pTooltip="Agregar servicio" tooltipPosition="right" id="btnAgregar" (click)="addItem()"></p-button>
-            </h4>
+            </h3>
             <app-cotizacion-detalle [idContrato]="selectedRow.idContrato" [isModal]="true"></app-cotizacion-detalle>
         </div>
     </p-dialog>
