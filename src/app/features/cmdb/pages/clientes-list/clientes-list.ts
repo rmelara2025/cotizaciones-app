@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
@@ -35,6 +36,7 @@ export class ClientesList implements OnInit {
     @ViewChild('dt') table?: Table;
 
     private clientesService = inject(ClientesService);
+    private router = inject(Router);
 
     // Filtros tipados
     filters: IClienteFilters = { ...DEFAULT_CLIENTE_FILTER };
@@ -106,5 +108,14 @@ export class ClientesList implements OnInit {
      */
     getEstadoSeverity(estado: number): 'success' | 'danger' {
         return estado === 1 ? 'success' : 'danger';
+    }
+
+    /**
+     * Navegar a cotizaciones filtradas por el RUT del cliente
+     */
+    verContratos(cliente: ICliente) {
+        this.router.navigate(['/cotizaciones'], {
+            queryParams: { rutCliente: cliente.rutCliente }
+        });
     }
 }

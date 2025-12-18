@@ -12,6 +12,7 @@ export interface ICotizacionDetalle {
     nombreServicio: string;
     nombreFamilia: string;
     nombreTipoMoneda: string;
+    idTipoMoneda: number;
     [key: string]: any;
 }
 

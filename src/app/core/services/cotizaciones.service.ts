@@ -55,6 +55,7 @@ export class CotizacionesService {
         idServicio: number;
         cantidad: number;
         recurrente: number;
+        idTipoMoneda: number;
         atributos: string;
     }) {
         return this.http.post<ICotizacionDetalle>(`${this.API_URL}/cotizaciones`, payload);
@@ -68,6 +69,7 @@ export class CotizacionesService {
         idServicio: number;
         cantidad: number;
         recurrente: number;
+        idTipoMoneda: number;
         atributos: string;
     }) {
         return this.http.put<ICotizacionDetalle>(`${this.API_URL}/cotizaciones/editar`, payload);

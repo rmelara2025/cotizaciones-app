@@ -161,7 +161,8 @@ export class CotizacionDetalle implements OnInit {
     const currentRows = this.rows();
     const maxNum = currentRows.reduce((max, r) => Math.max(max, Number(r?.numItem) || 0), 0);
     const tempId = `new-${Date.now()}`;
-    const baseMoneda = currentRows[0]?.nombreTipoMoneda || '';
+    const baseMoneda = currentRows[0]?.nombreTipoMoneda || 'CLP';
+    const baseIdMoneda = currentRows[0]?.idTipoMoneda || 1;
 
     const newRow: ICotizacionDetalle = {
       idDetalle: tempId,
@@ -175,6 +176,7 @@ export class CotizacionDetalle implements OnInit {
       nombreServicio: '',
       nombreFamilia: '',
       nombreTipoMoneda: baseMoneda,
+      idTipoMoneda: baseIdMoneda,
       idFamilia: 0,
     } as ICotizacionDetalle;
 
@@ -246,6 +248,7 @@ export class CotizacionDetalle implements OnInit {
         idServicio: row.idServicio,
         cantidad: row.cantidad,
         recurrente: row.recurrente,
+        idTipoMoneda: row.idTipoMoneda,
         atributos: '{}',
       })
       : this.cotizacionesService.updateCotizacionItem({
@@ -255,6 +258,7 @@ export class CotizacionDetalle implements OnInit {
         idServicio: row.idServicio,
         cantidad: row.cantidad,
         recurrente: row.recurrente,
+        idTipoMoneda: row.idTipoMoneda,
         atributos: '{}',
       });
 
@@ -319,6 +323,19 @@ export class CotizacionDetalle implements OnInit {
     row.nombreServicio = servicio?.nombreServicio || '';
 
     // IMPORTANTE: Forzar el update del signal para reflejar cambios
+    this.editingRowData.set({ ...row });
+  }
+
+  onMonedaChange(row: ICotizacionDetalle, idTipoMoneda: any) {
+    const monedaId = Number(idTipoMoneda);
+    if (!monedaId) return;
+
+    row.idTipoMoneda = monedaId;
+    // Actualizar el nombre de la moneda para el display
+    const monedaMap: Record<number, string> = { 1: 'CLP', 2: 'USD', 3: 'UF' };
+    row.nombreTipoMoneda = monedaMap[monedaId] || 'CLP';
+
+    // IMPORTANTE: Forzar el update del signal para reflejar cambios en el input de recurrente
     this.editingRowData.set({ ...row });
   }
 

@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
@@ -61,6 +62,7 @@ export class CotizacionesList implements OnInit {
   private expiryService = inject(ExpiryService);
   private currencyService = inject(CurrencyService);
   private dashboardService = inject(DashboardService);
+  private route = inject(ActivatedRoute);
 
   // Typed filters
   filters: IContratoFilters = { ...DEFAULT_CONTRATO_FILTER };
@@ -180,8 +182,18 @@ export class CotizacionesList implements OnInit {
   }
 
   ngOnInit() {
-    // Carga inicial: la tabla + totales en paralelo para mejor rendimiento
-    this.cargarTablayTotales(0, 10);
+    // Verificar si hay un RUT en los query params
+    const rutParam = this.route.snapshot.queryParams['rutCliente'];
+    if (rutParam) {
+      // Aplicar el filtro de RUT
+      this.filters.rutCliente = rutParam;
+      // Cargar datos con el filtro aplicado
+      this.cargarTablayTotales(0, 10);
+      this.cargarResumenConFiltros();
+    } else {
+      // Carga inicial: la tabla + totales en paralelo para mejor rendimiento
+      this.cargarTablayTotales(0, 10);
+    }
     // Cargar resumen de recurrentes sin filtros (universo completo)
     this.dashboardService.loadResumenRecurrentes();
   }

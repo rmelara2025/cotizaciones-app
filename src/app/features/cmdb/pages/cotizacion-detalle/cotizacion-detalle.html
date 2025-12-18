@@ -40,9 +40,9 @@
                         </ng-container>
                         <ng-template #readActions>
                             <p-button icon="pi pi-pencil" [raised]="true" pTooltip="Modificar" [rounded]="true"
-                                size="small" class="p-1" severity="warn" (click)="startEdit(det)"></p-button>
+                                size="small" class="p-1" severity="info" (click)="startEdit(det)"></p-button>
                             <p-button icon="pi pi-trash" [raised]="true" pTooltip="Borrar" [rounded]="true" size="small"
-                                severity="danger" (click)="deleteRow(det)"></p-button>
+                                severity="secondary" (click)="deleteRow(det)"></p-button>
                         </ng-template>
                     </td>
                 </tr>
@@ -101,6 +101,27 @@
                 <div class="col-8">
 
                 </div>
+
+
+
+                <div class="col-2 md:col-2">
+                    <label>Moneda</label>
+                </div>
+
+                <div class="col-3">
+                    <p-select placeholder="Moneda" [appendTo]="body" [options]="[
+            {label: 'CLP', value: 1},
+            {label: 'USD', value: 2},
+            {label: 'UF', value: 3}
+        ]" [(ngModel)]="row.idTipoMoneda" (ngModelChange)="onMonedaChange(row, $event)" optionValue="value"
+                        optionLabel="label" size="small" fluid>
+                    </p-select>
+                </div>
+
+                <div class="col-7">
+
+                </div>
+
 
                 <div class="col-2 md:col-2">
                     <label>Recurrente</label>
