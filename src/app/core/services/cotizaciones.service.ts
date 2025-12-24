@@ -1,13 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ICotizacionDetalle, IPaginatedCotizacionResponse } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root',
 })
 export class CotizacionesService {
     private http = inject(HttpClient);
-    private readonly API_URL = 'http://localhost:8080/api';
+    private readonly API_URL = environment.apiUrl;
     cotizacionDetalle = signal<ICotizacionDetalle[]>([]);
     totalRecords = signal(0);
     currentPage = signal(0);

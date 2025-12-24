@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 export interface IFamilia {
     idFamilia: number;
@@ -29,7 +30,7 @@ export interface IFamiliaConServicios {
 })
 export class FamiliaService {
     private http = inject(HttpClient);
-    private readonly API_URL = 'http://localhost:8080/api';
+    private readonly API_URL = environment.apiUrl;
 
     getFamilias(): Observable<IFamilia[]> {
         return this.http.get<IFamilia[]>(`${this.API_URL}/familias`);

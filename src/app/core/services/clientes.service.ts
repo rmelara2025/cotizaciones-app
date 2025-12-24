@@ -1,13 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ICliente, IPaginatedClienteResponse } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root',
 })
 export class ClientesService {
     private http = inject(HttpClient);
-    private readonly API_URL = 'http://localhost:8080/api';
+    private readonly API_URL = environment.apiUrl;
 
     clientes = signal<ICliente[]>([]);
     totalRecords = signal(0);

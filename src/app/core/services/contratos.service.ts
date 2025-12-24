@@ -3,13 +3,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { IContrato, IPaginatedContratoResponse } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root',
 })
 export class ContratosService {
     private http = inject(HttpClient);
-    private readonly API_URL = 'http://localhost:8080/api';
+    private readonly API_URL = environment.apiUrl;
 
     contratos = signal<IContrato[]>([]);
     totalRecords = signal(0);

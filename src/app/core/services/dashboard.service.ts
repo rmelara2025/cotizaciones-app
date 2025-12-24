@@ -3,6 +3,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { IDashboardContrato } from '../models';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface IDashboardResumenItem {
     nombreTipoMoneda: string;
@@ -24,7 +25,7 @@ export interface IDashboardFilter {
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
     private http = inject(HttpClient);
-    private readonly API = 'http://localhost:8080/api/dashboard';
+    private readonly API = environment.apiUrl + '/dashboard';
 
     resumenRecurrentes = signal<IDashboardResumenItem[]>([]);
     loadingResumen = signal(false);

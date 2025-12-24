@@ -1,20 +1,14 @@
-# frontend/Dockerfile
-# 1) build
-FROM node:20 AS build
+# Etapa 1: build
+FROM node:20-alpine AS build
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
-
+RUN npm install
 COPY . .
-RUN npm run build -- --output-path=dist
+RUN npm run build 
 
-# 2) nginx to serve
-FROM nginx:stable
-COPY --from=build /app/dist /usr/share/nginx/html
 
-# copia configuración personalizada de nginx (opcional)
+# Etapa 2: nginx
+FROM nginx:alpine
+COPY --from=build  /app/dist/cotizaciones-app/browser /usr/share/nginx/html
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
-
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
