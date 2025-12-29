@@ -1,0 +1,103 @@
+<div class="contactos-container p-4">
+    <p-toast></p-toast>
+    <p-confirmDialog></p-confirmDialog>
+
+    <div class="header-section mb-4">
+        <div class="flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="text-2xl font-bold mb-2">Contactos de {{ nombreCliente() }}</h2>
+                <p class="text-color-secondary">RUT: {{ rutCliente() }}</p>
+            </div>
+            <div>
+                <p-button label="Volver" icon="pi pi-arrow-left" severity="secondary" (click)="volver()"
+                    class="mr-2"></p-button>
+                <p-button label="Nuevo Contacto" icon="pi pi-plus" (click)="openNewContactoDialog()"></p-button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensaje de error -->
+    @if (error) {
+    <div class="error-banner p-3 mb-3 surface-overlay border-round border-1 border-red-500">
+        <i class="pi pi-exclamation-triangle text-red-500 mr-2"></i>
+        <span class="text-red-500">{{ error }}</span>
+    </div>
+    }
+
+    <!-- Tabla de contactos -->
+    <p-table [value]="contactos" [loading]="loading" [tableStyle]="{ 'min-width': '60rem' }">
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 25%">Nombre</th>
+                <th style="width: 20%">Email</th>
+                <th style="width: 15%">Teléfono</th>
+                <th style="width: 15%">Cargo</th>
+                <th style="width: 15%; text-align: center">Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-contacto>
+            <tr>
+                <td>{{ contacto.nombre }}</td>
+                <td>{{ contacto.email }}</td>
+                <td>{{ contacto.telefono }}</td>
+                <td>
+                    <span class="badge badge-info">{{ contacto.cargo }}</span>
+                </td>
+                <td style="text-align: center">
+                    <p-button icon="pi pi-pencil" [raised]="true" severity="warn" pTooltip="Editar"
+                        (click)="openEditContactoDialog(contacto)" class="mr-2">
+                    </p-button>
+                    <p-button icon="pi pi-trash" [raised]="true" severity="danger" pTooltip="Eliminar"
+                        (click)="confirmDelete(contacto)">
+                    </p-button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5" class="text-center p-4">
+                    <i class="pi pi-info-circle text-3xl mb-2"></i>
+                    <p class="text-lg">No hay contactos registrados para este cliente</p>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Diálogo para crear/editar contacto -->
+    <p-dialog [header]="dialogTitle()" [(visible)]="displayDialog" [modal]="true" [style]="{ width: '500px' }"
+        [draggable]="false" [resizable]="false">
+        <div class="p-fluid">
+            <div class="field mb-3">
+                <label for="nombre" class="block mb-2 font-semibold">Nombre *</label>
+                <input pInputText id="nombre" [(ngModel)]="contactoForm().nombre" placeholder="Nombre completo"
+                    class="w-full" />
+            </div>
+
+            <div class="field mb-3">
+                <label for="email" class="block mb-2 font-semibold">Email *</label>
+                <input pInputText id="email" type="email" [(ngModel)]="contactoForm().email"
+                    placeholder="correo@ejemplo.com" class="w-full" />
+            </div>
+
+            <div class="field mb-3">
+                <label for="telefono" class="block mb-2 font-semibold">Teléfono *</label>
+                <input pInputText id="telefono" [(ngModel)]="contactoForm().telefono" placeholder="+56912345678"
+                    class="w-full" />
+            </div>
+
+            <div class="field mb-3">
+                <label for="cargo" class="block mb-2 font-semibold">Cargo *</label>
+                <p-select [options]="cargoOptions" [(ngModel)]="contactoForm().cargo" placeholder="Seleccione un cargo"
+                    optionLabel="label" optionValue="value" [style]="{ width: '100%' }" appendTo="body">
+                </p-select>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <p-button label="Cancelar" severity="secondary" (click)="displayDialog.set(false)"></p-button>
+            <p-button label="Guardar" (click)="saveContacto()"></p-button>
+        </ng-template>
+    </p-dialog>
+</div>

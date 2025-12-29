@@ -118,4 +118,18 @@ export class ClientesList implements OnInit {
             queryParams: { rutCliente: cliente.rutCliente }
         });
     }
+
+    /**
+     * Navegar a la lista de contactos del cliente
+     */
+    verContactos(cliente: ICliente) {
+        // Obtener el RUT sin formato (solo números y guión)
+        const rutSinFormato = cliente.rutCliente.replace(/\./g, '');
+        this.router.navigate(['/contactos'], {
+            queryParams: {
+                rut: rutSinFormato,
+                nombre: cliente.nombreCliente
+            }
+        });
+    }
 }

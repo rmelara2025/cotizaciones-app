@@ -5,3 +5,4 @@ export * from './cotizacion.model';
 export * from './dashboard.model';
 export * from './expiry.model';
 export * from './cliente.model';
+export * from './contacto.model';

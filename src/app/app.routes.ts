@@ -16,6 +16,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'contactos',
+    loadComponent: () =>
+      import('./features/cmdb/pages/contactos-list/contactos-list').then(
+        (m) => m.ContactosList,
+      ),
+  },
+  {
     path: 'cotizaciones',
     loadChildren: () => import('./features/cmdb/cmdb-module').then((m) => m.CmdbModule),
   },

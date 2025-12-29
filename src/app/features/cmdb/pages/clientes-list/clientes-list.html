@@ -78,7 +78,10 @@
                 </td>
                 <td style="text-align: center">
                     <p-button icon="pi pi-receipt" [raised]="true" severity="info" pTooltip="Ver contratos"
-                        (click)="verContratos(cliente)">
+                        (click)="verContratos(cliente)" class="mr-2">
+                    </p-button>
+                    <p-button icon="pi pi-users" [raised]="true" severity="success" pTooltip="Ver contactos"
+                        (click)="verContactos(cliente)">
                     </p-button>
                 </td>
             </tr>

@@ -1,0 +1,45 @@
+.contactos-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header-section {
+    h2 {
+        color: var(--primary-color);
+        margin: 0;
+    }
+}
+
+.error-banner {
+    background-color: rgba(255, 0, 0, 0.05);
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: inline-block;
+
+    &.badge-info {
+        background-color: #3b82f6;
+        color: white;
+    }
+}
+
+::ng-deep {
+    .p-dialog-header {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .p-dialog-content {
+        padding: 1.5rem;
+    }
+
+    .p-button {
+        &.p-button-secondary {
+            margin-right: 0.5rem;
+        }
+    }
+}
