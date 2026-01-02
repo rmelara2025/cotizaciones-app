@@ -24,3 +24,20 @@ export interface IPaginatedCotizacionResponse {
     size: number;
     [key: string]: any;
 }
+
+/**
+ * Modelo para cotización (cabecera) - Respuesta del backend
+ */
+export interface ICotizacion {
+    idCotizacion: string;
+    idContrato: string;
+    numeroCotizacion: string;
+    version: number;
+    estadoNombre: string;
+    estadoDescripcion: string;
+    fechaEmision: string;          // formato dd-MM-yyyy
+    fechaVigenciaDesde: string;    // formato dd-MM-yyyy
+    fechaVigenciaHasta: string;    // formato dd-MM-yyyy
+    observacion: string;
+    fechaRegistro: string;         // formato dd-MM-yyyy HH:mm:ss
+}

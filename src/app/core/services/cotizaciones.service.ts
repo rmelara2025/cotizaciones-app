@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ICotizacionDetalle, IPaginatedCotizacionResponse } from '../models';
+import { ICotizacionDetalle, IPaginatedCotizacionResponse, ICotizacion } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -9,12 +9,42 @@ import { environment } from '../../../environments/environment';
 export class CotizacionesService {
     private http = inject(HttpClient);
     private readonly API_URL = environment.apiUrl;
+
+    // Signals para detalle de cotización (antiguo)
     cotizacionDetalle = signal<ICotizacionDetalle[]>([]);
     totalRecords = signal(0);
     currentPage = signal(0);
     pageSize = signal(10);
     loading = signal(false);
     error = signal<string | null>(null);
+
+    // Signals para lista de cotizaciones por contrato (nuevo)
+    cotizaciones = signal<ICotizacion[]>([]);
+    loadingCotizaciones = signal(false);
+    errorCotizaciones = signal<string | null>(null);
+
+    /**
+     * Obtiene la lista de cotizaciones de un contrato
+     * GET /api/contratos/{idContrato}/cotizaciones
+     */
+    loadCotizacionesPorContrato(idContrato: string) {
+        this.loadingCotizaciones.set(true);
+        this.errorCotizaciones.set(null);
+
+        const url = `${this.API_URL}/contratos/${idContrato}/cotizaciones`;
+
+        this.http.get<ICotizacion[]>(url).subscribe({
+            next: (response) => {
+                this.cotizaciones.set(response || []);
+                this.loadingCotizaciones.set(false);
+            },
+            error: (err) => {
+                console.error('❌ Error loading cotizaciones:', err);
+                this.errorCotizaciones.set('No se pudieron cargar las cotizaciones: ' + err.message);
+                this.loadingCotizaciones.set(false);
+            },
+        });
+    }
 
     loadCotizacionDetalle(idContrato: string, page: number = 0, size: number = 10) {
         this.loading.set(true);

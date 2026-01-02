@@ -246,45 +246,13 @@
         </div>
     </p-drawer>
 
-    <p-dialog [(visible)]="showDetalleDialog" [modal]="true" [style]="{width: '900px'}" (onHide)="closeDetalle()"
-        header="Detalle de Cotización">
+    <p-dialog [(visible)]="showDetalleDialog" [modal]="true" [style]="{width: '90vw', height: '80vh'}"
+        (onHide)="closeDetalle()" header="Cotizaciones del Contrato">
         <div *ngIf="selectedRow">
-
-            <div class="filters-card p-3 mb-3 surface-card border-round shadow-1">
-                <div class="grid">
-                    <div class="col-12 md:col-3">
-                        <label class="block mb-2 font-semibold">RUT</label>
-                        <div>{{ selectedRow.rutCliente | formatRut }}</div>
-                    </div>
-                    <div class="col-12 md:col-5">
-                        <label class="block mb-2 font-semibold">Cliente</label>
-                        <div>{{ selectedRow.nombreCliente }}</div>
-                    </div>
-
-                    <div class="col-12 md:col-4">
-                        <label class="block mb-2 font-semibold">Código Proyecto</label>
-                        <div>{{ projectCode(selectedRow) || 'N/A' }}</div>
-                    </div>
-                    <div class="col-12 md:col-3">
-                        <label class="block mb-2 font-semibold">Tipo de Pago</label>
-                        <div>{{ selectedRow.nombreTipoPago }}</div>
-                    </div>
-                    <div class="col-12 md:col-5">
-
-                    </div>
-                    <div class="col-12 md:col-4">
-                        <label class="block mb-2 font-semibold">Versión Cotización</label>
-                        <div>{{ selectedRow.version }}</div>
-                    </div>
-                </div>
-            </div>
-
-
-            <h3 style="margin-top:1rem">Ítems / Servicio
-                <p-button icon="pi pi-plus" [raised]="true" [rounded]="true" size="small" class="p-1" severity="success"
-                    pTooltip="Agregar servicio" tooltipPosition="right" id="btnAgregar" (click)="addItem()"></p-button>
-            </h3>
-            <app-cotizacion-detalle [idContrato]="selectedRow.idContrato" [isModal]="true"></app-cotizacion-detalle>
+            <app-cotizaciones-por-contrato [idContrato]="selectedRow.idContrato"
+                [nombreCliente]="selectedRow.nombreCliente" (verDetalleCotizacion)="onVerDetalleCotizacion($event)"
+                (cerrar)="closeDetalle()">
+            </app-cotizaciones-por-contrato>
         </div>
     </p-dialog>
 </div>

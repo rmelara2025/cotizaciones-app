@@ -11,6 +11,7 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
+import { cleanRut } from '../../../../core/utils/rut.utils';
 import { ICliente, IClienteFilters, DEFAULT_CLIENTE_FILTER } from '../../../../core/models';
 import { Table } from 'primeng/table';
 
@@ -75,7 +76,13 @@ export class ClientesList implements OnInit {
         const sortField = event.sortField || 'rutCliente';
         const sortOrder = event.sortOrder === 1 ? 'asc' : 'desc';
 
-        this.clientesService.loadClientes(page, size, sortField, sortOrder, this.filters);
+        // Limpiar RUT antes de enviar
+        const filtrosLimpios = { ...this.filters };
+        if (filtrosLimpios.rutCliente) {
+            filtrosLimpios.rutCliente = cleanRut(filtrosLimpios.rutCliente);
+        }
+
+        this.clientesService.loadClientes(page, size, sortField, sortOrder, filtrosLimpios);
     }
 
     /**
@@ -84,7 +91,12 @@ export class ClientesList implements OnInit {
     buscarClientes() {
         // Reiniciar a la primera página cuando se busca
         this.table?.reset();
-        this.clientesService.loadClientes(0, this.pageSize, 'rutCliente', 'desc', this.filters);
+        // Limpiar RUT antes de enviar
+        const filtrosLimpios = { ...this.filters };
+        if (filtrosLimpios.rutCliente) {
+            filtrosLimpios.rutCliente = cleanRut(filtrosLimpios.rutCliente);
+        }
+        this.clientesService.loadClientes(0, this.pageSize, 'rutCliente', 'desc', filtrosLimpios);
     }
 
     /**

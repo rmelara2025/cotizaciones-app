@@ -18,9 +18,10 @@ import { CotizacionesService } from '../../../../core/services/cotizaciones.serv
 import { ExpiryService } from '../../../../core/services/expiry.service';
 import { CurrencyService } from '../../../../core/services/currency.service';
 import { DashboardService } from '../../../../core/services/dashboard.service';
-import { CotizacionDetalle } from '../cotizacion-detalle/cotizacion-detalle';
+import { CotizacionesPorContrato } from '../cotizaciones-por-contrato/cotizaciones-por-contrato';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
+import { cleanRut } from '../../../../core/utils/rut.utils';
 import {
   IContrato,
   IContratoFilters,
@@ -39,7 +40,7 @@ import { Table } from 'primeng/table';
     ButtonModule,
     TooltipModule,
     DialogModule,
-    CotizacionDetalle,
+    CotizacionesPorContrato,
     FormatRutPipe,
     InputTextModule,
     FormsModule,
@@ -55,7 +56,6 @@ import { Table } from 'primeng/table';
 })
 export class CotizacionesList implements OnInit {
   @ViewChild('dt') table?: Table;
-  @ViewChild(CotizacionDetalle) detalleCmp?: CotizacionDetalle;
 
   private contratosService = inject(ContratosService);
   private cotizacionesService = inject(CotizacionesService);
@@ -203,26 +203,36 @@ export class CotizacionesList implements OnInit {
    * Se usa en ngOnInit y cuando el usuario cambia filtros
    */
   private cargarTablayTotales(page: number, size: number) {
+    // Limpiar el RUT antes de enviar (remover puntos, mantener guion)
+    const filtrosLimpios = { ...this.filters };
+    if (filtrosLimpios.rutCliente) {
+      filtrosLimpios.rutCliente = cleanRut(filtrosLimpios.rutCliente);
+    }
     // Cargar tabla paginada
-    this.contratosService.loadContratos(page, size, 'fechaInicio', 'asc', this.filters);
+    this.contratosService.loadContratos(page, size, 'fechaInicio', 'asc', filtrosLimpios);
   }
 
   onPageChange(event: any) {
     // event.first = índice del primer registro
     // event.rows = tamaño de página
     const page = Math.floor(event.first / event.rows);
+    // Limpiar el RUT antes de enviar
+    const filtrosLimpios = { ...this.filters };
+    if (filtrosLimpios.rutCliente) {
+      filtrosLimpios.rutCliente = cleanRut(filtrosLimpios.rutCliente);
+    }
     // Solo cargar la tabla (los totales no cambian cuando cambias de página)
     this.contratosService.loadContratos(
       page,
       event.rows,
       event.sortField,
       event.sortOrder === 1 ? 'asc' : 'desc',
-      this.filters,
+      filtrosLimpios,
     );
   }
 
   verDetalle(contrato: IContrato) {
-    // Open dialog with detalle component inside
+    // Abrir dialog con listado de cotizaciones del contrato
     this.selectedRow = contrato;
     this.showDetalleDialog = true;
   }
@@ -230,9 +240,11 @@ export class CotizacionesList implements OnInit {
   closeDetalle() {
     this.showDetalleDialog = false;
     this.selectedRow = null;
-    // Reset the service signals for next use
-    this.cotizacionesService.cotizacionDetalle.set([]);
-    this.cotizacionesService.error.set(null);
+  }
+
+  onVerDetalleCotizacion(idCotizacion: string) {
+    // TODO: Implementar navegación o modal para ver detalle completo de la cotización
+    console.log('Ver detalle de cotización:', idCotizacion);
   }
 
   // Helper to return first non-empty project code
@@ -308,7 +320,7 @@ export class CotizacionesList implements OnInit {
     // Preparar el payload según los filtros aplicados
     if (this.filters.rutCliente) {
       // Remover puntos del RUT, mantener solo el guion
-      filterPayload.rut = this.filters.rutCliente.replace(/\./g, '');
+      filterPayload.rut = cleanRut(this.filters.rutCliente);
     } else if (this.filters.nombreCliente) {
       filterPayload.nombre = this.filters.nombreCliente;
     }
@@ -323,11 +335,7 @@ export class CotizacionesList implements OnInit {
 
 
 
-  addItem() {
-    this.showDetalleDialog = true;
-    // Deja que el diálogo se monte y luego agrega la fila editable
-    setTimeout(() => this.detalleCmp?.addNewRow(), 50);
-  }
+
 
   limpiarFiltros() {
     this.filters = { ...DEFAULT_CONTRATO_FILTER };
