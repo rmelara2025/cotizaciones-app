@@ -1,4 +1,4 @@
-.cotizaciones-container {
+﻿.cotizaciones-container {
     min-height: 400px;
 
     .error-message {
@@ -8,5 +8,21 @@
 
     h3 {
         margin: 0;
+    }
+
+    // Estilos para dropdown compacto
+    ::ng-deep {
+        .p-select {
+            font-size: 0.875rem;
+            
+            .p-select-label {
+                padding: 0.4rem 0.6rem;
+            }
+        }
+
+        .p-select-overlay {
+            font-size: 0.875rem;
+            max-width: 350px;
+        }
     }
 }

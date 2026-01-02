@@ -41,3 +41,13 @@ export interface ICotizacion {
     observacion: string;
     fechaRegistro: string;         // formato dd-MM-yyyy HH:mm:ss
 }
+
+/**
+ * Interfaz para los estados de cotización
+ */
+export interface IEstadoCotizacion {
+    idEstadoCotizacion: number;
+    nombre: string;
+    ordern: number;
+    descripcion: string;
+}

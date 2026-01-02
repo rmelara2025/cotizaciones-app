@@ -1,7 +1,9 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ICotizacionDetalle, IPaginatedCotizacionResponse, ICotizacion } from '../models';
+import { ICotizacionDetalle, IPaginatedCotizacionResponse, ICotizacion, IEstadoCotizacion } from '../models';
 import { environment } from '../../../environments/environment';
+import { catchError, tap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Injectable({
     providedIn: 'root',
@@ -22,6 +24,10 @@ export class CotizacionesService {
     cotizaciones = signal<ICotizacion[]>([]);
     loadingCotizaciones = signal(false);
     errorCotizaciones = signal<string | null>(null);
+
+    // Signals para estados de cotización
+    estados = signal<IEstadoCotizacion[]>([]);
+    loadingEstados = signal(false);
 
     /**
      * Obtiene la lista de cotizaciones de un contrato
@@ -115,5 +121,40 @@ export class CotizacionesService {
 
     deleteDetalle(idContrato: string, idDetalle: string) {
         return this.http.delete<void>(`${this.API_URL}/cotizaciones/${idContrato}/detalle/${idDetalle}`);
+    }
+
+    /**
+     * Actualiza el estado de una cotización
+     * PUT /api/cotizaciones/{idCotizacion}/estado
+     */
+    actualizarEstado(idCotizacion: string, idEstadoCotizacion: number) {
+        const url = `${this.API_URL}/cotizaciones/${idCotizacion}/estado`;
+        return this.http.put<void>(url, { idEstadoCotizacion }).pipe(
+            tap(() => {
+                console.log('Estado actualizado correctamente');
+            }),
+            catchError((error) => {
+                console.error('Error al actualizar estado:', error);
+                throw error;
+            })
+        );
+    }
+
+    /**
+     * Carga los estados de cotización disponibles
+     */
+    loadEstados() {
+        // Estados hardcoded que coinciden con la DB
+        const estadosHardcoded: IEstadoCotizacion[] = [
+            { idEstadoCotizacion: 1, nombre: 'BORRADOR', ordern: 1, descripcion: 'Cotización en construcción' },
+            { idEstadoCotizacion: 2, nombre: 'EN_REVISION', ordern: 2, descripcion: 'Enviada para revisión' },
+            { idEstadoCotizacion: 3, nombre: 'APROBADA', ordern: 3, descripcion: 'Aprobada internamente' },
+            { idEstadoCotizacion: 4, nombre: 'VIGENTE', ordern: 4, descripcion: 'Cotización actualmente vigente' },
+            { idEstadoCotizacion: 5, nombre: 'REEMPLAZADA', ordern: 5, descripcion: 'Reemplazada por una nueva versión' },
+            { idEstadoCotizacion: 6, nombre: 'ANULADA', ordern: 6, descripcion: 'Anulada por error o corrección' },
+            { idEstadoCotizacion: 7, nombre: 'CANCELADA', ordern: 7, descripcion: 'Cancelada por el cliente' },
+            { idEstadoCotizacion: 8, nombre: 'DE_BAJA', ordern: 8, descripcion: 'Dada de baja' },
+        ];
+        this.estados.set(estadosHardcoded);
     }
 }

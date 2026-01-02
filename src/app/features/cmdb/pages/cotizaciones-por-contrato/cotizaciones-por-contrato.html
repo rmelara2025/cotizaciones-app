@@ -39,8 +39,19 @@
                     <span class="p-tag p-tag-info">v{{ cotizacion.version }}</span>
                 </td>
                 <td>
-                    <p-tag [value]="cotizacion.estadoNombre" [severity]="getEstadoSeverity(cotizacion.estadoNombre)"
-                        [pTooltip]="cotizacion.estadoDescripcion" tooltipPosition="top"></p-tag>
+                    <p-select [options]="estados" [ngModel]="getIdEstadoFromNombre(cotizacion.estadoNombre)"
+                        (onChange)="onEstadoChange(cotizacion, $event)" optionLabel="nombre"
+                        optionValue="idEstadoCotizacion" [style]="{'width': '160px', 'font-size': '0.875rem'}"
+                        [disabled]="isEstadoFinal(cotizacion.estadoNombre)" appendTo="body" size="small"
+                        placeholder="Cambiar estado">
+                        <ng-template let-option pTemplate="item">
+                            <div class="flex align-items-center gap-2">
+                                <p-tag [value]="option.nombre" [severity]="getEstadoSeverity(option.nombre)"
+                                    [style]="{'font-size': '0.75rem'}"></p-tag>
+                                <span class="text-xs">{{ option.descripcion }}</span>
+                            </div>
+                        </ng-template>
+                    </p-select>
                 </td>
                 <td>{{ cotizacion.fechaEmision }}</td>
                 <td>{{ cotizacion.fechaVigenciaDesde || '-' }}</td>
