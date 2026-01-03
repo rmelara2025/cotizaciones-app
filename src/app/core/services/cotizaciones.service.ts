@@ -1,9 +1,19 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ICotizacionDetalle, IPaginatedCotizacionResponse, ICotizacion, IEstadoCotizacion } from '../models';
+import type {
+    ICotizacionDetalle,
+    IPaginatedCotizacionResponse,
+    ICotizacion,
+    IEstadoCotizacion,
+    ICotizacionDetalleCompleta,
+    ICotizacionDetalleItem,
+    IVersionResponse
+} from '../models';
 import { environment } from '../../../environments/environment';
 import { catchError, tap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { of, firstValueFrom } from 'rxjs';
+
+export type { ICotizacionDetalle, ICotizacionDetalleCompleta, ICotizacionDetalleItem };
 
 @Injectable({
     providedIn: 'root',
@@ -82,45 +92,31 @@ export class CotizacionesService {
         });
     }
 
-    createDetalle(idContrato: string, payload: Partial<ICotizacionDetalle>) {
-        return this.http.post<ICotizacionDetalle>(`${this.API_URL}/cotizaciones/${idContrato}/detalle`, payload);
+    /**
+     * Obtiene el detalle completo de una cotización
+     * GET /api/cotizaciones/{idCotizacion}
+     */
+    async obtenerDetalleCotizacion(idCotizacion: string): Promise<ICotizacionDetalleCompleta> {
+        const url = `${this.API_URL}/cotizaciones/${idCotizacion}`;
+        return firstValueFrom(this.http.get<ICotizacionDetalleCompleta>(url));
     }
 
-    // Crea un ítem de cotización usando el endpoint global /api/cotizaciones
-    createCotizacionItem(payload: {
-        idContrato: string;
-        idServicio: number;
-        cantidad: number;
-        recurrente: number;
-        idTipoMoneda: number;
-        atributos: string;
-    }) {
-        return this.http.post<ICotizacionDetalle>(`${this.API_URL}/cotizaciones`, payload);
+    /**
+     * Versiona una cotización (crea nueva versión en BORRADOR, marca anterior como REEMPLAZADA)
+     * POST /api/cotizaciones/{idCotizacion}/versionar
+     */
+    async versionarCotizacion(idCotizacion: string): Promise<IVersionResponse> {
+        const url = `${this.API_URL}/cotizaciones/${idCotizacion}/versionar`;
+        return firstValueFrom(this.http.post<IVersionResponse>(url, {}));
     }
 
-    // Edita un ítem de cotización usando PUT /api/cotizaciones/editar
-    updateCotizacionItem(payload: {
-        idDetalle: string;
-        numItem: number;
-        idContrato: string;
-        idServicio: number;
-        cantidad: number;
-        recurrente: number;
-        idTipoMoneda: number;
-        atributos: string;
-    }) {
-        return this.http.put<ICotizacionDetalle>(`${this.API_URL}/cotizaciones/editar`, payload);
-    }
-
-    updateDetalle(idContrato: string, idDetalle: string, payload: Partial<ICotizacionDetalle>) {
-        return this.http.put<ICotizacionDetalle>(
-            `${this.API_URL}/cotizaciones/${idContrato}/detalle/${idDetalle}`,
-            payload,
-        );
-    }
-
-    deleteDetalle(idContrato: string, idDetalle: string) {
-        return this.http.delete<void>(`${this.API_URL}/cotizaciones/${idContrato}/detalle/${idDetalle}`);
+    /**
+     * Guarda los items de una cotización (reemplaza todos)
+     * PUT /api/cotizaciones/{idCotizacion}/items
+     */
+    async guardarItems(idCotizacion: string, items: any[]): Promise<void> {
+        const url = `${this.API_URL}/cotizaciones/${idCotizacion}/items`;
+        return firstValueFrom(this.http.put<void>(url, { items }));
     }
 
     /**

@@ -51,3 +51,51 @@ export interface IEstadoCotizacion {
     ordern: number;
     descripcion: string;
 }
+
+/**
+ * Interfaz para el detalle completo de una cotización con sus items y totales
+ */
+export interface ICotizacionDetalleCompleta {
+    idCotizacion: string;
+    numeroCotizacion: string;
+    version: number;
+    idestadoCotizacion: number;
+    nombreEstado: string;
+    fechaCreacion: string;
+    fechaVigencia: string;
+    fechaVencimiento: string;
+    observacion: string;
+    items: ICotizacionDetalleItem[];
+    totales: ICotizacionTotal[];
+}
+
+export interface ICotizacionDetalleItem {
+    numItem: number;
+    idServicio: number;
+    nombreServicio: string;
+    nombreFamilia: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+    idTipoMoneda: number;
+    nombreMoneda: string;
+    idPeriodicidad: number;
+    nombrePeriodicidad: string;
+    fechaInicioFacturacion: string;
+    fechaFinFacturacion: string;
+    atributos: string;
+    observacion: string;
+}
+
+export interface ICotizacionTotal {
+    idTipoMoneda: number;
+    nombreMoneda: string;
+    montoTotal: number;
+}
+
+export interface IVersionResponse {
+    idNuevaCotizacion: string;
+    numeroCotizacion: string;
+    version: number;
+}
+

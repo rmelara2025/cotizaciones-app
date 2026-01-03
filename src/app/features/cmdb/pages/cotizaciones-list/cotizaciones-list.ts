@@ -196,6 +196,24 @@ export class CotizacionesList implements OnInit {
     }
     // Cargar resumen de recurrentes sin filtros (universo completo)
     this.dashboardService.loadResumenRecurrentes();
+
+    // Verificar si debemos reabrir el drawer al volver del detalle
+    this.verificarYAbrirDrawer();
+  }
+
+  private verificarYAbrirDrawer() {
+    const idContratoGuardado = localStorage.getItem('openDrawerContrato');
+    if (idContratoGuardado) {
+      localStorage.removeItem('openDrawerContrato');
+      setTimeout(() => {
+        const contratos = this.contratosService.contratos();
+        const contrato = contratos.find(c => c.idContrato === idContratoGuardado);
+        if (contrato) {
+          this.selectedRow = contrato;
+          this.showDetalleDialog = true;
+        }
+      }, 300);
+    }
   }
 
   /**

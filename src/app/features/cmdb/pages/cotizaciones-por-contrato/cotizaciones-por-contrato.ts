@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
@@ -23,6 +24,7 @@ export class CotizacionesPorContrato implements OnInit {
     @Output() cerrar = new EventEmitter<void>();
 
     private cotizacionesService = inject(CotizacionesService);
+    private router = inject(Router);
 
     get cotizaciones() {
         return this.cotizacionesService.cotizaciones();
@@ -49,8 +51,10 @@ export class CotizacionesPorContrato implements OnInit {
     }
 
     onVerDetalle(cotizacion: ICotizacion) {
-        // Emitir evento para que el componente padre maneje la navegación al detalle
-        this.verDetalleCotizacion.emit(cotizacion.idCotizacion);
+        // Navegar al detalle de la cotización con idContrato para poder volver al popup
+        this.router.navigate(['/cotizaciones/cotizacion-detalle', cotizacion.idCotizacion], {
+            queryParams: { idContrato: this.idContrato }
+        });
     }
 
     onCerrar() {

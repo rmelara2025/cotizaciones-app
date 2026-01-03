@@ -1,0 +1,169 @@
+<div class="detalle-wrapper">
+    <p-toast />
+
+    @if (cotizacion(); as cot) {
+    <div class="header">
+        <div class="title-section">
+            <h2>Cotización {{ cot.numeroCotizacion }} - Versión {{ cot.version }}</h2>
+            <span class="badge" [class]="'estado-' + (cot.nombreEstado || '').toLowerCase()">
+                {{ cot.nombreEstado }}
+            </span>
+        </div>
+        <div class="actions">
+            @if (!modoEdicion()) {
+            <p-button label="Editar" icon="pi pi-pencil" (onClick)="activarModoEdicion()"
+                [disabled]="cot.idestadoCotizacion === 7 || cot.idestadoCotizacion === 5 || cot.idestadoCotizacion === 6 || cot.idestadoCotizacion === 8" />
+            }
+            @if (modoEdicion()) {
+            <p-button label="Cancelar" icon="pi pi-times" severity="secondary" (onClick)="cancelarEdicion()"
+                [disabled]="guardando()" />
+            <p-button label="Guardar cambios" icon="pi pi-save" (onClick)="guardarCambios()" [loading]="guardando()" />
+            }
+            <p-button label="Volver" icon="pi pi-arrow-left" severity="secondary" (onClick)="volver()" />
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <span class="label">Fecha Creación:</span>
+            <span>{{ cot.fechaCreacion }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Fecha Vigencia:</span>
+            <span>{{ cot.fechaVigencia }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Fecha Vencimiento:</span>
+            <span>{{ cot.fechaVencimiento }}</span>
+        </div>
+        @if (cot.observacion) {
+        <div class="info-row observacion">
+            <span class="label">Observación:</span>
+            <span>{{ cot.observacion }}</span>
+        </div>
+        }
+    </div>
+
+    <div class="items-section">
+        <div class="section-header">
+            <h3>Items de Servicios</h3>
+            @if (modoEdicion()) {
+            <p-button label="Agregar Item" icon="pi pi-plus" size="small" (onClick)="agregarItem()" />
+            }
+        </div>
+
+        @if (!modoEdicion()) {
+        <!-- Modo lectura -->
+        <p-table [value]="items()" styleClass="p-datatable-sm">
+            <ng-template #header>
+                <tr>
+                    <th style="width: 60px">#</th>
+                    <th>Servicio</th>
+                    <th>Familia</th>
+                    <th style="width: 100px">Cantidad</th>
+                    <th style="width: 120px">Precio Unit.</th>
+                    <th style="width: 120px">Subtotal</th>
+                    <th style="width: 100px">Moneda</th>
+                    <th style="width: 120px">Periodicidad</th>
+                    <th style="width: 110px">Fecha Inicio</th>
+                    <th style="width: 110px">Fecha Fin</th>
+                    <th>Observación</th>
+                </tr>
+            </ng-template>
+            <ng-template #body let-item>
+                <tr>
+                    <td>{{ item.numItem }}</td>
+                    <td>{{ item.nombreServicio }}</td>
+                    <td>{{ item.nombreFamilia }}</td>
+                    <td class="text-right">{{ item.cantidad }}</td>
+                    <td class="text-right">{{ item.precioUnitario | number:'1.2-2' }}</td>
+                    <td class="text-right">{{ item.subtotal | number:'1.2-2' }}</td>
+                    <td>{{ item.nombreMoneda }}</td>
+                    <td>{{ item.nombrePeriodicidad }}</td>
+                    <td>{{ item.fechaInicioFacturacion }}</td>
+                    <td>{{ item.fechaFinFacturacion }}</td>
+                    <td>{{ item.observacion }}</td>
+                </tr>
+            </ng-template>
+        </p-table>
+        }
+
+        @if (modoEdicion()) {
+        <!-- Modo edición -->
+        <p-table [value]="items()" styleClass="p-datatable-sm editable-table">
+            <ng-template #header>
+                <tr>
+                    <th style="width: 60px">#</th>
+                    <th style="width: 250px">Servicio *</th>
+                    <th style="width: 70px">Cant. *</th>
+                    <th style="width: 120px">Precio Unit. *</th>
+                    <th style="width: 120px">Subtotal</th>
+                    <th style="width: 120px">Moneda *</th>
+                    <th style="width: 150px">Periodicidad *</th>
+                    <th style="width: 140px">Fecha Inicio</th>
+                    <th style="width: 140px">Fecha Fin</th>
+                    <th style="width: 200px">Observación</th>
+                    <th style="width: 80px">Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template #body let-item let-i="rowIndex">
+                <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>
+                        <p-select [(ngModel)]="item.idServicio" [options]="servicios()" optionLabel="nombre"
+                            optionValue="idServicio" placeholder="Seleccione servicio" [showClear]="false"
+                            appendTo="body" (onChange)="onServicioChange(item)" class="w-full" />
+                    </td>
+                    <td>
+                        <p-inputNumber [(ngModel)]="item.cantidad" [min]="1" [showButtons]="true"
+                            (onInput)="calcularSubtotal(item)" class="w-full" />
+                    </td>
+                    <td>
+                        <p-inputNumber [(ngModel)]="item.precioUnitario" mode="decimal" [minFractionDigits]="2"
+                            [maxFractionDigits]="2" (onInput)="calcularSubtotal(item)" class="w-full" />
+                    </td>
+                    <td class="text-right">
+                        {{ item.subtotal | number:'1.2-2' }}
+                    </td>
+                    <td>
+                        <p-select [(ngModel)]="item.idTipoMoneda" [options]="monedas()" optionLabel="nombreTipoMoneda"
+                            optionValue="idTipoMoneda" placeholder="Moneda" appendTo="body" class="w-full" />
+                    </td>
+                    <td>
+                        <p-select [(ngModel)]="item.idPeriodicidad" [options]="periodicidades()" optionLabel="nombre"
+                            optionValue="idPeriodicidad" placeholder="Periodicidad" appendTo="body" class="w-full" />
+                    </td>
+                    <td>
+                        <p-datepicker [(ngModel)]="item.fechaInicioFacturacion" dateFormat="dd/mm/yy"
+                            placeholder="dd/mm/aaaa" class="w-full" />
+                    </td>
+                    <td>
+                        <p-datepicker [(ngModel)]="item.fechaFinFacturacion" dateFormat="dd/mm/yy"
+                            placeholder="dd/mm/aaaa" class="w-full" />
+                    </td>
+                    <td>
+                        <input pInputText [(ngModel)]="item.observacion" placeholder="Observación" class="w-full" />
+                    </td>
+                    <td>
+                        <p-button icon="pi pi-trash" severity="danger" size="small" [text]="true"
+                            (onClick)="eliminarItem(i)" />
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+        }
+    </div>
+
+    <div class="totales-section">
+        <h3>Totales Recurrentes Mensuales</h3>
+        <div class="totales-grid">
+            @for (total of totalesPorMoneda(); track total.idTipoMoneda) {
+            <div class="total-item">
+                <span class="moneda">{{ total.nombreMoneda }}:</span>
+                <span class="monto">{{ total.montoTotal | number:'1.2-2' }}</span>
+            </div>
+            }
+        </div>
+    </div>
+    }
+</div>
