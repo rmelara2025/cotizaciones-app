@@ -5,13 +5,18 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { DividerModule } from 'primeng/divider';
 import { CotizacionesService, ICotizacionDetalleCompleta, ICotizacionDetalleItem } from '../../../../core/services/cotizaciones.service';
 import { CatalogosService, IServicio, ITipoMoneda, IPeriodicidad } from '../../../../core/services/catalogos.service';
+import { IContrato } from '../../../../core/models';
+import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
+import { getEstadoSeverity } from '../../../../core/utils/commons';
 
 interface IItemEditable extends ICotizacionDetalleItem {
   _isNew?: boolean;
@@ -26,10 +31,13 @@ interface IItemEditable extends ICotizacionDetalleItem {
     TableModule,
     ButtonModule,
     SelectModule,
+    TagModule,
     InputNumberModule,
     InputTextModule,
     DatePickerModule,
-    ToastModule
+    ToastModule,
+    DividerModule,
+    FormatRutPipe
   ],
   templateUrl: './cotizacion-detalle.html',
   styleUrls: ['./cotizacion-detalle.scss'],
@@ -47,11 +55,15 @@ export class CotizacionDetalleComponent implements OnInit {
 
   // State
   idCotizacion = signal<string>('');
-  idContratoOrigen = signal<string | null>(null);
   cotizacion = signal<ICotizacionDetalleCompleta | null>(null);
   items = signal<IItemEditable[]>([]);
   modoEdicion = signal(false);
   guardando = signal(false);
+  contrato = signal<IContrato | null>(null);
+
+  // Para mantener contexto de navegación
+  private idContratoOrigen: string | null = null;
+  private filtrosOriginales: any = {};
 
   // Catalogos
   servicios = this.catalogosService.servicios;
@@ -65,7 +77,17 @@ export class CotizacionDetalleComponent implements OnInit {
     return cot.totales || [];
   });
 
+  get estadoSeverity() {
+    const estado = this.cotizacion()?.nombreEstado || '';
+    return getEstadoSeverity(estado);
+  };
+
   ngOnInit() {
+    const contratoFromState = window.history.state?.['contrato'] as IContrato;
+    if (contratoFromState) {
+      this.contrato.set(contratoFromState);  // Guardas TODO el row aquí
+      console.log('Contrato recibido:', contratoFromState); // Para que veas toda la info
+    }
     // Leer idCotizacion de los parámetros de la ruta
     this.route.paramMap.subscribe(params => {
       const id = params.get('idCotizacion');
@@ -75,12 +97,14 @@ export class CotizacionDetalleComponent implements OnInit {
       }
     });
 
-    // Leer idContrato de query params para poder volver al popup
-    this.route.queryParamMap.subscribe(queryParams => {
-      const idContrato = queryParams.get('idContrato');
-      if (idContrato) {
-        this.idContratoOrigen.set(idContrato);
+    // Guardar query params para volver con contexto
+    this.route.queryParams.subscribe(params => {
+      if (params['idContrato']) {
+        this.idContratoOrigen = params['idContrato'];
       }
+      // Guardar todos los demás query params (filtros)
+      const { idContrato, ...filtros } = params;
+      this.filtrosOriginales = filtros;
     });
   }
 
@@ -219,13 +243,13 @@ export class CotizacionDetalleComponent implements OnInit {
   }
 
   volver() {
-    const idContrato = this.idContratoOrigen();
-    if (idContrato) {
-      // Guardar en localStorage para que el componente padre abra el drawer
-      localStorage.setItem('openDrawerContrato', idContrato);
-      // Navegar directamente a /cotizaciones
-      this.router.navigate(['/cotizaciones']);
+    if (this.idContratoOrigen) {
+      // Volver a cotizaciones por contrato con los filtros originales
+      this.router.navigate(['/cotizaciones/por-contrato', this.idContratoOrigen], {
+        queryParams: this.filtrosOriginales
+      });
     } else {
+      // Si no hay contexto, usar history.back
       window.history.back();
     }
   }

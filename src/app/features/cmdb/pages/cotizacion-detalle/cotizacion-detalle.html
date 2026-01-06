@@ -4,10 +4,8 @@
     @if (cotizacion(); as cot) {
     <div class="header">
         <div class="title-section">
-            <h2>Cotización {{ cot.numeroCotizacion }} - Versión {{ cot.version }}</h2>
-            <span class="badge" [class]="'estado-' + (cot.nombreEstado || '').toLowerCase()">
-                {{ cot.nombreEstado }}
-            </span>
+            <h2>Cotización {{ cot.numeroCotizacion }} - v.{{ cot.version }}</h2>
+            <p-tag [value]="cot.nombreEstado" [severity]="estadoSeverity" [style]="{ 'font-size': '20px' }"></p-tag>
         </div>
         <div class="actions">
             @if (!modoEdicion()) {
@@ -23,26 +21,49 @@
         </div>
     </div>
 
-    <div class="info-section">
-        <div class="info-row">
-            <span class="label">Fecha Creación:</span>
-            <span>{{ cot.fechaCreacion }}</span>
+
+    <div *ngIf="contrato()" class="filters-card p-3 mb-3 surface-card border-round shadow-1">
+        <div class="grid">
+            <div class="col-12 md:col-3">
+                <label class="block mb-2 font-semibold">Cliente</label>
+                <p class="font-semibold text-color-secondary">{{ contrato()!.nombreCliente }}</p>
+            </div>
+            <div class="col-12 md:col-3">
+                <label class="block mb-2 font-semibold">RUT</label>
+                <p class="font-semibold text-color-secondary">{{ contrato()!.rutCliente | formatRut }}</p>
+            </div>
+            <div class="col-12 md:col-3">
+                <label class="block mb-2 font-semibold">Proyecto</label>
+                <p class="font-semibold text-color-secondary">{{ contrato()!.codSap || contrato()!.codChi ||
+                    contrato()!.codSison }}</p>
+            </div>
+
+            <p-divider />
+            <div class="col-12 md:col-3">
+                <label class="block mb-2 font-semibold">Creación Cotización</label>
+                <p class="font-semibold text-color-secondary">{{ cot.fechaCreacion }}</p>
+            </div>
+            <div class="col-12 md:col-3">
+                <label class="block mb-2 font-semibold">Vigencia Cotización</label>
+                <p class="font-semibold text-color-secondary">{{ cot.fechaVigencia }}</p>
+            </div>
+            <div class="col-12 md:col-3">
+                <label class="block mb-2 font-semibold">Vencimiento Cotización</label>
+                <p class="font-semibold text-color-secondary ">{{ cot.fechaVencimiento }}</p>
+            </div>
+            <div class="col-12 md:col-3">
+
+            </div>
+            <div class="col-12 md:col-3">
+                @if (cot.observacion) {
+
+                <label class="block mb-2 font-semibold">Observación</label>
+                <p class="font-semibold text-color-secondary ">{{ cot.observacion }}</p>
+                }
+            </div>
         </div>
-        <div class="info-row">
-            <span class="label">Fecha Vigencia:</span>
-            <span>{{ cot.fechaVigencia }}</span>
-        </div>
-        <div class="info-row">
-            <span class="label">Fecha Vencimiento:</span>
-            <span>{{ cot.fechaVencimiento }}</span>
-        </div>
-        @if (cot.observacion) {
-        <div class="info-row observacion">
-            <span class="label">Observación:</span>
-            <span>{{ cot.observacion }}</span>
-        </div>
-        }
     </div>
+
 
     <div class="items-section">
         <div class="section-header">
@@ -156,10 +177,11 @@
 
     <div class="totales-section">
         <h3>Totales Recurrentes Mensuales</h3>
-        <div class="totales-grid">
+        <div class="totales-grid grid compact">
             @for (total of totalesPorMoneda(); track total.idTipoMoneda) {
-            <div class="total-item">
-                <span class="moneda">{{ total.nombreMoneda }}:</span>
+            <!-- <div class="total-item"> -->
+            <div class="col-12 md:col-2">
+                <label class="block mb-2 font-semibold">{{ total.nombreMoneda }}:</label>
                 <span class="monto">{{ total.montoTotal | number:'1.2-2' }}</span>
             </div>
             }

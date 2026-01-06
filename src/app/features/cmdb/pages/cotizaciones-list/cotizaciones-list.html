@@ -147,7 +147,7 @@
                     </a>
                 </td>
                 <td [style.background]="expiryBg(row)" style="text-align: right;" class="nowrap-col">
-                    <span class="p-tag p-tag-info">
+                    <span>
                         <i *ngIf="expirySeverity(row)" class="pi pi-exclamation-triangle warning-icon"
                             [ngClass]="{'high': expirySeverity(row) === 'high', 'medium': expirySeverity(row) === 'medium', 'low': expirySeverity(row) === 'low'}"
                             [pTooltip]="getExpiryTooltip(row)" tooltipPosition="top" aria-hidden="true"></i>
@@ -156,7 +156,7 @@
                     </span>
                 </td>
                 <td [style.background]="expiryBg(row)">
-                    <span class="p-tag p-tag-info">
+                    <span>
                         {{ row.nombreCliente }}
                     </span>
                 </td>
@@ -164,19 +164,19 @@
                 </td>
                 <td [style.background]="expiryBg(row)">{{ row.fechaTermino | date: 'dd/MM/yyyy' }}</td>
                 <td [style.background]="expiryBg(row)">
-                    <span class="p-tag p-tag-info">
+                    <span>
                         {{ row.nombreTipoPago }}
                     </span>
                 </td>
 
                 <td [style.background]="expiryBg(row)" class="nowrap-col">
-                    <span class="p-tag p-tag-info">
+                    <span>
                         {{ row.codSap ? row.codSap : (row.codChi ? row.codChi : row.codSison) }}
                     </span>
                 </td>
 
                 <td>
-                    <button pButton pTooltip="Ver cotización" icon="pi pi-eye" (click)="verDetalle(row)"
+                    <button pButton pTooltip="Ver cotizaciones" icon="pi pi-book" (click)="verDetalle(row)"
                         severity="info"></button>
                 </td>
             </tr>
@@ -245,14 +245,4 @@
             </p-table>
         </div>
     </p-drawer>
-
-    <p-dialog [(visible)]="showDetalleDialog" [modal]="true" [style]="{width: '90vw', height: '80vh'}"
-        (onHide)="closeDetalle()" header="Cotizaciones del Contrato">
-        <div *ngIf="selectedRow">
-            <app-cotizaciones-por-contrato [idContrato]="selectedRow.idContrato"
-                [nombreCliente]="selectedRow.nombreCliente" (verDetalleCotizacion)="onVerDetalleCotizacion($event)"
-                (cerrar)="closeDetalle()">
-            </app-cotizaciones-por-contrato>
-        </div>
-    </p-dialog>
 </div>

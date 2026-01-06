@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
@@ -63,6 +63,7 @@ export class CotizacionesList implements OnInit {
   private currencyService = inject(CurrencyService);
   private dashboardService = inject(DashboardService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   // Typed filters
   filters: IContratoFilters = { ...DEFAULT_CONTRATO_FILTER };
@@ -182,38 +183,49 @@ export class CotizacionesList implements OnInit {
   }
 
   ngOnInit() {
-    // Verificar si hay un RUT en los query params
-    const rutParam = this.route.snapshot.queryParams['rutCliente'];
-    if (rutParam) {
-      // Aplicar el filtro de RUT
-      this.filters.rutCliente = rutParam;
-      // Cargar datos con el filtro aplicado
-      this.cargarTablayTotales(0, 10);
-      this.cargarResumenConFiltros();
-    } else {
-      // Carga inicial: la tabla + totales en paralelo para mejor rendimiento
-      this.cargarTablayTotales(0, 10);
-    }
+    // Suscribirse a cambios en query params para mantener filtros al volver
+    this.route.queryParams.subscribe(queryParams => {
+      let hayFiltros = false;
+      const nuevosFiltros = { ...DEFAULT_CONTRATO_FILTER };
+
+      if (queryParams['rutCliente']) {
+        nuevosFiltros.rutCliente = queryParams['rutCliente'];
+        hayFiltros = true;
+      }
+      if (queryParams['nombreCliente']) {
+        nuevosFiltros.nombreCliente = queryParams['nombreCliente'];
+        hayFiltros = true;
+      }
+      if (queryParams['estado'] && queryParams['estado'] !== 'todos') {
+        nuevosFiltros.estado = queryParams['estado'];
+        hayFiltros = true;
+      }
+      if (queryParams['codChi']) {
+        nuevosFiltros.codChi = queryParams['codChi'];
+        hayFiltros = true;
+      }
+      if (queryParams['codSison']) {
+        nuevosFiltros.codSison = queryParams['codSison'];
+        hayFiltros = true;
+      }
+      if (queryParams['codSap']) {
+        nuevosFiltros.codSap = queryParams['codSap'];
+        hayFiltros = true;
+      }
+
+      // Aplicar filtros
+      this.filters = nuevosFiltros;
+
+      if (hayFiltros) {
+        this.cargarTablayTotales(0, 10);
+        this.cargarResumenConFiltros();
+      } else {
+        this.cargarTablayTotales(0, 10);
+      }
+    });
+
     // Cargar resumen de recurrentes sin filtros (universo completo)
     this.dashboardService.loadResumenRecurrentes();
-
-    // Verificar si debemos reabrir el drawer al volver del detalle
-    this.verificarYAbrirDrawer();
-  }
-
-  private verificarYAbrirDrawer() {
-    const idContratoGuardado = localStorage.getItem('openDrawerContrato');
-    if (idContratoGuardado) {
-      localStorage.removeItem('openDrawerContrato');
-      setTimeout(() => {
-        const contratos = this.contratosService.contratos();
-        const contrato = contratos.find(c => c.idContrato === idContratoGuardado);
-        if (contrato) {
-          this.selectedRow = contrato;
-          this.showDetalleDialog = true;
-        }
-      }, 300);
-    }
   }
 
   /**
@@ -250,19 +262,19 @@ export class CotizacionesList implements OnInit {
   }
 
   verDetalle(contrato: IContrato) {
-    // Abrir dialog con listado de cotizaciones del contrato
-    this.selectedRow = contrato;
-    this.showDetalleDialog = true;
-  }
+    // Navegar a la página de cotizaciones por contrato, pasando filtros actuales como query params
+    const queryParams: any = {};
+    if (this.filters.rutCliente) queryParams.rutCliente = this.filters.rutCliente;
+    if (this.filters.nombreCliente) queryParams.nombreCliente = this.filters.nombreCliente;
+    if (this.filters.estado && this.filters.estado !== 'todos') queryParams.estado = this.filters.estado;
+    if (this.filters.codChi) queryParams.codChi = this.filters.codChi;
+    if (this.filters.codSison) queryParams.codSison = this.filters.codSison;
+    if (this.filters.codSap) queryParams.codSap = this.filters.codSap;
 
-  closeDetalle() {
-    this.showDetalleDialog = false;
-    this.selectedRow = null;
-  }
-
-  onVerDetalleCotizacion(idCotizacion: string) {
-    // TODO: Implementar navegación o modal para ver detalle completo de la cotización
-    console.log('Ver detalle de cotización:', idCotizacion);
+    this.router.navigate(['/cotizaciones/por-contrato', contrato.idContrato], {
+      queryParams,
+      state: { contrato: contrato }  // AQUÍ SE PASA EL ROW COMPLETO
+    });
   }
 
   // Helper to return first non-empty project code
