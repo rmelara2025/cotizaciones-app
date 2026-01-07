@@ -221,11 +221,10 @@ export class CotizacionesList implements OnInit {
         this.cargarResumenConFiltros();
       } else {
         this.cargarTablayTotales(0, 10);
+        // Cargar resumen sin filtros cuando no hay filtros aplicados
+        this.dashboardService.loadResumenRecurrentes();
       }
     });
-
-    // Cargar resumen de recurrentes sin filtros (universo completo)
-    this.dashboardService.loadResumenRecurrentes();
   }
 
   /**
@@ -262,6 +261,9 @@ export class CotizacionesList implements OnInit {
   }
 
   verDetalle(contrato: IContrato) {
+    // Guardar contrato en sessionStorage para persistencia
+    sessionStorage.setItem('contrato-actual', JSON.stringify(contrato));
+
     // Navegar a la página de cotizaciones por contrato, pasando filtros actuales como query params
     const queryParams: any = {};
     if (this.filters.rutCliente) queryParams.rutCliente = this.filters.rutCliente;
@@ -273,7 +275,7 @@ export class CotizacionesList implements OnInit {
 
     this.router.navigate(['/cotizaciones/por-contrato', contrato.idContrato], {
       queryParams,
-      state: { contrato: contrato }  // AQUÍ SE PASA EL ROW COMPLETO
+      state: { contrato: contrato }
     });
   }
 
@@ -351,12 +353,16 @@ export class CotizacionesList implements OnInit {
     if (this.filters.rutCliente) {
       // Remover puntos del RUT, mantener solo el guion
       filterPayload.rut = cleanRut(this.filters.rutCliente);
-    } else if (this.filters.nombreCliente) {
+    }
+
+    if (this.filters.nombreCliente) {
       filterPayload.nombre = this.filters.nombreCliente;
     }
 
     // Si hay filtros, pasar el objeto; si no, pasar undefined para traer universo completo
     const hasFilters = Object.keys(filterPayload).length > 0;
+
+    console.log('🔍 Cargando resumen con filtros:', hasFilters ? filterPayload : 'sin filtros');
     this.dashboardService.loadResumenRecurrentes(hasFilters ? filterPayload : undefined);
   }
 

@@ -12,15 +12,18 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { DividerModule } from 'primeng/divider';
+import { PanelModule } from 'primeng/panel';
 import { CotizacionesService, ICotizacionDetalleCompleta, ICotizacionDetalleItem } from '../../../../core/services/cotizaciones.service';
 import { CatalogosService, IServicio, ITipoMoneda, IPeriodicidad } from '../../../../core/services/catalogos.service';
 import { IContrato } from '../../../../core/models';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { getEstadoSeverity } from '../../../../core/utils/commons';
 
-interface IItemEditable extends ICotizacionDetalleItem {
+interface IItemEditable extends Omit<ICotizacionDetalleItem, 'fechaInicioFacturacion' | 'fechaFinFacturacion'> {
   _isNew?: boolean;
   _atributosObj?: any;
+  fechaInicioFacturacion: string | Date | null;
+  fechaFinFacturacion: string | Date | null;
 }
 
 @Component({
@@ -37,7 +40,8 @@ interface IItemEditable extends ICotizacionDetalleItem {
     DatePickerModule,
     ToastModule,
     DividerModule,
-    FormatRutPipe
+    FormatRutPipe,
+    PanelModule
   ],
   templateUrl: './cotizacion-detalle.html',
   styleUrls: ['./cotizacion-detalle.scss'],
@@ -83,11 +87,30 @@ export class CotizacionDetalleComponent implements OnInit {
   };
 
   ngOnInit() {
+    // Estrategia de recuperación del contrato:
+    // 1. Router state (window.history.state)
+    // 2. SessionStorage (respaldo)
+
     const contratoFromState = window.history.state?.['contrato'] as IContrato;
     if (contratoFromState) {
-      this.contrato.set(contratoFromState);  // Guardas TODO el row aquí
-      console.log('Contrato recibido:', contratoFromState); // Para que veas toda la info
+      this.contrato.set(contratoFromState);
+      // Guardar en sessionStorage como respaldo
+      sessionStorage.setItem('contrato-actual', JSON.stringify(contratoFromState));
+      console.log('✅ Contrato recibido por state:', contratoFromState);
+    } else {
+      // Intentar recuperar desde sessionStorage
+      const contratoFromStorage = sessionStorage.getItem('contrato-actual');
+      if (contratoFromStorage) {
+        try {
+          const contrato = JSON.parse(contratoFromStorage) as IContrato;
+          this.contrato.set(contrato);
+          console.log('♻️ Contrato recuperado de sessionStorage');
+        } catch (e) {
+          console.error('Error parseando contrato de sessionStorage:', e);
+        }
+      }
     }
+
     // Leer idCotizacion de los parámetros de la ruta
     this.route.paramMap.subscribe(params => {
       const id = params.get('idCotizacion');
@@ -130,7 +153,51 @@ export class CotizacionDetalleComponent implements OnInit {
   }
 
   activarModoEdicion() {
+    console.log('🔧 Activando modo edición, items antes de conversión:', this.items());
+
+    // Convertir fechas string a Date objects para los datepickers
+    this.items.update(items => items.map(item => {
+      const converted = {
+        ...item,
+        fechaInicioFacturacion: item.fechaInicioFacturacion ? this.parseDate(item.fechaInicioFacturacion) : null,
+        fechaFinFacturacion: item.fechaFinFacturacion ? this.parseDate(item.fechaFinFacturacion) : null
+      };
+      console.log('📅 Fecha conversión:', {
+        original: { inicio: item.fechaInicioFacturacion, fin: item.fechaFinFacturacion },
+        convertido: { inicio: converted.fechaInicioFacturacion, fin: converted.fechaFinFacturacion }
+      });
+      return converted;
+    }));
+
+    console.log('✅ Items después de conversión:', this.items());
     this.modoEdicion.set(true);
+  }
+
+  private parseDate(dateStr: string | Date | null): Date | null {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date) return dateStr;
+
+    // Si es string en formato dd/mm/yyyy o dd-mm-yyyy
+    const parts = dateStr.split(/[\/\-]/);
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Meses en JS son 0-11
+      const year = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+
+    // Intentar parseo directo
+    return new Date(dateStr);
+  }
+
+  private formatDateForBackend(date: Date | string | null): string {
+    if (!date) return '';
+    if (typeof date === 'string') return date;
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   }
 
   cancelarEdicion() {
@@ -155,8 +222,8 @@ export class CotizacionDetalleComponent implements OnInit {
       nombreMoneda: '',
       idPeriodicidad: 0,
       nombrePeriodicidad: '',
-      fechaInicioFacturacion: '',
-      fechaFinFacturacion: '',
+      fechaInicioFacturacion: null,
+      fechaFinFacturacion: null,
       atributos: '',
       observacion: '',
       _isNew: true,
@@ -200,8 +267,11 @@ export class CotizacionDetalleComponent implements OnInit {
   async guardarCambios() {
     this.guardando.set(true);
     try {
+      console.log('🔄 Iniciando versionado de cotización:', this.idCotizacion());
+
       // 1. Versionar cotización
       const versionResponse = await this.cotizacionesService.versionarCotizacion(this.idCotizacion());
+      console.log('✅ Versionado exitoso:', versionResponse);
 
       // 2. Preparar items para guardar
       const itemsParaGuardar = this.items().map((item, idx) => ({
@@ -211,14 +281,16 @@ export class CotizacionDetalleComponent implements OnInit {
         precioUnitario: item.precioUnitario,
         idTipoMoneda: item.idTipoMoneda,
         idPeriodicidad: item.idPeriodicidad,
-        fechaInicioFacturacion: item.fechaInicioFacturacion,
-        fechaFinFacturacion: item.fechaFinFacturacion,
+        fechaInicioFacturacion: this.formatDateForBackend(item.fechaInicioFacturacion),
+        fechaFinFacturacion: this.formatDateForBackend(item.fechaFinFacturacion),
         atributos: item._atributosObj ? JSON.stringify(item._atributosObj) : item.atributos,
         observacion: item.observacion
       }));
+      console.log('📦 Items preparados para guardar:', itemsParaGuardar);
 
       // 3. Guardar items en la nueva versión
       await this.cotizacionesService.guardarItems(versionResponse.idNuevaCotizacion, itemsParaGuardar);
+      console.log('✅ Items guardados exitosamente');
 
       this.messageService.add({
         severity: 'success',
@@ -231,11 +303,13 @@ export class CotizacionDetalleComponent implements OnInit {
         this.router.navigate(['/cmdb/cotizacion-detalle', versionResponse.idNuevaCotizacion]);
       }, 1500);
 
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ Error al guardar cambios:', error);
+      const errorMsg = error?.error?.message || error?.message || 'No se pudo guardar los cambios';
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'No se pudo guardar los cambios'
+        detail: errorMsg
       });
     } finally {
       this.guardando.set(false);

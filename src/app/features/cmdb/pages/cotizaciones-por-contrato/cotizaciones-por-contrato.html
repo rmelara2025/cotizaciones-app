@@ -5,10 +5,11 @@
         <p-button icon="pi pi-arrow-left" label="Volver" (click)="volver()" severity="secondary"></p-button>
     </div>
 
-    <div *ngIf="contrato()" class="filters-card p-3 mb-3 surface-card border-round shadow-1">
+    <p-panel header="Información del Contrato" class="mb-4">
+        @if(contrato()) {
         <div class="grid">
             <div class="col-12 md:col-3">
-                <label class="block mb-2 font-semibold">Cliente</label>
+                <label class="block mb- font-semibold">Cliente</label>
                 <p class="font-semibold text-color-secondary">{{ contrato()!.nombreCliente }}</p>
             </div>
 
@@ -18,20 +19,22 @@
             </div>
 
             <div class="col-12 md:col-2">
-                <label class="block mb-2 font-semibold">Inicio Contrato</label>
+                <label class="block mb-2 font-semibold">Inicio</label>
                 <p class="font-semibold text-color-secondary">{{ contrato()!.fechaInicio | date: 'dd/MM/yyyy' }}</p>
             </div>
             <div class="col-12 md:col-2">
-                <label class="block mb-2 font-semibold">Término Contrato</label>
+                <label class="block mb-2 font-semibold">Término</label>
                 <p class=" font-semibold text-color-secondary">{{ contrato()!.fechaTermino | date: 'dd/MM/yyyy' }}</p>
             </div>
             <div class="col-12 md:col-2">
-                <label class="block mb-2 font-semibold">Proyecto</label>
+                <label class="block mb-2 font-semibold">Código Proyecto</label>
                 <p class="font-semibold text-color-secondary">{{ contrato()!.codSap || contrato()!.codChi ||
                     contrato()!.codSison }}</p>
             </div>
         </div>
-    </div>
+        }
+
+    </p-panel>
 
 
 
@@ -41,67 +44,70 @@
     </div>
     }
 
-    <p-table [value]="cotizaciones" [loading]="loading" responsiveLayout="scroll"
-        [tableStyle]="{ 'min-width': '60rem' }">
-        <ng-template pTemplate="header">
-            <tr>
-                <th style="width: 15%">Número</th>
-                <th style="width: 8%">Versión</th>
-                <th style="width: 12%">Estado</th>
-                <th style="width: 12%">Fecha Emisión</th>
-                <th style="width: 15%">Vigencia Desde</th>
-                <th style="width: 15%">Vigencia Hasta</th>
-                <th style="width: 15%">Observación</th>
-                <th style="width: 8%">Acciones</th>
-            </tr>
-        </ng-template>
+    <p-panel header="Listado de Cotizaciones">
+        <p-table [value]="cotizaciones" [loading]="loading" responsiveLayout="scroll"
+            [tableStyle]="{ 'min-width': '60rem' }" stripedRows>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 15%">Número</th>
+                    <th style="width: 8%">Versión</th>
+                    <th style="width: 12%">Estado</th>
+                    <th style="width: 12%">Fecha Emisión</th>
+                    <th style="width: 15%">Vigencia Desde</th>
+                    <th style="width: 15%">Vigencia Hasta</th>
+                    <th style="width: 15%">Observación</th>
+                    <th style="width: 8%">Acciones</th>
+                </tr>
+            </ng-template>
 
-        <ng-template pTemplate="body" let-cotizacion>
-            <tr>
-                <td>
-                    <span class="font-semibold">{{ cotizacion.numeroCotizacion }}</span>
-                </td>
-                <td class="text-center">
-                    <span class="p-tag p-tag-info">v{{ cotizacion.version }}</span>
-                </td>
-                <td>
-                    <p-select [options]="estados" [ngModel]="getIdEstadoFromNombre(cotizacion.estadoNombre)"
-                        (onChange)="onEstadoChange(cotizacion, $event)" optionLabel="nombre"
-                        optionValue="idEstadoCotizacion" [style]="{'width': '160px', 'font-size': '0.875rem'}"
-                        [disabled]="isEstadoFinal(cotizacion.estadoNombre)" appendTo="body" size="small"
-                        placeholder="Cambiar estado">
-                        <ng-template let-option pTemplate="item">
-                            <div class="flex align-items-center gap-2">
-                                <p-tag [value]="option.nombre" [severity]="getEstadoSeverity(option.nombre)"
-                                    [style]="{'font-size': '0.75rem'}"></p-tag>
-                                <span class="text-xs">{{ option.descripcion }}</span>
-                            </div>
-                        </ng-template>
-                    </p-select>
-                </td>
-                <td>{{ cotizacion.fechaEmision }}</td>
-                <td>{{ cotizacion.fechaVigenciaDesde || '-' }}</td>
-                <td>{{ cotizacion.fechaVigenciaHasta || '-' }}</td>
-                <td>
-                    <span [pTooltip]="cotizacion.observacion" tooltipPosition="top" *ngIf="cotizacion.observacion">
-                        {{ cotizacion.observacion.length > 30 ? (cotizacion.observacion | slice:0:30) + '...' :
-                        cotizacion.observacion }}
-                    </span>
-                    <span *ngIf="!cotizacion.observacion" class="text-color-secondary">-</span>
-                </td>
-                <td>
-                    <p-button icon="pi pi-folder-open" (click)="onVerDetalle(cotizacion)" severity="info"
-                        [rounded]="true" pTooltip="Abrir cotización"></p-button>
-                </td>
-            </tr>
-        </ng-template>
+            <ng-template pTemplate="body" let-cotizacion>
+                <tr>
+                    <td>
+                        <span class="font-semibold">{{ cotizacion.numeroCotizacion }}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="p-tag p-tag-info">v{{ cotizacion.version }}</span>
+                    </td>
+                    <td>
+                        <p-select [options]="estados" [ngModel]="getIdEstadoFromNombre(cotizacion.estadoNombre)"
+                            (onChange)="onEstadoChange(cotizacion, $event)" optionLabel="nombre"
+                            optionValue="idEstadoCotizacion" [style]="{'width': '160px', 'font-size': '0.875rem'}"
+                            [disabled]="isEstadoFinal(cotizacion.estadoNombre)" appendTo="body" size="small"
+                            placeholder="Cambiar estado">
+                            <ng-template let-option pTemplate="item">
+                                <div class="flex align-items-center gap-2">
+                                    <p-tag [value]="option.nombre" [severity]="getEstadoSeverity(option.nombre)"
+                                        [style]="{'font-size': '0.75rem'}"></p-tag>
+                                    <span class="text-xs">{{ option.descripcion }}</span>
+                                </div>
+                            </ng-template>
+                        </p-select>
+                    </td>
+                    <td>{{ cotizacion.fechaEmision }}</td>
+                    <td>{{ cotizacion.fechaVigenciaDesde || '-' }}</td>
+                    <td>{{ cotizacion.fechaVigenciaHasta || '-' }}</td>
+                    <td>
+                        <span [pTooltip]="cotizacion.observacion" tooltipPosition="top" *ngIf="cotizacion.observacion">
+                            {{ cotizacion.observacion.length > 30 ? (cotizacion.observacion | slice:0:30) + '...' :
+                            cotizacion.observacion }}
+                        </span>
+                        <span *ngIf="!cotizacion.observacion" class="text-color-secondary">-</span>
+                    </td>
+                    <td>
+                        <p-button icon="pi pi-folder-open" (click)="onVerDetalle(cotizacion)" severity="info"
+                            [rounded]="true" pTooltip="Abrir cotización"></p-button>
+                    </td>
+                </tr>
+            </ng-template>
 
-        <ng-template pTemplate="emptymessage">
-            <tr>
-                <td colspan="8" class="text-center p-4">
-                    No hay cotizaciones disponibles para este contrato
-                </td>
-            </tr>
-        </ng-template>
-    </p-table>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="8" class="text-center p-4">
+                        No hay cotizaciones disponibles para este contrato
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-panel>
+
 </div>

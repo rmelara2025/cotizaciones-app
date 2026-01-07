@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { TagModule } from 'primeng/tag';
 import { SelectModule } from 'primeng/select';
+import { PanelModule } from 'primeng/panel';
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
 import { ContratosService } from '../../../../core/services/contratos.service';
 import { ICotizacion, IEstadoCotizacion, IContrato } from '../../../../core/models';
@@ -15,7 +16,7 @@ import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 @Component({
     selector: 'app-cotizaciones-por-contrato',
     standalone: true,
-    imports: [CommonModule, FormsModule, TableModule, ButtonModule, TooltipModule, TagModule, SelectModule, FormatRutPipe],
+    imports: [CommonModule, FormsModule, TableModule, ButtonModule, TooltipModule, TagModule, SelectModule, FormatRutPipe, PanelModule],
     templateUrl: './cotizaciones-por-contrato.html',
     styleUrl: './cotizaciones-por-contrato.scss',
 })
@@ -46,11 +47,17 @@ export class CotizacionesPorContrato implements OnInit {
     }
 
     ngOnInit() {
-        // AQUÍ SE RECIBE EL ROW COMPLETO desde Router state usando window.history.state
+        // Estrategia de recuperación del contrato en orden de prioridad:
+        // 1. Router state (window.history.state)
+        // 2. SessionStorage (respaldo)
+        // 3. Servicio de contratos en memoria
+
         const contratoFromState = window.history.state?.['contrato'] as IContrato;
         if (contratoFromState) {
-            this.contrato.set(contratoFromState);  // Guardas TODO el row aquí
-            console.log('Contrato recibido:', contratoFromState); // Para que veas toda la info
+            this.contrato.set(contratoFromState);
+            // Guardar en sessionStorage como respaldo
+            sessionStorage.setItem('contrato-actual', JSON.stringify(contratoFromState));
+            console.log('✅ Contrato recibido por state:', contratoFromState);
         }
 
         // Leer idContrato de la ruta
@@ -60,10 +67,32 @@ export class CotizacionesPorContrato implements OnInit {
                 this.idContrato.set(id);
                 this.cotizacionesService.loadCotizacionesPorContrato(id);
 
-                // Si no llegó por state, buscar en servicio (fallback)
+                // Si no hay contrato, intentar recuperarlo
                 if (!this.contrato()) {
+                    // Intentar desde sessionStorage primero
+                    const contratoFromStorage = sessionStorage.getItem('contrato-actual');
+                    if (contratoFromStorage) {
+                        try {
+                            const contrato = JSON.parse(contratoFromStorage) as IContrato;
+                            if (contrato.idContrato === id) {
+                                this.contrato.set(contrato);
+                                console.log('♻️ Contrato recuperado de sessionStorage');
+                                return;
+                            }
+                        } catch (e) {
+                            console.error('Error parseando contrato de sessionStorage:', e);
+                        }
+                    }
+
+                    // Fallback: buscar en servicio de contratos
                     const found = this.contratosService.contratos().find(c => c.idContrato === id);
-                    if (found) this.contrato.set(found);
+                    if (found) {
+                        this.contrato.set(found);
+                        sessionStorage.setItem('contrato-actual', JSON.stringify(found));
+                        console.log('🔄 Contrato encontrado en servicio');
+                    } else {
+                        console.warn('⚠️ No se pudo recuperar el contrato para ID:', id);
+                    }
                 }
             }
         });
@@ -84,9 +113,16 @@ export class CotizacionesPorContrato implements OnInit {
             ...this.filtrosOriginales,
             idContrato: this.idContrato()
         };
+
+        const contratoActual = this.contrato();
+        if (contratoActual) {
+            // Actualizar sessionStorage antes de navegar
+            sessionStorage.setItem('contrato-actual', JSON.stringify(contratoActual));
+        }
+
         this.router.navigate(['/cotizaciones/cotizacion-detalle', cotizacion.idCotizacion], {
             queryParams,
-            state: { contrato: this.contrato() }  // Pasar también el contrato completo si es necesario
+            state: { contrato: contratoActual }
         });
     }
 
