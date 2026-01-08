@@ -298,10 +298,14 @@ export class CotizacionDetalleComponent implements OnInit {
         detail: `Cotización versionada exitosamente. Nueva versión: v${versionResponse.version}`
       });
 
-      // Navegar a la nueva versión
-      setTimeout(() => {
-        this.router.navigate(['/cmdb/cotizacion-detalle', versionResponse.idNuevaCotizacion]);
-      }, 1500);
+      // Actualizar el componente para mostrar la nueva versión sin navegar
+      this.idCotizacion.set(versionResponse.idNuevaCotizacion);
+      this.modoEdicion.set(false);
+
+      // Recargar los datos de la nueva versión
+      await this.cargarDatos();
+
+      console.log('✅ Componente actualizado con nueva versión');
 
     } catch (error: any) {
       console.error('❌ Error al guardar cambios:', error);
