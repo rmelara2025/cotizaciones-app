@@ -12,6 +12,7 @@ import type {
 import { environment } from '../../../environments/environment';
 import { catchError, tap } from 'rxjs/operators';
 import { of, firstValueFrom } from 'rxjs';
+import { LoggingService } from './logging.service';
 
 export type { ICotizacionDetalle, ICotizacionDetalleCompleta, ICotizacionDetalleItem };
 
@@ -20,6 +21,7 @@ export type { ICotizacionDetalle, ICotizacionDetalleCompleta, ICotizacionDetalle
 })
 export class CotizacionesService {
     private http = inject(HttpClient);
+    private logger = inject(LoggingService);
     private readonly API_URL = environment.apiUrl;
 
     // Signals para detalle de cotización (antiguo)
@@ -128,9 +130,18 @@ export class CotizacionesService {
         return this.http.put<void>(url, { idEstadoCotizacion }).pipe(
             tap(() => {
                 console.log('Estado actualizado correctamente');
+                // Logging de auditoría
+                this.logger.info(
+                    'Actualización de estado de cotización',
+                    `Cotización: ${idCotizacion}, Nuevo estado: ${idEstadoCotizacion}`
+                );
             }),
             catchError((error) => {
                 console.error('Error al actualizar estado:', error);
+                this.logger.error(
+                    'Error al actualizar estado de cotización',
+                    `Cotización: ${idCotizacion}, Error: ${error.message}`
+                );
                 throw error;
             })
         );

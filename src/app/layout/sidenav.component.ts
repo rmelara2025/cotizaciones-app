@@ -1,7 +1,9 @@
-import { Component, ChangeDetectionStrategy, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { AvatarModule } from 'primeng/avatar';
+import { AuthService } from '../core/services/auth.service';
 
 interface SidenavItem {
   label: string;
@@ -12,7 +14,7 @@ interface SidenavItem {
 @Component({
   selector: 'app-sidenav',
   standalone: true,
-  imports: [CommonModule, ButtonModule, RouterModule],
+  imports: [CommonModule, ButtonModule, RouterModule, AvatarModule],
   template: `
     <aside class="sidenav" [class.collapsed]="collapsed()">
       <div class="sidenav-top">
@@ -36,6 +38,46 @@ interface SidenavItem {
           </li>
         </ul>
       </nav>
+
+      <!-- User Section -->
+      <ng-container *ngIf="currentUser()">
+        <div class="sidenav-user">
+          <ng-container *ngIf="!collapsed()">
+            <div class="user-info">
+              <p-avatar
+                [label]="getUserInitials()"
+                shape="circle"
+                styleClass="user-avatar"
+              />
+              <div class="user-details">
+                <span class="user-name">{{ currentUser()?.nombreUsuario || currentUser()?.email }}</span>
+                <small class="session-time" [class.warning]="timeRemaining() < 300">
+                  <i class="pi pi-clock"></i> {{ formatTime(timeRemaining()) }}
+                </small>
+              </div>
+            </div>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-sign-out"
+              class="p-button-text p-button-danger logout-btn"
+              (click)="logout()"
+              title="Cerrar Sesión"
+            >Cerrar Sesión</button>
+          </ng-container>
+          
+          <ng-container *ngIf="collapsed()">
+            <button
+              pButton
+              type="button"
+              icon="pi pi-sign-out"
+              class="p-button-text p-button-danger logout-btn-collapsed"
+              (click)="logout()"
+              title="Cerrar Sesión"
+            ></button>
+          </ng-container>
+        </div>
+      </ng-container>
 
       <div class="sidenav-footer" *ngIf="!collapsed()">
         <small>cotizaciones · v1.0</small>
@@ -106,6 +148,67 @@ interface SidenavItem {
       .sidenav .label {
         white-space: nowrap;
       }
+      .sidenav-user {
+        padding: 0.75rem 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .sidenav.collapsed .sidenav-user {
+        align-items: center;
+        justify-content: center;
+      }
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+      }
+      .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+        flex: 1;
+      }
+      .user-name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .session-time {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .session-time.warning {
+        color: #fbbf24;
+        font-weight: 600;
+      }
+      .session-time i {
+        font-size: 0.7rem;
+      }
+      ::ng-deep .user-avatar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.875rem;
+      }
+      .logout-btn,
+      .logout-btn-collapsed {
+        flex-shrink: 0;
+      }
+      .logout-btn-collapsed {
+        width: 100%;
+      }
       .sidenav-footer {
         padding: 0.5rem;
         text-align: center;
@@ -122,7 +225,12 @@ interface SidenavItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidenavComponent implements OnInit {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
   collapsed = signal(false);
+  currentUser = this.authService.currentUser;
+  timeRemaining = this.authService.sessionTimeRemaining;
 
   items: SidenavItem[] = [
     { label: 'Dashboard', icon: 'pi-clock', route: '/dashboard' },
@@ -134,10 +242,11 @@ export class SidenavComponent implements OnInit {
     { label: 'Configuración', icon: 'pi-cog', route: '/config' },
   ];
 
-  constructor(private router: Router) {}
-
   ngOnInit(): void {
     this.applyCssVar();
+    // Debug: Verificar estado del usuario
+    //console.log('🔍 SideNav Init - Usuario actual:', this.currentUser());
+    //console.log('🔍 SideNav Init - Tiempo restante:', this.timeRemaining());
   }
 
   toggle() {
@@ -156,5 +265,42 @@ export class SidenavComponent implements OnInit {
     } catch (e) {
       /* noop during server-side or tests */
     }
+  }
+
+  getUserInitials(): string {
+    const user = this.currentUser();
+    if (!user) return '?';
+
+    // Intentar con nombreUsuario primero
+    if (user.nombreUsuario) {
+      const parts = user.nombreUsuario.split(' ');
+      return parts.length > 1
+        ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+        : parts[0].substring(0, 2).toUpperCase();
+    }
+
+    // Fallback a email
+    if (user.email) {
+      return user.email.substring(0, 2).toUpperCase();
+    }
+
+    // Fallback a idUsuario si existe
+    if (user.idUsuario) {
+      return user.idUsuario.substring(0, 2).toUpperCase();
+    }
+
+    return '??';
+  }
+
+  formatTime(seconds: number): string {
+    if (seconds <= 0) return '0:00';
+
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

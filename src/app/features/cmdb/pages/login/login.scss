@@ -1,0 +1,113 @@
+:host {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+}
+
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem;
+
+    .login-wrapper {
+        width: 100%;
+        max-width: 400px;
+
+        ::ng-deep {
+            .p-card {
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+                border-radius: 12px;
+                overflow: hidden;
+
+                .p-card-header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 2rem;
+                }
+
+                .p-card-body {
+                    padding: 2rem;
+                }
+            }
+        }
+
+        .login-header {
+            text-align: center;
+
+            h2 {
+                margin: 0 0 0.5rem;
+                font-size: 2rem;
+                font-weight: 700;
+            }
+
+            p {
+                margin: 0;
+                opacity: 0.9;
+                font-size: 1.1rem;
+            }
+        }
+
+        .login-form {
+            .field {
+                margin-bottom: 1.5rem;
+
+                label {
+                    font-weight: 600;
+                    color: #495057;
+                }
+
+                small.p-error {
+                    display: block;
+                    margin-top: 0.25rem;
+                }
+
+                &:last-of-type {
+                    margin-bottom: 2rem;
+                }
+            }
+
+            ::ng-deep {
+
+                .p-inputtext,
+                .p-password input {
+                    width: 100%;
+
+                    &:focus {
+                        border-color: #667eea;
+                        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+                    }
+                }
+
+                .p-password {
+                    width: 100%;
+                }
+
+                .p-button {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border: none;
+                    padding: 0.75rem;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+
+                    &:hover:not(:disabled) {
+                        transform: translateY(-2px);
+                        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+                    }
+
+                    &:active:not(:disabled) {
+                        transform: translateY(0);
+                    }
+                }
+            }
+        }
+    }
+}
