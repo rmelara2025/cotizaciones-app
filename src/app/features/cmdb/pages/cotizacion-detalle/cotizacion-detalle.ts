@@ -13,6 +13,8 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { DividerModule } from 'primeng/divider';
 import { PanelModule } from 'primeng/panel';
+import { DialogModule } from 'primeng/dialog';
+import { TextareaModule } from 'primeng/textarea';
 import { CotizacionesService, ICotizacionDetalleCompleta, ICotizacionDetalleItem } from '../../../../core/services/cotizaciones.service';
 import { CatalogosService, IServicio, ITipoMoneda, IPeriodicidad } from '../../../../core/services/catalogos.service';
 import { IContrato } from '../../../../core/models';
@@ -41,7 +43,9 @@ interface IItemEditable extends Omit<ICotizacionDetalleItem, 'fechaInicioFactura
     ToastModule,
     DividerModule,
     FormatRutPipe,
-    PanelModule
+    PanelModule,
+    DialogModule,
+    TextareaModule
   ],
   templateUrl: './cotizacion-detalle.html',
   styleUrls: ['./cotizacion-detalle.scss'],
@@ -64,6 +68,11 @@ export class CotizacionDetalleComponent implements OnInit {
   modoEdicion = signal(false);
   guardando = signal(false);
   contrato = signal<IContrato | null>(null);
+
+  // Dialog de atributos
+  mostrarDialogAtributos = signal(false);
+  itemSeleccionado = signal<IItemEditable | null>(null);
+  atributosEditables = signal<any>({});
 
   // Para mantener contexto de navegación
   private idContratoOrigen: string | null = null;
@@ -342,5 +351,149 @@ export class CotizacionDetalleComponent implements OnInit {
 
   getNombrePeriodicidad(idPeriodicidad: number): string {
     return this.periodicidades().find(p => p.idPeriodicidad === idPeriodicidad)?.nombre || '';
+  }
+
+  /**
+   * Verifica si un item tiene atributos
+   */
+  tieneAtributos(item: IItemEditable): boolean {
+    if (!item.atributos) return false;
+
+    // Si es string vacío o "null" o "{}"
+    const trimmed = item.atributos.toString().trim();
+    if (!trimmed || trimmed === 'null' || trimmed === '{}' || trimmed === '[]') return false;
+
+    // Si es objeto, verificar que tenga propiedades
+    if (typeof item.atributos === 'object') {
+      return Object.keys(item.atributos).length > 0;
+    }
+
+    // Si es string JSON, intentar parsearlo
+    try {
+      const parsed = JSON.parse(trimmed);
+      return parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0;
+    } catch {
+      // Si no es JSON válido pero tiene contenido, considerarlo como atributo
+      return true;
+    }
+  }
+
+  /**
+   * Aplana un objeto anidado en un objeto plano con claves con notación de punto
+   * Ejemplo: {specs: {ram: "8GB", cpu: "i5"}} => {"specs.ram": "8GB", "specs.cpu": "i5"}
+   */
+  private aplanarObjeto(obj: any, prefijo: string = ''): Record<string, string> {
+    const resultado: Record<string, string> = {};
+
+    for (const [clave, valor] of Object.entries(obj)) {
+      const claveCompleta = prefijo ? `${prefijo}.${clave}` : clave;
+
+      if (valor && typeof valor === 'object' && !Array.isArray(valor)) {
+        // Si es un objeto, recursivamente aplanarlo
+        Object.assign(resultado, this.aplanarObjeto(valor, claveCompleta));
+      } else {
+        // Convertir a string el valor
+        resultado[claveCompleta] = Array.isArray(valor) ? JSON.stringify(valor) : String(valor ?? '');
+      }
+    }
+
+    return resultado;
+  }
+
+  /**
+   * Reconstruye un objeto anidado desde un objeto plano con notación de punto
+   * Ejemplo: {"specs.ram": "8GB", "specs.cpu": "i5"} => {specs: {ram: "8GB", cpu: "i5"}}
+   */
+  private reconstruirObjeto(objetoPlano: Record<string, string>): Record<string, any> {
+    const resultado: Record<string, any> = {};
+
+    for (const [clave, valor] of Object.entries(objetoPlano)) {
+      const partes = clave.split('.');
+      let actual = resultado;
+
+      for (let i = 0; i < partes.length - 1; i++) {
+        const parte = partes[i];
+        if (!actual[parte]) {
+          actual[parte] = {};
+        }
+        actual = actual[parte];
+      }
+
+      actual[partes[partes.length - 1]] = valor;
+    }
+
+    return resultado;
+  }
+
+  /**
+   * Abre el dialog para ver/editar atributos
+   */
+  verAtributos(item: IItemEditable) {
+    this.itemSeleccionado.set(item);
+
+    // Intentar parsear los atributos
+    let atributos: Record<string, any> = {};
+    if (item.atributos) {
+      if (typeof item.atributos === 'string') {
+        try {
+          atributos = JSON.parse(item.atributos);
+        } catch {
+          atributos = { valor: item.atributos };
+        }
+      } else if (typeof item.atributos === 'object' && item.atributos !== null) {
+        atributos = { ...item.atributos as Record<string, any> };
+      }
+    }
+
+    // Si hay _atributosObj, usar ese
+    if (item._atributosObj && Object.keys(item._atributosObj).length > 0) {
+      atributos = { ...item._atributosObj };
+    }
+
+    // Aplanar el objeto para mostrar todos los niveles
+    const atributosPlanos = this.aplanarObjeto(atributos);
+
+    this.atributosEditables.set(atributosPlanos);
+    this.mostrarDialogAtributos.set(true);
+  }
+
+  /**
+   * Guarda los atributos editados
+   */
+  guardarAtributos() {
+    const item = this.itemSeleccionado();
+    if (item) {
+      // Reconstruir el objeto anidado desde el objeto plano
+      const atributosReconstruidos = this.reconstruirObjeto(this.atributosEditables());
+      item._atributosObj = atributosReconstruidos;
+      item.atributos = JSON.stringify(item._atributosObj);
+    }
+    this.cerrarDialogAtributos();
+  }
+
+  /**
+   * Cierra el dialog de atributos
+   */
+  cerrarDialogAtributos() {
+    this.mostrarDialogAtributos.set(false);
+    this.itemSeleccionado.set(null);
+    this.atributosEditables.set({});
+  }
+
+  /**
+   * Obtiene las llaves de un objeto (para iterar en el template)
+   */
+  getAtributosKeys(): string[] {
+    return Object.keys(this.atributosEditables());
+  }
+
+  /**
+   * Actualiza un atributo específico
+   */
+  actualizarAtributo(key: string, value: any) {
+    this.atributosEditables.update(attrs => ({
+      ...attrs,
+      [key]: value
+    }));
   }
 }

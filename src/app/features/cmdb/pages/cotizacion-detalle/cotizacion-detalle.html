@@ -93,6 +93,7 @@
                         <th style="width: 110px">Fecha Inicio</th>
                         <th style="width: 110px">Fecha Fin</th>
                         <th>Observación</th>
+                        <th style="width: 80px">Atributos</th>
                     </tr>
                 </ng-template>
                 <ng-template #body let-item>
@@ -108,6 +109,14 @@
                         <td>{{ item.fechaInicioFacturacion }}</td>
                         <td>{{ item.fechaFinFacturacion }}</td>
                         <td>{{ item.observacion }}</td>
+                        <td class="text-center">
+                            @if (tieneAtributos(item)) {
+                            <p-button icon="pi pi-cog" severity="info" size="small" [text]="true"
+                                (onClick)="verAtributos(item)" title="Ver atributos" />
+                            } @else {
+                            <span class="text-color-secondary">-</span>
+                            }
+                        </td>
                     </tr>
                 </ng-template>
             </p-table>
@@ -128,6 +137,7 @@
                         <th style="width: 140px">Fecha Inicio</th>
                         <th style="width: 140px">Fecha Fin</th>
                         <th style="width: 200px">Observación</th>
+                        <th style="width: 80px">Atributos</th>
                         <th style="width: 80px">Acciones</th>
                     </tr>
                 </ng-template>
@@ -179,6 +189,10 @@
                         <td>
                             <input pInputText [(ngModel)]="item.observacion" placeholder="Observación" class="w-full" />
                         </td>
+                        <td class="text-center">
+                            <p-button icon="pi pi-cog" severity="info" size="small" [text]="true"
+                                (onClick)="verAtributos(item)" title="Ver/Editar atributos" />
+                        </td>
                         <td>
                             <p-button icon="pi pi-trash" severity="danger" size="small" [text]="true"
                                 (onClick)="eliminarItem(i)" />
@@ -205,3 +219,52 @@
 
     }
 </div>
+
+<!-- Dialog para ver/editar atributos -->
+<p-dialog [(visible)]="mostrarDialogAtributos" [header]="modoEdicion() ? 'Editar Atributos' : 'Ver Atributos'"
+    [modal]="true" [style]="{ width: '600px' }" [draggable]="false" [resizable]="false">
+    <div class="atributos-container">
+        @if (itemSeleccionado()) {
+        <div class="mb-3">
+            <strong>Servicio:</strong> {{ itemSeleccionado()!.nombreServicio }}
+        </div>
+
+        @if (getAtributosKeys().length === 0) {
+        <p class="text-color-secondary">
+            <i class="pi pi-info-circle mr-2"></i>
+            Este servicio no tiene atributos configurados.
+        </p>
+        } @else {
+        <div class="atributos-list">
+            @for (key of getAtributosKeys(); track key) {
+            <div class="atributo-item">
+                <div class="atributo-key">
+                    <strong>{{ key }}:</strong>
+                </div>
+                <div class="atributo-value">
+                    @if (modoEdicion()) {
+                    <textarea pTextarea [ngModel]="atributosEditables()[key]"
+                        (ngModelChange)="actualizarAtributo(key, $event)" [rows]="3" class="w-full"
+                        placeholder="Ingrese valor para {{ key }}"></textarea>
+                    } @else {
+                    <div class="readonly-value">
+                        {{ atributosEditables()[key] || '-' }}
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+        }
+        }
+    </div>
+
+    <ng-template #footer>
+        @if (modoEdicion()) {
+        <p-button label="Cancelar" severity="secondary" (onClick)="cerrarDialogAtributos()" />
+        <p-button label="Guardar" (onClick)="guardarAtributos()" />
+        } @else {
+        <p-button label="Cerrar" (onClick)="cerrarDialogAtributos()" />
+        }
+    </ng-template>
+</p-dialog>
