@@ -2,12 +2,13 @@ import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
-import type { IUsuario, IUsuarioLogin } from '../models';
+import type { IUsuario, IUsuarioLogin, IRol } from '../models';
 import { catchError, tap } from 'rxjs/operators';
 import { of, firstValueFrom } from 'rxjs';
 
 const SESSION_KEY = 'cmdb_user_session';
 const SESSION_TIMESTAMP_KEY = 'cmdb_session_timestamp';
+const ROLES_KEY = 'cmdb_user_roles';
 const SESSION_DURATION_MS = 45 * 60 * 1000; // 45 minutos
 
 @Injectable({
@@ -20,6 +21,7 @@ export class AuthService {
 
     // Estado de la sesión
     currentUser = signal<IUsuario | null>(null);
+    userRoles = signal<IRol[]>([]);
     isAuthenticated = computed(() => this.currentUser() !== null);
     loading = signal(false);
     error = signal<string | null>(null);
@@ -62,6 +64,11 @@ export class AuthService {
                 )
             );
 
+            if (response !== null) {
+                // Cargar roles después de login exitoso
+                await this.loadUserRoles();
+            }
+
             this.loading.set(false);
             return response !== null;
         } catch (error) {
@@ -78,6 +85,33 @@ export class AuthService {
     logout(): void {
         this.clearSession();
         this.router.navigate(['/login']);
+    }
+
+    /**
+     * Carga los roles del usuario desde el backend
+     */
+    async loadUserRoles(): Promise<void> {
+        if (!this.isAuthenticated()) return;
+
+        const url = `${this.API_URL}/usuario/admin/roles`;
+
+        try {
+            const roles = await firstValueFrom(
+                this.http.get<IRol[]>(url).pipe(
+                    catchError((error) => {
+                        console.error('Error al cargar roles:', error);
+                        return of([]);
+                    })
+                )
+            );
+
+            this.userRoles.set(roles);
+            // Guardar roles en localStorage
+            localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+        } catch (error) {
+            console.error('Error inesperado al cargar roles:', error);
+            this.userRoles.set([]);
+        }
     }
 
     /**
@@ -104,6 +138,7 @@ export class AuthService {
     private loadSessionFromStorage(): void {
         const userData = localStorage.getItem(SESSION_KEY);
         const timestamp = localStorage.getItem(SESSION_TIMESTAMP_KEY);
+        const rolesData = localStorage.getItem(ROLES_KEY);
 
         if (userData && timestamp) {
             const sessionAge = Date.now() - parseInt(timestamp, 10);
@@ -111,6 +146,17 @@ export class AuthService {
             if (sessionAge < SESSION_DURATION_MS) {
                 const usuario = JSON.parse(userData) as IUsuario;
                 this.currentUser.set(usuario);
+                
+                // Cargar roles si existen
+                if (rolesData) {
+                    try {
+                        const roles = JSON.parse(rolesData) as IRol[];
+                        this.userRoles.set(roles);
+                    } catch {
+                        this.userRoles.set([]);
+                    }
+                }
+                
                 this.scheduleSessionExpiry(SESSION_DURATION_MS - sessionAge);
                 // Actualizar tiempo restante inmediatamente
                 this.updateTimeRemaining();
@@ -155,9 +201,11 @@ export class AuthService {
      */
     private clearSession(): void {
         this.currentUser.set(null);
+        this.userRoles.set([]);
         this.sessionTimeRemaining.set(0);
         localStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(SESSION_TIMESTAMP_KEY);
+        localStorage.removeItem(ROLES_KEY);
 
         if (this.sessionTimer) {
             clearTimeout(this.sessionTimer);

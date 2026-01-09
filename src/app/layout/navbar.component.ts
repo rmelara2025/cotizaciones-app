@@ -1,7 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenubarModule } from 'primeng/menubar';
-import { MenuItem } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { AvatarModule } from 'primeng/avatar';
@@ -18,7 +18,9 @@ import { ButtonModule } from 'primeng/button';
             <p-avatar
               [label]="getUserInitials()"
               shape="circle"
-              styleClass="mr-2"
+              styleClass="mr-2 cursor-pointer"
+              (mouseenter)="mostrarRoles()"
+              title="Ver roles del usuario"
             />
             <span class="mr-3">{{ currentUser()?.nombreUsuario || currentUser()?.email }}</span>
             <p-button
@@ -33,13 +35,25 @@ import { ButtonModule } from 'primeng/button';
       </ng-template>
     </p-menubar>
   `,
+  styles: [`
+    :host ::ng-deep .roles-toast .p-toast-message-content {
+      white-space: pre-line;
+    }
+    
+    :host ::ng-deep .p-avatar.cursor-pointer:hover {
+      transform: scale(1.1);
+      transition: transform 0.2s;
+    }
+  `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavbarComponent {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private messageService = inject(MessageService);
 
   currentUser = this.authService.currentUser;
+  userRoles = this.authService.userRoles;
 
   items: MenuItem[] = [
     {
@@ -96,5 +110,32 @@ export class NavbarComponent {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  mostrarRoles(): void {
+    const roles = this.userRoles();
+    
+    if (roles.length === 0) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Roles del Usuario',
+        detail: 'No se encontraron roles asignados',
+        life: 3000,
+        key: 'rolesNotification'
+      });
+      return;
+    }
+
+    // Crear lista de roles con viñetas para mejor visualización
+    const rolesLista = roles.map(rol => `• ${rol.nombreRol}`).join('\n');
+    
+    this.messageService.add({
+      severity: 'info',
+      summary: `Roles del Usuario (${roles.length})`,
+      detail: rolesLista,
+      life: 5000,
+      key: 'rolesNotification',
+      styleClass: 'roles-toast'
+    });
   }
 }

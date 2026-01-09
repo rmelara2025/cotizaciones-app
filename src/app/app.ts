@@ -3,10 +3,11 @@ import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { SidenavComponent } from './layout/sidenav.component';
 import { AuthService } from './core/services/auth.service';
 import { filter } from 'rxjs/operators';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SidenavComponent],
+  imports: [RouterOutlet, SidenavComponent, ToastModule],
   templateUrl: './app.html',
   styleUrls: ['./app.scss'],
 })

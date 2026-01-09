@@ -54,6 +54,9 @@ interface SidenavItem {
                 <small class="session-time" [class.warning]="timeRemaining() < 300">
                   <i class="pi pi-clock"></i> {{ formatTime(timeRemaining()) }}
                 </small>
+                <div class="user-roles" *ngIf="userRoles().length > 0">
+                  <span *ngFor="let rol of userRoles()" class="role-badge">{{ rol.nombreRol }}</span>
+                </div>
               </div>
             </div>
             <button
@@ -194,6 +197,20 @@ interface SidenavItem {
       .session-time i {
         font-size: 0.7rem;
       }
+      .user-roles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        margin-top: 0.25rem;
+      }
+      .role-badge {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.4rem;
+        background: rgba(99, 102, 241, 0.2);
+        color: #a5b4fc;
+        border-radius: 3px;
+        white-space: nowrap;
+      }
       ::ng-deep .user-avatar {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -231,6 +248,7 @@ export class SidenavComponent implements OnInit {
   collapsed = signal(false);
   currentUser = this.authService.currentUser;
   timeRemaining = this.authService.sessionTimeRemaining;
+  userRoles = this.authService.userRoles;
 
   items: SidenavItem[] = [
     { label: 'Dashboard', icon: 'pi-clock', route: '/dashboard' },

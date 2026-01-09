@@ -30,7 +30,7 @@ export interface IFamiliaConServicios {
 })
 export class FamiliaService {
     private http = inject(HttpClient);
-    private readonly API_URL = environment.apiUrl;
+    private readonly API_URL = environment.apiUrl + '/catalogos';
 
     getFamilias(): Observable<IFamilia[]> {
         return this.http.get<IFamilia[]>(`${this.API_URL}/familias`);
