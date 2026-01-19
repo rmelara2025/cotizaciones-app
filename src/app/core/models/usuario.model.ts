@@ -6,6 +6,7 @@ export interface IUsuarioLogin {
 export interface IRol {
     idrol: number;
     nombreRol: string;
+    permisos: string[];
 }
 
 export interface IUsuario {

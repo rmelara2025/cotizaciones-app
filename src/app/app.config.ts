@@ -12,6 +12,7 @@ import { routes } from './app.routes';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 import { authInterceptor } from './core/utils/auth.interceptor';
+import { userIdInterceptor } from './core/interceptors/user-id.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,7 +20,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideAnimations(),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, userIdInterceptor])),
     MessageService,
     providePrimeNG({
       theme: {

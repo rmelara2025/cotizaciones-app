@@ -9,6 +9,7 @@ import { of, firstValueFrom } from 'rxjs';
 const SESSION_KEY = 'cmdb_user_session';
 const SESSION_TIMESTAMP_KEY = 'cmdb_session_timestamp';
 const ROLES_KEY = 'cmdb_user_roles';
+const PERMISSIONS_KEY = 'cmdb_user_permissions';
 const SESSION_DURATION_MS = 45 * 60 * 1000; // 45 minutos
 
 @Injectable({
@@ -22,6 +23,7 @@ export class AuthService {
     // Estado de la sesión
     currentUser = signal<IUsuario | null>(null);
     userRoles = signal<IRol[]>([]);
+    userPermissions = signal<string[]>([]);
     isAuthenticated = computed(() => this.currentUser() !== null);
     loading = signal(false);
     error = signal<string | null>(null);
@@ -93,7 +95,10 @@ export class AuthService {
     async loadUserRoles(): Promise<void> {
         if (!this.isAuthenticated()) return;
 
-        const url = `${this.API_URL}/usuario/admin/roles`;
+        const user = this.currentUser();
+        if (!user?.idUsuario) return;
+
+        const url = `${this.API_URL}/usuario/${user.idUsuario}/roles`;
 
         try {
             const roles = await firstValueFrom(
@@ -106,11 +111,24 @@ export class AuthService {
             );
 
             this.userRoles.set(roles);
-            // Guardar roles en localStorage
+
+            // Extraer todos los permisos únicos de todos los roles
+            const allPermissions = new Set<string>();
+            roles.forEach(rol => {
+                if (rol.permisos && Array.isArray(rol.permisos)) {
+                    rol.permisos.forEach(permiso => allPermissions.add(permiso));
+                }
+            });
+            const permissionsArray = Array.from(allPermissions);
+            this.userPermissions.set(permissionsArray);
+
+            // Guardar en localStorage
             localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+            localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(permissionsArray));
         } catch (error) {
             console.error('Error inesperado al cargar roles:', error);
             this.userRoles.set([]);
+            this.userPermissions.set([]);
         }
     }
 
@@ -139,6 +157,7 @@ export class AuthService {
         const userData = localStorage.getItem(SESSION_KEY);
         const timestamp = localStorage.getItem(SESSION_TIMESTAMP_KEY);
         const rolesData = localStorage.getItem(ROLES_KEY);
+        const permissionsData = localStorage.getItem(PERMISSIONS_KEY);
 
         if (userData && timestamp) {
             const sessionAge = Date.now() - parseInt(timestamp, 10);
@@ -146,7 +165,7 @@ export class AuthService {
             if (sessionAge < SESSION_DURATION_MS) {
                 const usuario = JSON.parse(userData) as IUsuario;
                 this.currentUser.set(usuario);
-                
+
                 // Cargar roles si existen
                 if (rolesData) {
                     try {
@@ -156,7 +175,17 @@ export class AuthService {
                         this.userRoles.set([]);
                     }
                 }
-                
+
+                // Cargar permisos si existen
+                if (permissionsData) {
+                    try {
+                        const permissions = JSON.parse(permissionsData) as string[];
+                        this.userPermissions.set(permissions);
+                    } catch {
+                        this.userPermissions.set([]);
+                    }
+                }
+
                 this.scheduleSessionExpiry(SESSION_DURATION_MS - sessionAge);
                 // Actualizar tiempo restante inmediatamente
                 this.updateTimeRemaining();
@@ -202,10 +231,12 @@ export class AuthService {
     private clearSession(): void {
         this.currentUser.set(null);
         this.userRoles.set([]);
+        this.userPermissions.set([]);
         this.sessionTimeRemaining.set(0);
         localStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(SESSION_TIMESTAMP_KEY);
         localStorage.removeItem(ROLES_KEY);
+        localStorage.removeItem(PERMISSIONS_KEY);
 
         if (this.sessionTimer) {
             clearTimeout(this.sessionTimer);
@@ -223,6 +254,14 @@ export class AuthService {
      */
     getCurrentUser(): IUsuario | null {
         return this.currentUser();
+    }
+
+    /**
+     * Obtiene el ID del usuario actual (útil para operaciones de creación/modificación)
+     */
+    getCurrentUserId(): string | null {
+        const user = this.currentUser();
+        return user?.idUsuario || null;
     }
 
     /**
@@ -265,5 +304,35 @@ export class AuthService {
         } else {
             this.sessionTimeRemaining.set(0);
         }
+    }
+
+    /**
+     * Verifica si el usuario tiene un permiso específico
+     */
+    hasPermission(permission: string): boolean {
+        return this.userPermissions().includes(permission);
+    }
+
+    /**
+     * Verifica si el usuario tiene al menos uno de los permisos especificados
+     */
+    hasAnyPermission(permissions: string[]): boolean {
+        const userPerms = this.userPermissions();
+        return permissions.some(perm => userPerms.includes(perm));
+    }
+
+    /**
+     * Verifica si el usuario tiene todos los permisos especificados
+     */
+    hasAllPermissions(permissions: string[]): boolean {
+        const userPerms = this.userPermissions();
+        return permissions.every(perm => userPerms.includes(perm));
+    }
+
+    /**
+     * Verifica si el usuario tiene un rol específico
+     */
+    hasRole(roleName: string): boolean {
+        return this.userRoles().some(rol => rol.nombreRol === roleName);
     }
 }

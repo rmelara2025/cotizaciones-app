@@ -114,7 +114,7 @@ export class NavbarComponent {
 
   mostrarRoles(): void {
     const roles = this.userRoles();
-    
+
     if (roles.length === 0) {
       this.messageService.add({
         severity: 'info',
@@ -128,7 +128,7 @@ export class NavbarComponent {
 
     // Crear lista de roles con viñetas para mejor visualización
     const rolesLista = roles.map(rol => `• ${rol.nombreRol}`).join('\n');
-    
+
     this.messageService.add({
       severity: 'info',
       summary: `Roles del Usuario (${roles.length})`,
