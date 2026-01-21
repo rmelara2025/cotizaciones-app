@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -6,17 +6,30 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { TagModule } from 'primeng/tag';
-import { SelectModule } from 'primeng/select';
 import { PanelModule } from 'primeng/panel';
+import { DialogModule } from 'primeng/dialog';
+import { TextareaModule } from 'primeng/textarea';
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
 import { ContratosService } from '../../../../core/services/contratos.service';
-import { ICotizacion, IEstadoCotizacion, IContrato } from '../../../../core/models';
+import { ICotizacion, IContrato, IAccionDisponible } from '../../../../core/models';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
+import { getEstadoSeverity, getIconEstado, getTextEstado } from '../../../../core/utils/commons';
 
 @Component({
     selector: 'app-cotizaciones-por-contrato',
     standalone: true,
-    imports: [CommonModule, FormsModule, TableModule, ButtonModule, TooltipModule, TagModule, SelectModule, FormatRutPipe, PanelModule],
+    imports: [
+        CommonModule,
+        FormsModule,
+        TableModule,
+        ButtonModule,
+        TooltipModule,
+        TagModule,
+        FormatRutPipe,
+        PanelModule,
+        DialogModule,
+        TextareaModule
+    ],
     templateUrl: './cotizaciones-por-contrato.html',
     styleUrl: './cotizaciones-por-contrato.scss',
 })
@@ -30,6 +43,22 @@ export class CotizacionesPorContrato implements OnInit {
     contrato = signal<IContrato | null>(null);
     filtrosOriginales: any = {};
 
+    // Funciones de utilidad desde commons
+    readonly getEstadoSeverity = getEstadoSeverity;
+    readonly getIconEstado = getIconEstado;
+    readonly getTextEstado = getTextEstado
+
+    // Mapa de acciones disponibles por cotización
+    accionesDisponibles = signal<Map<string, IAccionDisponible[]>>(new Map());
+
+    // Estado del diálogo
+    mostrarDialogo = signal(false);
+    accionSeleccionada = signal<IAccionDisponible | null>(null);
+    cotizacionSeleccionada = signal<ICotizacion | null>(null);
+    comentario = signal('');
+    motivoRechazo = signal('');
+    procesandoCambio = signal(false);
+
     get cotizaciones() {
         return this.cotizacionesService.cotizaciones();
     }
@@ -42,8 +71,14 @@ export class CotizacionesPorContrato implements OnInit {
         return this.cotizacionesService.errorCotizaciones();
     }
 
-    get estados() {
-        return this.cotizacionesService.estados();
+    constructor() {
+        // Effect para cargar acciones cuando cambian las cotizaciones
+        effect(() => {
+            const cotizaciones = this.cotizaciones;
+            if (cotizaciones && cotizaciones.length > 0) {
+                this.cargarAccionesParaTodasLasCotizaciones();
+            }
+        });
     }
 
     ngOnInit() {
@@ -102,9 +137,6 @@ export class CotizacionesPorContrato implements OnInit {
             const { clienteNombre, ...filtros } = params;
             this.filtrosOriginales = filtros;
         });
-
-        // Cargar estados disponibles
-        this.cotizacionesService.loadEstados();
     }
 
     onVerDetalle(cotizacion: ICotizacion) {
@@ -131,19 +163,127 @@ export class CotizacionesPorContrato implements OnInit {
         this.router.navigate(['/cotizaciones'], { queryParams: this.filtrosOriginales });
     }
 
-    onEstadoChange(cotizacion: ICotizacion, event: any) {
-        const nuevoEstadoId = event.value;
-        if (nuevoEstadoId) {
-            this.cotizacionesService.actualizarEstado(cotizacion.idCotizacion, nuevoEstadoId).subscribe({
-                next: () => {
-                    // Recargar la lista de cotizaciones para reflejar el cambio
-                    this.cotizacionesService.loadCotizacionesPorContrato(this.idContrato());
-                },
-                error: (err) => {
-                    console.error('Error al actualizar estado:', err);
-                    alert('Error al actualizar el estado de la cotización');
-                }
-            });
+    /**
+     * Carga las acciones disponibles para todas las cotizaciones
+     */
+    async cargarAccionesParaTodasLasCotizaciones() {
+        const cotizaciones = this.cotizaciones;
+        const mapaAcciones = new Map<string, IAccionDisponible[]>();
+
+        console.log('🔍 Cargando acciones para', cotizaciones.length, 'cotizaciones');
+
+        for (const cotizacion of cotizaciones) {
+            const estadoId = this.getIdEstadoFromNombre(cotizacion.estadoNombre);
+            console.log(`📋 Cotización ${cotizacion.numeroCotizacion} - Estado: ${cotizacion.estadoNombre} (ID: ${estadoId})`);
+
+            const acciones = await this.cotizacionesService.obtenerAccionesDisponibles(estadoId);
+            console.log(`✅ Acciones disponibles:`, acciones);
+
+            mapaAcciones.set(cotizacion.idCotizacion, acciones);
+        }
+
+        this.accionesDisponibles.set(mapaAcciones);
+        console.log('📦 Mapa de acciones completo:', this.accionesDisponibles());
+    }
+
+    /**
+     * Obtiene las acciones disponibles para una cotización específica
+     */
+    obtenerAcciones(cotizacion: ICotizacion): IAccionDisponible[] {
+        return this.accionesDisponibles().get(cotizacion.idCotizacion) || [];
+    }
+
+    /**
+     * Maneja el clic en un botón de acción
+     */
+    onAccionClick(accion: IAccionDisponible, cotizacion: ICotizacion) {
+        this.accionSeleccionada.set(accion);
+        this.cotizacionSeleccionada.set(cotizacion);
+        this.comentario.set('');
+        this.motivoRechazo.set('');
+
+        // Si la acción requiere comentario o motivo, mostrar diálogo
+        if (accion.requiereComentario || accion.requiereMotivoRechazo) {
+            this.mostrarDialogo.set(true);
+        } else {
+            // Ejecutar directamente
+            this.ejecutarCambioEstado();
+        }
+    }
+
+    /**
+     * Cierra el diálogo sin ejecutar cambios
+     */
+    cerrarDialogo() {
+        this.mostrarDialogo.set(false);
+        this.accionSeleccionada.set(null);
+        this.cotizacionSeleccionada.set(null);
+        this.comentario.set('');
+        this.motivoRechazo.set('');
+    }
+
+    /**
+     * Valida y ejecuta el cambio de estado
+     */
+    async confirmarCambioEstado() {
+        const accion = this.accionSeleccionada();
+        const cotizacion = this.cotizacionSeleccionada();
+
+        if (!accion || !cotizacion) return;
+
+        // Validar campos obligatorios
+        if (accion.requiereComentario && !this.comentario().trim()) {
+            alert('El comentario es obligatorio para esta acción');
+            return;
+        }
+
+        if (accion.requiereMotivoRechazo && !this.motivoRechazo().trim()) {
+            alert('El motivo de rechazo es obligatorio para esta acción');
+            return;
+        }
+
+        this.ejecutarCambioEstado();
+    }
+
+    /**
+     * Ejecuta el cambio de estado en el backend
+     */
+    async ejecutarCambioEstado() {
+        const accion = this.accionSeleccionada();
+        const cotizacion = this.cotizacionSeleccionada();
+
+        if (!accion || !cotizacion) return;
+
+        this.procesandoCambio.set(true);
+
+        try {
+            await this.cotizacionesService.actualizarEstado(
+                cotizacion.idCotizacion,
+                accion.idEstadoDestino,
+                this.comentario().trim() || undefined,
+                this.motivoRechazo().trim() || undefined
+            ).toPromise();
+
+            // Cerrar diálogo y recargar
+            this.cerrarDialogo();
+
+            // Recargar cotizaciones y acciones
+            this.cotizacionesService.loadCotizacionesPorContrato(this.idContrato());
+
+            console.log('✅ Estado actualizado correctamente');
+        } catch (error: any) {
+            console.error('❌ Error al actualizar estado:', error);
+
+            let mensajeError = 'Error al actualizar el estado de la cotización';
+            if (error.status === 403) {
+                mensajeError = 'No tienes permisos para realizar esta transición';
+            } else if (error.status === 400) {
+                mensajeError = error.error?.message || 'Faltan campos obligatorios';
+            }
+
+            alert(mensajeError);
+        } finally {
+            this.procesandoCambio.set(false);
         }
     }
 
@@ -164,26 +304,5 @@ export class CotizacionesPorContrato implements OnInit {
     isEstadoFinal(estadoNombre: string): boolean {
         const estadosFinales = ['REEMPLAZADA', 'ANULADA', 'CANCELADA', 'DE_BAJA'];
         return estadosFinales.includes(estadoNombre?.toUpperCase());
-    }
-
-    getEstadoSeverity(estado: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-        const estadoUpper = estado?.toUpperCase();
-        switch (estadoUpper) {
-            case 'VIGENTE':
-                return 'success';
-            case 'APROBADA':
-                return 'info';
-            case 'EN_REVISION':
-            case 'BORRADOR':
-                return 'warn';
-            case 'ANULADA':
-            case 'CANCELADA':
-            case 'DE_BAJA':
-                return 'danger';
-            case 'REEMPLAZADA':
-                return 'secondary';
-            default:
-                return 'info';
-        }
     }
 }

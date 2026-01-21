@@ -99,3 +99,15 @@ export interface IVersionResponse {
     version: number;
 }
 
+/**
+ * Interfaz para las acciones de transición de estado disponibles para un usuario
+ */
+export interface IAccionDisponible {
+    idTransicion: number;
+    idEstadoDestino: number;
+    nombreEstadoDestino: string;
+    descripcion: string;
+    requiereComentario: boolean;
+    requiereMotivoRechazo: boolean;
+}
+

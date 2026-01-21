@@ -93,22 +93,33 @@ export class AuthService {
      * Carga los roles del usuario desde el backend
      */
     async loadUserRoles(): Promise<void> {
-        if (!this.isAuthenticated()) return;
+        if (!this.isAuthenticated()) {
+            console.warn('⚠️ No se pueden cargar roles: usuario no autenticado');
+            return;
+        }
 
         const user = this.currentUser();
-        if (!user?.idUsuario) return;
+        if (!user?.idUsuario) {
+            console.warn('⚠️ No se pueden cargar roles: idUsuario no disponible');
+            return;
+        }
 
         const url = `${this.API_URL}/usuario/${user.idUsuario}/roles`;
+        console.log('🌐 Cargando roles desde:', url);
 
         try {
             const roles = await firstValueFrom(
                 this.http.get<IRol[]>(url).pipe(
                     catchError((error) => {
-                        console.error('Error al cargar roles:', error);
+                        console.error('❌ Error al cargar roles:', error);
+                        console.error('❌ Status:', error.status);
+                        console.error('❌ Message:', error.message);
                         return of([]);
                     })
                 )
             );
+
+            console.log('✅ Roles cargados:', roles);
 
             this.userRoles.set(roles);
 
@@ -122,11 +133,15 @@ export class AuthService {
             const permissionsArray = Array.from(allPermissions);
             this.userPermissions.set(permissionsArray);
 
+            console.log('✅ Permisos extraídos:', permissionsArray);
+
             // Guardar en localStorage
             localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
             localStorage.setItem(PERMISSIONS_KEY, JSON.stringify(permissionsArray));
+
+            console.log('✅ Roles y permisos guardados en localStorage');
         } catch (error) {
-            console.error('Error inesperado al cargar roles:', error);
+            console.error('❌ Error inesperado al cargar roles:', error);
             this.userRoles.set([]);
             this.userPermissions.set([]);
         }

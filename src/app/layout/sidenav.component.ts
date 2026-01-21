@@ -263,8 +263,9 @@ export class SidenavComponent implements OnInit {
   ngOnInit(): void {
     this.applyCssVar();
     // Debug: Verificar estado del usuario
-    //console.log('🔍 SideNav Init - Usuario actual:', this.currentUser());
-    //console.log('🔍 SideNav Init - Tiempo restante:', this.timeRemaining());
+    console.log('🔍 SideNav Init - Usuario actual:', this.currentUser());
+    console.log('🔍 SideNav Init - Roles del usuario:', this.userRoles());
+    console.log('🔍 SideNav Init - Tiempo restante:', this.timeRemaining());
   }
 
   toggle() {

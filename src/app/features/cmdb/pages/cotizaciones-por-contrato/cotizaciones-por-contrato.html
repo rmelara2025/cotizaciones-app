@@ -69,19 +69,9 @@
                         <span class="p-tag p-tag-info">v{{ cotizacion.version }}</span>
                     </td>
                     <td>
-                        <p-select [options]="estados" [ngModel]="getIdEstadoFromNombre(cotizacion.estadoNombre)"
-                            (onChange)="onEstadoChange(cotizacion, $event)" optionLabel="nombre"
-                            optionValue="idEstadoCotizacion" [style]="{'width': '160px', 'font-size': '0.875rem'}"
-                            [disabled]="isEstadoFinal(cotizacion.estadoNombre)" appendTo="body" size="small"
-                            placeholder="Cambiar estado">
-                            <ng-template let-option pTemplate="item">
-                                <div class="flex align-items-center gap-2">
-                                    <p-tag [value]="option.nombre" [severity]="getEstadoSeverity(option.nombre)"
-                                        [style]="{'font-size': '0.75rem'}"></p-tag>
-                                    <span class="text-xs">{{ option.descripcion }}</span>
-                                </div>
-                            </ng-template>
-                        </p-select>
+                        <p-tag [value]="cotizacion.estadoNombre" [severity]="getEstadoSeverity(cotizacion.estadoNombre)"
+                            [pTooltip]="cotizacion.estadoDescripcion" tooltipPosition="top">
+                        </p-tag>
                     </td>
                     <td>{{ cotizacion.fechaEmision }}</td>
                     <td>{{ cotizacion.fechaVigenciaDesde || '-' }}</td>
@@ -94,8 +84,21 @@
                         <span *ngIf="!cotizacion.observacion" class="text-color-secondary">-</span>
                     </td>
                     <td>
-                        <p-button icon="pi pi-folder-open" (click)="onVerDetalle(cotizacion)" severity="info"
-                            [rounded]="true" pTooltip="Abrir cotización"></p-button>
+                        <div class="flex gap-1">
+                            <!-- Botón Ver Detalle -->
+                            <p-button icon="pi pi-folder-open" (click)="onVerDetalle(cotizacion)" severity="info"
+                                [rounded]="true" pTooltip="Abrir cotización" size="small">
+                            </p-button>
+
+                            <!-- Botones de Transición de Estado -->
+                            @for (accion of obtenerAcciones(cotizacion); track accion.idTransicion) {
+                            <p-button [icon]="'pi ' + getIconEstado(accion.nombreEstadoDestino)" [rounded]="true"
+                                (click)="onAccionClick(accion, cotizacion)"
+                                [severity]="getEstadoSeverity(accion.nombreEstadoDestino)" size="small"
+                                [pTooltip]="getTextEstado(accion.nombreEstadoDestino)" tooltipPosition="top">
+                            </p-button>
+                            }
+                        </div>
                     </td>
                 </tr>
             </ng-template>
@@ -111,3 +114,50 @@
     </p-panel>
 
 </div>
+
+<!-- Diálogo para capturar Comentario y/o Motivo de Rechazo -->
+<p-dialog [(visible)]="mostrarDialogo" [modal]="true" [style]="{ width: '500px' }" [closable]="!procesandoCambio()"
+    [closeOnEscape]="!procesandoCambio()">
+
+    <ng-template pTemplate="header">
+        <span class="font-semibold">
+            Confirmar: {{ accionSeleccionada()?.descripcion }}
+        </span>
+    </ng-template>
+
+    <div class="flex flex-column gap-3">
+        @if (accionSeleccionada()?.requiereComentario) {
+        <div class="field">
+            <label for="comentario" class="block mb-2 font-semibold">
+                Comentario <span class="text-red-500">*</span>
+            </label>
+            <textarea id="comentario" pTextarea [(ngModel)]="comentario" rows="3" [style]="{ width: '100%' }"
+                placeholder="Ingrese un comentario sobre este cambio..." [disabled]="procesandoCambio()">
+                </textarea>
+        </div>
+        }
+
+        @if (accionSeleccionada()?.requiereMotivoRechazo) {
+        <div class="field">
+            <label for="motivoRechazo" class="block mb-2 font-semibold">
+                Motivo de Rechazo <span class="text-red-500">*</span>
+            </label>
+            <textarea id="motivoRechazo" pTextarea [(ngModel)]="motivoRechazo" rows="3" [style]="{ width: '100%' }"
+                placeholder="Ingrese el motivo del rechazo..." [disabled]="procesandoCambio()">
+                </textarea>
+        </div>
+        }
+
+        <div class="text-sm text-color-secondary">
+            <i class="pi pi-info-circle"></i>
+            Se cambiará el estado a: <strong>{{ accionSeleccionada()?.nombreEstadoDestino }}</strong>
+        </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" severity="secondary" (click)="cerrarDialogo()" [disabled]="procesandoCambio()">
+        </p-button>
+        <p-button label="Confirmar" severity="success" (click)="confirmarCambioEstado()" [loading]="procesandoCambio()">
+        </p-button>
+    </ng-template>
+</p-dialog>

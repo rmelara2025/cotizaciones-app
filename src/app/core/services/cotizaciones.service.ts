@@ -7,12 +7,14 @@ import type {
     IEstadoCotizacion,
     ICotizacionDetalleCompleta,
     ICotizacionDetalleItem,
-    IVersionResponse
+    IVersionResponse,
+    IAccionDisponible
 } from '../models';
 import { environment } from '../../../environments/environment';
 import { catchError, tap } from 'rxjs/operators';
 import { of, firstValueFrom } from 'rxjs';
 import { LoggingService } from './logging.service';
+import { AuthService } from './auth.service';
 
 export type { ICotizacionDetalle, ICotizacionDetalleCompleta, ICotizacionDetalleItem };
 
@@ -22,6 +24,7 @@ export type { ICotizacionDetalle, ICotizacionDetalleCompleta, ICotizacionDetalle
 export class CotizacionesService {
     private http = inject(HttpClient);
     private logger = inject(LoggingService);
+    private authService = inject(AuthService);
     private readonly API_URL = environment.apiUrl;
 
     // Signals para detalle de cotización (antiguo)
@@ -125,9 +128,23 @@ export class CotizacionesService {
      * Actualiza el estado de una cotización
      * PUT /api/cotizaciones/{idCotizacion}/estado
      */
-    actualizarEstado(idCotizacion: string, idEstadoCotizacion: number) {
+    actualizarEstado(
+        idCotizacion: string,
+        idEstadoCotizacion: number,
+        comentario?: string,
+        motivoRechazo?: string
+    ) {
         const url = `${this.API_URL}/cotizaciones/${idCotizacion}/estado`;
-        return this.http.put<void>(url, { idEstadoCotizacion }).pipe(
+        const body: any = { idEstadoCotizacion };
+
+        if (comentario) {
+            body.comentario = comentario;
+        }
+        if (motivoRechazo) {
+            body.motivoRechazo = motivoRechazo;
+        }
+
+        return this.http.put<void>(url, body).pipe(
             tap(() => {
                 console.log('Estado actualizado correctamente');
                 // Logging de auditoría
@@ -145,6 +162,37 @@ export class CotizacionesService {
                 throw error;
             })
         );
+    }
+
+    /**
+     * Obtiene las acciones de transición de estado disponibles para el usuario actual
+     * GET /api/usuario/{idUsuario}/acciones?estadoActual={estadoActual}
+     */
+    async obtenerAccionesDisponibles(estadoActual: number): Promise<IAccionDisponible[]> {
+        const idUsuario = this.authService.getCurrentUserId();
+
+        console.log('👤 ID Usuario actual:', idUsuario);
+
+        if (!idUsuario) {
+            console.warn('⚠️ No hay usuario autenticado');
+            return [];
+        }
+
+        const url = `${this.API_URL}/usuario/${idUsuario}/acciones`;
+        const params = new HttpParams().set('estadoActual', estadoActual.toString());
+
+        console.log(`🌐 Llamando al backend: ${url}?estadoActual=${estadoActual}`);
+
+        try {
+            const acciones = await firstValueFrom(
+                this.http.get<IAccionDisponible[]>(url, { params })
+            );
+            console.log(`✅ Respuesta del backend (${acciones?.length || 0} acciones):`, acciones);
+            return acciones || [];
+        } catch (error) {
+            console.error('❌ Error al obtener acciones disponibles:', error);
+            return [];
+        }
     }
 
     /**
