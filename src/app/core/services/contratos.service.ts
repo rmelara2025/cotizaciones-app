@@ -116,4 +116,24 @@ export class ContratosService {
             }),
         );
     }
+
+    /**
+     * Crea un nuevo contrato
+     * @param request - Datos del nuevo contrato desde wizard
+     * @returns Promise con el contrato creado { idContrato, ... }
+     */
+    async crearContrato(request: {
+        rutCliente: string;
+        tipoCodigoProyecto: string; // "CHI", "SAP", "SISON"
+        codigoProyecto: string;
+        fechaInicio: string; // formato YYYY-MM-DD
+        fechaTermino: string; // formato YYYY-MM-DD
+        observacion?: string;
+    }): Promise<{ idContrato: string }> {
+        const response = await this.http
+            .post<any>(`${this.API_URL}/contratos`, request)
+            .toPromise();
+        return response;
+    }
 }
+

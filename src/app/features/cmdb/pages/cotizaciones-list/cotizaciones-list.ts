@@ -40,7 +40,6 @@ import { Table } from 'primeng/table';
     ButtonModule,
     TooltipModule,
     DialogModule,
-    CotizacionesPorContrato,
     FormatRutPipe,
     InputTextModule,
     FormsModule,
@@ -379,6 +378,10 @@ export class CotizacionesList implements OnInit {
     this.cargarTablayTotales(0, this.pageSize);
     // Cargar resumen sin filtros (universo completo)
     this.dashboardService.loadResumenRecurrentes();
+  }
+
+  irAlWizard() {
+    this.router.navigate(['/cotizaciones/wizard-contrato']);
   }
 
 }

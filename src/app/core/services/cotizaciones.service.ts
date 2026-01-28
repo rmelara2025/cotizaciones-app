@@ -212,4 +212,21 @@ export class CotizacionesService {
         ];
         this.estados.set(estadosHardcoded);
     }
+
+    /**
+     * Crea una nueva cotización
+     * POST /api/cotizaciones
+     */
+    async crearCotizacion(request: {
+        idContrato: string;
+        idUsuarioCreacion: string;
+        fechaEmision: string;
+        fechaVigenciaDesde: string;
+        fechaVigenciaHasta: string;
+        observacion: string;
+    }): Promise<{ idCotizacion: string; numeroCotizacion: string }> {
+        const url = `${this.API_URL}/cotizaciones`;
+        return firstValueFrom(this.http.post<{ idCotizacion: string; numeroCotizacion: string }>(url, request));
+    }
 }
+

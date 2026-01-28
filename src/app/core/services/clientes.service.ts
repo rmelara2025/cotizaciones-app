@@ -60,4 +60,18 @@ export class ClientesService {
             },
         });
     }
+
+    /**
+     * Obtiene un cliente por su RUT
+     * @param rut RUT del cliente (con o sin formato)
+     */
+    async obtenerClientePorRut(rut: string): Promise<ICliente> {
+        const url = `${this.API_URL}/clientes/${rut}`;
+        return this.http.get<ICliente>(url).toPromise().then(response => {
+            if (!response) {
+                throw new Error('Cliente no encontrado');
+            }
+            return response;
+        });
+    }
 }

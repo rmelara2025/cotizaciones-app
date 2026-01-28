@@ -1,4 +1,17 @@
-# CotizacionesApp
+# Cotizaciones App - Frontend CMDB
+
+Sistema de gestión de contratos y cotizaciones desarrollado con Angular 20 y Spring Boot.
+
+## 📚 Documentación
+
+- **[Arquitectura Técnica](docs/TECHNICAL-ARCHITECTURE.md)** - Arquitectura completa del sistema, patrones de diseño, stack tecnológico
+- **[Clean Code & Best Practices](docs/CLEAN-CODE-PRACTICES.md)** - Principios de diseño, convenciones, patrones de código
+- **[Resumen Ejecutivo](docs/EXECUTIVE-SUMMARY.md)** - Mejoras implementadas, métricas, recomendaciones futuras
+- **[Architecture Notes](docs/ARCHITECTURE.md)** - Notas de refactoring y decisiones de diseño
+
+---
+
+## 🚀 Inicio Rápido
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.11.
 

@@ -1,5 +1,9 @@
 <div class="contratos-container">
-    <h2>Contratos y Cotizaciones</h2>
+    <div class="flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0">Contratos y Cotizaciones</h2>
+        <p-button label="Nuevo Contrato/Cotización" icon="pi pi-sparkles" severity="success" size="large"
+            (onClick)="irAlWizard()" />
+    </div>
 
     <div *ngIf="error" class="error-message px-3">
         <p style="color: #e53238;">⚠️ {{ error }}</p>

@@ -6,9 +6,11 @@ import { CotizacionesPorContrato } from './pages/cotizaciones-por-contrato/cotiz
 import { DashboardRecurrentes } from './pages/dashboard-recurrentes/dashboard-recurrentes';
 import { ClientesList } from './pages/clientes-list/clientes-list';
 import { ContactosList } from './pages/contactos-list/contactos-list';
+import { WizardContratoComponent } from './pages/wizard-contrato/wizard-contrato.component';
 
 const routes: Routes = [
   { path: '', component: CotizacionesList },
+  { path: 'wizard-contrato', component: WizardContratoComponent },
   { path: 'por-contrato/:idContrato', component: CotizacionesPorContrato },
   { path: 'cotizacion-detalle/:idCotizacion', component: CotizacionDetalleComponent },
   { path: 'clientes', component: ClientesList },

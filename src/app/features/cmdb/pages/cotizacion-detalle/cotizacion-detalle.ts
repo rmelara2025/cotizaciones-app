@@ -20,6 +20,7 @@ import { CatalogosService, IServicio, ITipoMoneda, IPeriodicidad } from '../../.
 import { IContrato } from '../../../../core/models';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { getEstadoSeverity } from '../../../../core/utils/commons';
+import { formatDateForItemBackend, parseDateFromBackend } from '../../../../core/utils/date.utils';
 
 interface IItemEditable extends Omit<ICotizacionDetalleItem, 'fechaInicioFacturacion' | 'fechaFinFacturacion'> {
   _isNew?: boolean;
@@ -168,8 +169,8 @@ export class CotizacionDetalleComponent implements OnInit {
     this.items.update(items => items.map(item => {
       const converted = {
         ...item,
-        fechaInicioFacturacion: item.fechaInicioFacturacion ? this.parseDate(item.fechaInicioFacturacion) : null,
-        fechaFinFacturacion: item.fechaFinFacturacion ? this.parseDate(item.fechaFinFacturacion) : null
+        fechaInicioFacturacion: item.fechaInicioFacturacion ? this.parseDateForEdit(item.fechaInicioFacturacion) : null,
+        fechaFinFacturacion: item.fechaFinFacturacion ? this.parseDateForEdit(item.fechaFinFacturacion) : null
       };
       console.log('📅 Fecha conversión:', {
         original: { inicio: item.fechaInicioFacturacion, fin: item.fechaFinFacturacion },
@@ -182,7 +183,13 @@ export class CotizacionDetalleComponent implements OnInit {
     this.modoEdicion.set(true);
   }
 
-  private parseDate(dateStr: string | Date | null): Date | null {
+  /**
+   * Parsea fechas desde múltiples formatos para modo edición
+   * Soporta: DD-MM-YYYY, DD/MM/YYYY, Date objects, ISO strings
+   * Este método es específico para convertir datos del backend a objetos Date
+   * para los componentes de PrimeNG DatePicker
+   */
+  private parseDateForEdit(dateStr: string | Date | null): Date | null {
     if (!dateStr) return null;
     if (dateStr instanceof Date) return dateStr;
 
@@ -197,16 +204,6 @@ export class CotizacionDetalleComponent implements OnInit {
 
     // Intentar parseo directo
     return new Date(dateStr);
-  }
-
-  private formatDateForBackend(date: Date | string | null): string {
-    if (!date) return '';
-    if (typeof date === 'string') return date;
-
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
   }
 
   cancelarEdicion() {
@@ -290,8 +287,8 @@ export class CotizacionDetalleComponent implements OnInit {
         precioUnitario: item.precioUnitario,
         idTipoMoneda: item.idTipoMoneda,
         idPeriodicidad: item.idPeriodicidad,
-        fechaInicioFacturacion: this.formatDateForBackend(item.fechaInicioFacturacion),
-        fechaFinFacturacion: this.formatDateForBackend(item.fechaFinFacturacion),
+        fechaInicioFacturacion: formatDateForItemBackend(item.fechaInicioFacturacion),
+        fechaFinFacturacion: formatDateForItemBackend(item.fechaFinFacturacion),
         atributos: item._atributosObj ? JSON.stringify(item._atributosObj) : item.atributos,
         observacion: item.observacion
       }));
