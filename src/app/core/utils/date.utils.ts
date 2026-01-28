@@ -25,7 +25,7 @@
  */
 export function formatDateForBackend(date: Date | string | null | undefined): string {
   if (!date) return '';
-  
+
   // Si ya es string, se asume que está en formato correcto
   if (typeof date === 'string') {
     // Si el string está en formato DD-MM-YYYY, convertirlo a YYYY-MM-DD
@@ -40,7 +40,7 @@ export function formatDateForBackend(date: Date | string | null | undefined): st
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  
+
   return `${year}-${month}-${day}`;
 }
 
@@ -53,7 +53,7 @@ export function formatDateForBackend(date: Date | string | null | undefined): st
  */
 export function formatDateForItemBackend(date: Date | string | null | undefined): string {
   if (!date) return '';
-  
+
   // Si ya es string en formato DD-MM-YYYY, dejarlo así
   if (typeof date === 'string' && /^\d{2}-\d{2}-\d{4}$/.test(date)) {
     return date;
@@ -71,7 +71,7 @@ export function formatDateForItemBackend(date: Date | string | null | undefined)
   const day = String(dateObj.getDate()).padStart(2, '0');
   const month = String(dateObj.getMonth() + 1).padStart(2, '0');
   const year = dateObj.getFullYear();
-  
+
   return `${day}-${month}-${year}`;
 }
 
@@ -82,7 +82,7 @@ export function formatDateForItemBackend(date: Date | string | null | undefined)
  */
 export function parseDateFromBackend(dateString: string | null | undefined): Date | null {
   if (!dateString) return null;
-  
+
   try {
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? null : date;

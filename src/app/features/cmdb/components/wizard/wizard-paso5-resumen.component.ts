@@ -16,17 +16,17 @@ import { MessageService } from 'primeng/api';
 import { formatDateForBackend, formatDateForItemBackend } from '../../../../core/utils/date.utils';
 
 @Component({
-    selector: 'app-wizard-paso5-resumen',
-    imports: [
-        CommonModule,
-        ButtonModule,
-        PanelModule,
-        DividerModule,
-        MessageModule,
-        FormatRutPipe
-    ],
-    providers: [MessageService],
-    template: `
+  selector: 'app-wizard-paso5-resumen',
+  imports: [
+    CommonModule,
+    ButtonModule,
+    PanelModule,
+    DividerModule,
+    MessageModule,
+    FormatRutPipe
+  ],
+  providers: [MessageService],
+  template: `
     <div class="wizard-paso wizard-paso5">
       <h3 class="mb-4">Resumen y Confirmación</h3>
 
@@ -203,7 +203,7 @@ import { formatDateForBackend, formatDateForItemBackend } from '../../../../core
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .wizard-paso5 {
       padding: 2rem;
     }
@@ -231,128 +231,128 @@ import { formatDateForBackend, formatDateForItemBackend } from '../../../../core
   `]
 })
 export class WizardPaso5ResumenComponent {
-    wizardService = inject(WizardService);
-    private contratosService = inject(ContratosService);
-    private cotizacionesService = inject(CotizacionesService);
-    private indicadoresService = inject(IndicadoresService);
-    private catalogosService = inject(CatalogosService);
-    private authService = inject(AuthService);
-    private messageService = inject(MessageService);
-    private router = inject(Router);
+  wizardService = inject(WizardService);
+  private contratosService = inject(ContratosService);
+  private cotizacionesService = inject(CotizacionesService);
+  private indicadoresService = inject(IndicadoresService);
+  private catalogosService = inject(CatalogosService);
+  private authService = inject(AuthService);
+  private messageService = inject(MessageService);
+  private router = inject(Router);
 
-    guardando = signal(false);
-    error = signal<string | null>(null);
+  guardando = signal(false);
+  error = signal<string | null>(null);
 
-    valorDolar = this.indicadoresService.valorDolar;
-    valorUF = this.indicadoresService.valorUF;
-    fechaDolar = this.indicadoresService.fechaDolar;
-    fechaUF = this.indicadoresService.fechaUF;
-    monedas = this.catalogosService.monedas;
+  valorDolar = this.indicadoresService.valorDolar;
+  valorUF = this.indicadoresService.valorUF;
+  fechaDolar = this.indicadoresService.fechaDolar;
+  fechaUF = this.indicadoresService.fechaUF;
+  monedas = this.catalogosService.monedas;
 
-    /**
-     * Obtiene el nombre de la moneda por su ID
-     */
-    getNombreMoneda(idTipoMoneda: number): string {
-        const moneda = this.monedas().find(m => m.idTipoMoneda === idTipoMoneda);
-        return moneda?.codigo || '';
+  /**
+   * Obtiene el nombre de la moneda por su ID
+   */
+  getNombreMoneda(idTipoMoneda: number): string {
+    const moneda = this.monedas().find(m => m.idTipoMoneda === idTipoMoneda);
+    return moneda?.codigo || '';
+  }
+
+  /**
+   * Calcula el total general en pesos (sumando todos los items convertidos)
+   */
+  calcularTotal(): number {
+    return this.wizardService.items().reduce((sum, item) => {
+      const subtotal = item.cantidad * item.precioUnitario;
+      const subtotalEnPesos = this.indicadoresService.convertirAPesos(subtotal, item.idTipoMoneda);
+      return sum + subtotalEnPesos;
+    }, 0);
+  }
+
+  onAtras(): void {
+    this.wizardService.pasoAnterior();
+  }
+
+  async onConfirmar(): Promise<void> {
+    this.guardando.set(true);
+    this.error.set(null);
+
+    try {
+      let idContrato: string;
+
+      // 1. Crear o usar contrato existente
+      if (this.wizardService.esNuevoContrato()) {
+        const contratoNuevo = this.wizardService.contratoNuevo();
+        if (!contratoNuevo || !contratoNuevo.cliente) throw new Error('Datos del contrato no disponibles');
+
+        // Crear contrato en backend
+        console.log('📝 Creando contrato nuevo:', contratoNuevo);
+        const contratoCreado = await this.contratosService.crearContrato({
+          rutCliente: contratoNuevo.cliente.rutCliente,
+          tipoCodigoProyecto: contratoNuevo.tipoCodigoProyecto,
+          codigoProyecto: contratoNuevo.codigoProyecto,
+          fechaInicio: formatDateForBackend(contratoNuevo.fechaInicio!),
+          fechaTermino: formatDateForBackend(contratoNuevo.fechaTermino!),
+          observacion: 'Contrato creado desde wizard'
+        });
+        idContrato = contratoCreado.idContrato;
+        console.log('✅ Contrato creado:', idContrato);
+      } else {
+        const contratoExistente = this.wizardService.contratoExistente();
+        if (!contratoExistente) throw new Error('Contrato no seleccionado');
+        idContrato = contratoExistente.idContrato;
+      }
+
+      // 2. Crear cotización
+      const cotizacion = this.wizardService.cotizacion();
+      if (!cotizacion) throw new Error('Datos de cotización no disponibles');
+
+      const userId = this.authService.getCurrentUserId();
+      if (!userId) throw new Error('Usuario no autenticado');
+
+      const cotizacionCreada = await this.cotizacionesService.crearCotizacion({
+        idContrato,
+        idUsuarioCreacion: userId,
+        fechaEmision: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+        fechaVigenciaDesde: formatDateForBackend(cotizacion.fechaVigenciaDesde!),
+        fechaVigenciaHasta: formatDateForBackend(cotizacion.fechaVigenciaHasta!),
+        observacion: cotizacion.observacion
+      });
+
+      // 3. Guardar items
+      const items = this.wizardService.items().map((item, idx) => ({
+        numItem: idx + 1,
+        idServicio: item.idServicio,
+        cantidad: item.cantidad,
+        precioUnitario: item.precioUnitario,
+        idTipoMoneda: item.idTipoMoneda,
+        idPeriodicidad: item.idPeriodicidad,
+        fechaInicioFacturacion: formatDateForItemBackend(item.fechaInicioFacturacion),
+        fechaFinFacturacion: formatDateForItemBackend(item.fechaFinFacturacion),
+        atributos: item.atributos ? JSON.stringify(item.atributos) : null,
+        observacion: item.observacion
+      }));
+
+      await this.cotizacionesService.guardarItems(cotizacionCreada.idCotizacion, items);
+
+      // 4. Éxito
+      this.wizardService.marcarCompletado();
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Contrato y cotización creados exitosamente'
+      });
+
+      // Navegar al detalle de la cotización
+      setTimeout(() => {
+        this.router.navigate(['/cotizaciones/cotizacion-detalle', cotizacionCreada.idCotizacion]);
+        this.wizardService.resetear();
+      }, 1500);
+
+    } catch (error: any) {
+      console.error('❌ Error creando contrato/cotización:', error);
+      this.error.set(error?.message || 'Error al crear el contrato y cotización');
+    } finally {
+      this.guardando.set(false);
     }
-
-    /**
-     * Calcula el total general en pesos (sumando todos los items convertidos)
-     */
-    calcularTotal(): number {
-        return this.wizardService.items().reduce((sum, item) => {
-            const subtotal = item.cantidad * item.precioUnitario;
-            const subtotalEnPesos = this.indicadoresService.convertirAPesos(subtotal, item.idTipoMoneda);
-            return sum + subtotalEnPesos;
-        }, 0);
-    }
-
-    onAtras(): void {
-        this.wizardService.pasoAnterior();
-    }
-
-    async onConfirmar(): Promise<void> {
-        this.guardando.set(true);
-        this.error.set(null);
-
-        try {
-            let idContrato: string;
-
-            // 1. Crear o usar contrato existente
-            if (this.wizardService.esNuevoContrato()) {
-                const contratoNuevo = this.wizardService.contratoNuevo();
-                if (!contratoNuevo || !contratoNuevo.cliente) throw new Error('Datos del contrato no disponibles');
-
-                // Crear contrato en backend
-                console.log('📝 Creando contrato nuevo:', contratoNuevo);
-                const contratoCreado = await this.contratosService.crearContrato({
-                    rutCliente: contratoNuevo.cliente.rutCliente,
-                    tipoCodigoProyecto: contratoNuevo.tipoCodigoProyecto,
-                    codigoProyecto: contratoNuevo.codigoProyecto,
-                    fechaInicio: formatDateForBackend(contratoNuevo.fechaInicio!),
-                    fechaTermino: formatDateForBackend(contratoNuevo.fechaTermino!),
-                    observacion: 'Contrato creado desde wizard'
-                });
-                idContrato = contratoCreado.idContrato;
-                console.log('✅ Contrato creado:', idContrato);
-            } else {
-                const contratoExistente = this.wizardService.contratoExistente();
-                if (!contratoExistente) throw new Error('Contrato no seleccionado');
-                idContrato = contratoExistente.idContrato;
-            }
-
-            // 2. Crear cotización
-            const cotizacion = this.wizardService.cotizacion();
-            if (!cotizacion) throw new Error('Datos de cotización no disponibles');
-
-            const userId = this.authService.getCurrentUserId();
-            if (!userId) throw new Error('Usuario no autenticado');
-
-            const cotizacionCreada = await this.cotizacionesService.crearCotizacion({
-                idContrato,
-                idUsuarioCreacion: userId,
-                fechaEmision: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-                fechaVigenciaDesde: formatDateForBackend(cotizacion.fechaVigenciaDesde!),
-                fechaVigenciaHasta: formatDateForBackend(cotizacion.fechaVigenciaHasta!),
-                observacion: cotizacion.observacion
-            });
-
-            // 3. Guardar items
-            const items = this.wizardService.items().map((item, idx) => ({
-                numItem: idx + 1,
-                idServicio: item.idServicio,
-                cantidad: item.cantidad,
-                precioUnitario: item.precioUnitario,
-                idTipoMoneda: item.idTipoMoneda,
-                idPeriodicidad: item.idPeriodicidad,
-                fechaInicioFacturacion: formatDateForItemBackend(item.fechaInicioFacturacion),
-                fechaFinFacturacion: formatDateForItemBackend(item.fechaFinFacturacion),
-                atributos: item.atributos ? JSON.stringify(item.atributos) : null,
-                observacion: item.observacion
-            }));
-
-            await this.cotizacionesService.guardarItems(cotizacionCreada.idCotizacion, items);
-
-            // 4. Éxito
-            this.wizardService.marcarCompletado();
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Éxito',
-                detail: 'Contrato y cotización creados exitosamente'
-            });
-
-            // Navegar al detalle de la cotización
-            setTimeout(() => {
-                this.router.navigate(['/cotizaciones/cotizacion-detalle', cotizacionCreada.idCotizacion]);
-                this.wizardService.resetear();
-            }, 1500);
-
-        } catch (error: any) {
-            console.error('❌ Error creando contrato/cotización:', error);
-            this.error.set(error?.message || 'Error al crear el contrato y cotización');
-        } finally {
-            this.guardando.set(false);
-        }
-    }
+  }
 }
