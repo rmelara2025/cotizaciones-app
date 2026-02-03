@@ -29,6 +29,9 @@ export class ReportesService {
         if (filter.idTipoMoneda !== undefined && filter.idTipoMoneda !== null) {
             params = params.set('idTipoMoneda', filter.idTipoMoneda.toString());
         }
+        if (filter.idFamiliaServicio !== undefined && filter.idFamiliaServicio !== null) {
+            params = params.set('idFamiliaServicio', filter.idFamiliaServicio.toString());
+        }
 
         return this.http.get<ICadenciaIngresosResponse>(`${this.apiUrl}/cadencia-ingresos`, { params });
     }
@@ -51,6 +54,9 @@ export class ReportesService {
         }
         if (filter.idTipoMoneda !== undefined && filter.idTipoMoneda !== null) {
             params = params.set('idTipoMoneda', filter.idTipoMoneda.toString());
+        }
+        if (filter.idFamiliaServicio !== undefined && filter.idFamiliaServicio !== null) {
+            params = params.set('idFamiliaServicio', filter.idFamiliaServicio.toString());
         }
 
         return this.http.get(`${this.apiUrl}/cadencia-ingresos/exportar-excel`, {

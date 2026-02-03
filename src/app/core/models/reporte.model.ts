@@ -3,6 +3,7 @@ export interface ICadenciaIngresosFilter {
     fechaDesde?: string; // formato: YYYY-MM-DD
     fechaHasta?: string; // formato: YYYY-MM-DD
     idTipoMoneda?: number;
+    idFamiliaServicio?: number;
 }
 
 export interface ICadenciaIngresosResponse {

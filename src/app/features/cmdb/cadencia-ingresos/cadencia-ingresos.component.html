@@ -18,6 +18,13 @@
                 </div>
 
                 <div class="field">
+                    <label for="idFamiliaServicio">Familia de Servicio</label>
+                    <p-select id="idFamiliaServicio" formControlName="idFamiliaServicio" [options]="familias()"
+                        placeholder="Todas las familias" [showClear]="true" [filter]="true" filterBy="label"
+                        optionLabel="label" optionValue="value" />
+                </div>
+
+                <div class="field">
                     <label for="fechaDesde">Fecha Desde</label>
                     <p-datepicker id="fechaDesde" formControlName="fechaDesde" dateFormat="dd/mm/yy" [showIcon]="true"
                         placeholder="Seleccione fecha" />

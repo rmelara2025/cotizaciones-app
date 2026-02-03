@@ -13,6 +13,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ReportesService } from '../../../core/services/reportes.service';
 import { ClientesService } from '../../../core/services/clientes.service';
 import { CatalogosService } from '../../../core/services/catalogos.service';
+import { FamiliaService } from '../../../core/services/familia.service';
 import { DetalleAlertaDialogComponent } from './detalle-alerta-dialog.component';
 import {
     ICadenciaIngresosFilter,
@@ -47,6 +48,7 @@ export class CadenciaIngresosComponent implements OnInit {
     private readonly fb = inject(FormBuilder);
     private readonly reportesService = inject(ReportesService);
     private readonly clientesService = inject(ClientesService);
+    private readonly familiaService = inject(FamiliaService);
     // private readonly catalogosService = inject(CatalogosService);
 
     // Signals
@@ -55,6 +57,7 @@ export class CadenciaIngresosComponent implements OnInit {
     clienteSeleccionado = signal<ICadenciaCliente | null>(null);
     clientesDisponibles = signal<any[]>([]);
     monedas = signal<any[]>([]);
+    familias = signal<any[]>([]);
 
     // Dialog
     detalleDialog = viewChild.required(DetalleAlertaDialogComponent);
@@ -129,7 +132,8 @@ export class CadenciaIngresosComponent implements OnInit {
             rutCliente: [null],
             fechaDesde: [hoy],
             fechaHasta: [enUnAno],
-            idTipoMoneda: [null]
+            idTipoMoneda: [null],
+            idFamiliaServicio: [null]
         });
     }
 
@@ -158,7 +162,24 @@ export class CadenciaIngresosComponent implements OnInit {
                 this.clientesDisponibles.set(clientesOptions);
             },
             error: (error) => {
-                console.error('Error al cargar clientes:', error);
+                console.error('Error cargando clientes:', error);
+            }
+        });
+
+        // Cargar familias de servicio
+        this.familiaService.getFamilias().subscribe({
+            next: (familias) => {
+                const familiasOptions = [
+                    { label: 'Todas las Familias', value: null },
+                    ...familias.map(f => ({
+                        label: f.nombreFamilia,
+                        value: f.idFamilia
+                    }))
+                ];
+                this.familias.set(familiasOptions);
+            },
+            error: (error) => {
+                console.error('Error cargando familias:', error);
             }
         });
 
@@ -176,6 +197,7 @@ export class CadenciaIngresosComponent implements OnInit {
             rutCliente: formValue.rutCliente || undefined, // null se envía como undefined para cadencia total
             fechaDesde: formValue.fechaDesde ? this.formatDate(formValue.fechaDesde) : undefined,
             fechaHasta: formValue.fechaHasta ? this.formatDate(formValue.fechaHasta) : undefined,
+            idFamiliaServicio: formValue.idFamiliaServicio || undefined,
             // idTipoMoneda no se envía por ahora (filtro oculto)
         };
 
@@ -534,6 +556,7 @@ export class CadenciaIngresosComponent implements OnInit {
             rutCliente: formValue.rutCliente || undefined,
             fechaDesde: formValue.fechaDesde ? this.formatDate(formValue.fechaDesde) : undefined,
             fechaHasta: formValue.fechaHasta ? this.formatDate(formValue.fechaHasta) : undefined,
+            idFamiliaServicio: formValue.idFamiliaServicio || undefined,
         };
 
         this.loading.set(true);
