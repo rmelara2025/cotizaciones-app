@@ -1,12 +1,9 @@
 export interface ICotizacionDetalle {
     idDetalle: string;
     numItem: number;
-    versionCotizacion: number;
-    idContrato: string;
     idServicio: number;
     idFamilia: number;
     cantidad: number;
-    recurrente: number;
     atributos: any;
     fechaRegistro: string;
     nombreServicio: string;

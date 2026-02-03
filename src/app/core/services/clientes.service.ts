@@ -74,4 +74,16 @@ export class ClientesService {
             return response;
         });
     }
+
+    /**
+     * Obtiene todos los clientes sin paginación (para dropdowns)
+     */
+    obtenerTodosParaDropdown() {
+        const params = new HttpParams()
+            .set('page', '0')
+            .set('size', '1000')
+            .set('sort', 'nombreCliente,asc');
+
+        return this.http.get<IPaginatedClienteResponse>(`${this.API_URL}/clientes`, { params });
+    }
 }

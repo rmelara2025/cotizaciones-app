@@ -1,0 +1,179 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '1200px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <ng-template pTemplate="header">
+    <div class="dialog-header">
+      <div class="header-content">
+        <i class="pi pi-exclamation-triangle"></i>
+        <div class="header-text">
+          <h3>Detalle de Alerta</h3>
+          @if (alerta()) {
+            <p>{{ formatMes(alerta()!.mes) }}</p>
+          }
+        </div>
+      </div>
+      @if (alerta()) {
+        <p-tag 
+          [value]="alerta()!.severidad" 
+          [severity]="getSeverityTag(alerta()!.severidad)"
+        />
+      }
+    </div>
+  </ng-template>
+
+  @if (alerta()) {
+    <div class="dialog-content">
+      <!-- Resumen de la alerta -->
+      <div class="alerta-resumen">
+        <div class="resumen-item">
+          <label>Mensaje</label>
+          <p>{{ alerta()!.mensaje }}</p>
+        </div>
+        <div class="resumen-grid">
+          <div class="resumen-card">
+            <label>Monto Total Perdiéndose</label>
+            <h4 class="amount-losing">{{ formatNumber(alerta()!.montoPerdiendose) }}</h4>
+          </div>
+          <div class="resumen-card">
+            <label>Servicios Afectados</label>
+            <h4 class="services-count">{{ servicios().length }}</h4>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de servicios -->
+      <div class="servicios-section">
+        <h4>📋 Servicios que Terminan</h4>
+        <p-table 
+          [value]="servicios()" 
+          [tableStyle]="{'min-width': '50rem'}"
+          styleClass="p-datatable-sm"
+          [paginator]="servicios().length > 10"
+          [rows]="10"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} servicios"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Servicio</th>
+              <th>Código Contrato</th>
+              <th>Periodicidad</th>
+              <th>Fecha Fin</th>
+              <th class="text-right">Monto Mensual</th>
+              <th class="text-right">Moneda</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-servicio>
+            <tr>
+              <td>
+                <strong>{{ servicio.nombreServicio }}</strong>
+              </td>
+              <td>
+                <code class="codigo-contrato">{{ servicio.codigoContrato }}</code>
+              </td>
+              <td>
+                <p-tag 
+                  [value]="servicio.periodicidad" 
+                  [severity]="getPeriodicidadTag(servicio.periodicidad)"
+                />
+              </td>
+              <td>
+                <span class="fecha-fin">
+                  <i class="pi pi-calendar"></i>
+                  {{ servicio.fechaFinFacturacion }}
+                </span>
+              </td>
+              <td class="text-right">
+                <strong class="monto">{{ formatNumber(servicio.montoMensual) }}</strong>
+              </td>
+              <td class="text-right">
+                <span class="moneda-badge">{{ servicio.nombreMoneda }}</span>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="footer">
+            <tr>
+              <td colspan="4" class="text-right"><strong>Total Mensual:</strong></td>
+              <td class="text-right">
+                <strong class="total-amount">{{ formatNumber(totalMonto()) }}</strong>
+              </td>
+              <td></td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Recomendaciones -->
+      <div class="recomendaciones-section">
+        <h4>💡 Recomendaciones</h4>
+        <div class="recomendaciones-list">
+          @switch (alerta()!.severidad) {
+            @case ('CRITICA') {
+              <div class="recomendacion critica">
+                <i class="pi pi-exclamation-circle"></i>
+                <div>
+                  <strong>Acción Inmediata Requerida</strong>
+                  <p>Contactar al cliente urgentemente para renovación o extensión de contratos.</p>
+                </div>
+              </div>
+              <div class="recomendacion critica">
+                <i class="pi pi-phone"></i>
+                <div>
+                  <strong>Gestión Comercial</strong>
+                  <p>Programar reunión con el cliente para evaluar necesidades y proponer soluciones.</p>
+                </div>
+              </div>
+            }
+            @case ('ALTA') {
+              <div class="recomendacion alta">
+                <i class="pi pi-bell"></i>
+                <div>
+                  <strong>Contacto Preventivo</strong>
+                  <p>Iniciar conversaciones de renovación con al menos 60 días de anticipación.</p>
+                </div>
+              </div>
+              <div class="recomendacion alta">
+                <i class="pi pi-chart-line"></i>
+                <div>
+                  <strong>Análisis de Oportunidades</strong>
+                  <p>Evaluar posibilidad de upselling o cross-selling de servicios adicionales.</p>
+                </div>
+              </div>
+            }
+            @case ('MEDIA') {
+              <div class="recomendacion media">
+                <i class="pi pi-eye"></i>
+                <div>
+                  <strong>Monitoreo Continuo</strong>
+                  <p>Mantener seguimiento mensual y preparar propuestas comerciales.</p>
+                </div>
+              </div>
+              <div class="recomendacion media">
+                <i class="pi pi-file-edit"></i>
+                <div>
+                  <strong>Documentación</strong>
+                  <p>Actualizar historial del cliente y registrar próximas acciones comerciales.</p>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <p-button 
+        label="Cerrar" 
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="cerrar()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

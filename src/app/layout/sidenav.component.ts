@@ -256,6 +256,7 @@ export class SidenavComponent implements OnInit {
     { label: 'Nueva cotización', icon: 'pi-plus', route: '/cotizaciones/wizard-contrato' },
     { label: 'Clientes', icon: 'pi-users', route: '/clientes' },
     { label: 'Proveedores', icon: 'pi-box', route: '/proveedores' },
+    { label: 'Cadencia Ingresos', icon: 'pi-chart-line', route: '/reportes/cadencia-ingresos' },
     { label: 'Reportes', icon: 'pi-chart-bar', route: '/reportes' },
     { label: 'Configuración', icon: 'pi-cog', route: '/config' },
   ];

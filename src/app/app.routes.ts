@@ -38,6 +38,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'reportes/cadencia-ingresos',
+    loadComponent: () =>
+      import('./features/cmdb/cadencia-ingresos/cadencia-ingresos.component').then(
+        (m) => m.CadenciaIngresosComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full',
