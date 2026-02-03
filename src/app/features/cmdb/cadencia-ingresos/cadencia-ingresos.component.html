@@ -1,55 +1,36 @@
 <div class="cadencia-ingresos-container">
-  <p-card>
-    <ng-template pTemplate="header">
-      <div class="card-header">
-        <h2>📊 Cadencia de Ingresos</h2>
-        <p>Análisis de ingresos mensuales proyectados y alertas de contratos</p>
-      </div>
-    </ng-template>
+    <p-card>
+        <ng-template pTemplate="header">
+            <div class="card-header">
+                <h2>📊 Cadencia de Ingresos</h2>
+                <p>Análisis de ingresos mensuales proyectados y alertas de contratos</p>
+            </div>
+        </ng-template>
 
-    <!-- Filtros -->
-    <form [formGroup]="filterForm" class="filter-form">
-      <div class="filter-grid">
-        <div class="field">
-          <label for="rutCliente">Cliente</label>
-          <p-select
-            id="rutCliente"
-            formControlName="rutCliente"
-            [options]="clientesDisponibles()"
-            placeholder="Seleccione un cliente"
-            [showClear]="true"
-            [filter]="true"
-            filterBy="label"
-            optionLabel="label"
-            optionValue="value"
-            (onChange)="onClienteChange($event.value)"
-          />
-        </div>
+        <!-- Filtros -->
+        <form [formGroup]="filterForm" class="filter-form">
+            <div class="filter-grid">
+                <div class="field">
+                    <label for="rutCliente">Cliente</label>
+                    <p-select id="rutCliente" formControlName="rutCliente" [options]="clientesDisponibles()"
+                        placeholder="Seleccione un cliente" [showClear]="true" [filter]="true" filterBy="label"
+                        optionLabel="label" optionValue="value" (onChange)="onClienteChange($event.value)" />
+                </div>
 
-        <div class="field">
-          <label for="fechaDesde">Fecha Desde</label>
-          <p-datepicker
-            id="fechaDesde"
-            formControlName="fechaDesde"
-            dateFormat="dd/mm/yy"
-            [showIcon]="true"
-            placeholder="Seleccione fecha"
-          />
-        </div>
+                <div class="field">
+                    <label for="fechaDesde">Fecha Desde</label>
+                    <p-datepicker id="fechaDesde" formControlName="fechaDesde" dateFormat="dd/mm/yy" [showIcon]="true"
+                        placeholder="Seleccione fecha" />
+                </div>
 
-        <div class="field">
-          <label for="fechaHasta">Fecha Hasta</label>
-          <p-datepicker
-            id="fechaHasta"
-            formControlName="fechaHasta"
-            dateFormat="dd/mm/yy"
-            [showIcon]="true"
-            placeholder="Seleccione fecha"
-          />
-        </div>
+                <div class="field">
+                    <label for="fechaHasta">Fecha Hasta</label>
+                    <p-datepicker id="fechaHasta" formControlName="fechaHasta" dateFormat="dd/mm/yy" [showIcon]="true"
+                        placeholder="Seleccione fecha" />
+                </div>
 
-        <!-- Filtro de moneda oculto por ahora -->
-        <!-- <div class="field">
+                <!-- Filtro de moneda oculto por ahora -->
+                <!-- <div class="field">
           <label for="idTipoMoneda">Moneda</label>
           <p-select
             id="idTipoMoneda"
@@ -61,49 +42,34 @@
             optionValue="value"
           />
         </div> -->
-      </div>
+            </div>
 
-      <div class="filter-actions">
-        <p-button
-          label="Buscar"
-          icon="pi pi-search"
-          (onClick)="buscar()"
-          [loading]="loading()"
-        />
-        <p-button
-          label="Limpiar"
-          icon="pi pi-times"
-          severity="secondary"
-          (onClick)="limpiar()"
-          [disabled]="loading()"
-        />
-        @if (clienteSeleccionado()) {
-          <p-button
-            label="Exportar Excel"
-            icon="pi pi-download"
-            severity="success"
-            (onClick)="exportarExcel()"
-            [disabled]="loading()"
-          />
-        }
-      </div>
-    </form>
-  </p-card>
+            <div class="filter-actions">
+                <p-button label="Buscar" icon="pi pi-search" (onClick)="buscar()" [loading]="loading()" />
+                <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="limpiar()"
+                    [disabled]="loading()" />
+                @if (clienteSeleccionado()) {
+                <p-button label="Exportar Excel" icon="pi pi-download" severity="success" (onClick)="exportarExcel()"
+                    [disabled]="loading()" />
+                }
+            </div>
+        </form>
+    </p-card>
 
-  <!-- Loading -->
-  @if (loading()) {
+    <!-- Loading -->
+    @if (loading()) {
     <div class="loading-container">
-      <p-progressSpinner />
-      <p>Cargando datos...</p>
+        <p-progressSpinner />
+        <p>Cargando datos...</p>
     </div>
-  }
+    }
 
-  <!-- Resultados -->
-  @if (!loading() && clientes().length > 0) {
+    <!-- Resultados -->
+    @if (!loading() && clientes().length > 0) {
     <div class="results-container">
-      
-      <!-- Panel de fichas de clientes oculto (se puede habilitar en el futuro) -->
-      <!-- @if (clientes().length > 1) {
+
+        <!-- Panel de fichas de clientes oculto (se puede habilitar en el futuro) -->
+        <!-- @if (clientes().length > 1) {
         <p-card>
           <ng-template pTemplate="header">
             <h3>Seleccione un Cliente</h3>
@@ -126,128 +92,115 @@
         </p-card>
       } -->
 
-      <!-- Detalles del cliente seleccionado -->
-      @if (clienteSeleccionado()) {
+        <!-- Detalles del cliente seleccionado -->
+        @if (clienteSeleccionado()) {
         <p-card>
-          <ng-template pTemplate="header">
-            <div class="cliente-header">
-              <div>
-                <h3>
-                  @if (clienteSeleccionado()!.rutCliente === 'TODOS') {
-                    📊 {{ clienteSeleccionado()!.nombreCliente }}
-                  } @else {
-                    {{ clienteSeleccionado()!.nombreCliente }}
-                  }
-                </h3>
-                @if (clienteSeleccionado()!.rutCliente !== 'TODOS') {
-                  <p class="rut">RUT: {{ clienteSeleccionado()!.rutCliente }}</p>
-                }
-              </div>
-            </div>
-          </ng-template>
-
-          <!-- Alertas (solo si NO es cadencia total) -->
-          @if (alertas().length > 0 && clienteSeleccionado()!.rutCliente !== 'TODOS') {
-            <div class="alertas-section">
-              <h4>⚠️ Alertas Detectadas</h4>
-              <div class="alertas-grid">
-                @for (alerta of alertas(); track alerta.mes) {
-                  <div 
-                    class="alerta-card"
-                    [ngClass]="getSeverityClass(alerta.severidad)"
-                  >
-                    <div class="alerta-header">
-                      <i [class]="getSeverityIcon(alerta.severidad)"></i>
-                      <span class="mes">{{ formatMes(alerta.mes) }}</span>
-                      <span class="severidad">{{ alerta.severidad }}</span>
+            <ng-template pTemplate="header">
+                <div class="cliente-header">
+                    <div>
+                        <h3>
+                            @if (clienteSeleccionado()!.rutCliente === 'TODOS') {
+                            📊 {{ clienteSeleccionado()!.nombreCliente }}
+                            } @else {
+                            {{ clienteSeleccionado()!.nombreCliente }}
+                            }
+                        </h3>
+                        @if (clienteSeleccionado()!.rutCliente !== 'TODOS') {
+                        <p class="rut">RUT: {{ clienteSeleccionado()!.rutCliente }}</p>
+                        }
                     </div>
-                    <p class="mensaje">{{ alerta.mensaje }}</p>
-                    <p class="monto">Monto: {{ formatNumber(alerta.montoPerdiendose) }}</p>
-                    @if (alerta.serviciosQueTerminan.length > 0) {
-                      <button 
-                        class="btn-detalle"
-                        (click)="verDetalleAlerta(alerta)"
-                      >
-                        Ver {{ alerta.serviciosQueTerminan.length }} servicios
-                        <i class="pi pi-chevron-right"></i>
-                      </button>
+                </div>
+            </ng-template>
+
+            <!-- Alertas (solo si NO es cadencia total) -->
+            @if (alertas().length > 0 && clienteSeleccionado()!.rutCliente !== 'TODOS') {
+            <div class="alertas-section">
+                <h4>⚠️ Alertas Detectadas</h4>
+                <div class="alertas-grid">
+                    @for (alerta of alertas(); track alerta.mes) {
+                    <div class="alerta-card" [ngClass]="getSeverityClass(alerta.severidad)">
+                        <div class="alerta-header">
+                            <i [class]="getSeverityIcon(alerta.severidad)"></i>
+                            <span class="mes">{{ formatMes(alerta.mes) }}</span>
+                            <span class="severidad">{{ alerta.severidad }}</span>
+                        </div>
+                        <p class="mensaje">{{ alerta.mensaje }}</p>
+                        <p class="monto">Monto: {{ formatNumber(alerta.montoPerdiendose) }}</p>
+                        @if (alerta.serviciosQueTerminan.length > 0) {
+                        <button class="btn-detalle" (click)="verDetalleAlerta(alerta)">
+                            Ver {{ alerta.serviciosQueTerminan.length }} servicios
+                            <i class="pi pi-chevron-right"></i>
+                        </button>
+                        }
+                    </div>
                     }
-                  </div>
-                }
-              </div>
+                </div>
             </div>
-          }
-
-          <!-- Gráfico -->
-          <div class="chart-section">
-            <h4>📈 Proyección de Ingresos Mensuales</h4>
-            @if (chartData()) {
-              <div class="chart-container">
-                <p-chart 
-                  type="line" 
-                  [data]="chartData()!" 
-                  [options]="chartOptions"
-                  [style]="{'height': '100%'}"
-                />
-              </div>
             }
-          </div>
 
-          <!-- Tabla de datos -->
-          <div class="table-section">
-            <h4>📋 Detalle Mensual</h4>
-            <p-table 
-              [value]="ingresosMensuales()" 
-              [tableStyle]="{'min-width': '50rem'}"
-              styleClass="p-datatable-sm"
-            >
-              <ng-template pTemplate="header">
-                <tr>
-                  <th>Mes</th>
-                  <th class="text-right">Monto</th>
-                  <th class="text-right">Variación</th>
-                  <th class="text-center">Servicios Activos</th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-mes>
-                <tr>
-                  <td>{{ formatMes(mes.mes) }}</td>
-                  <td class="text-right">
-                    <strong>{{ mes.moneda }} {{ formatNumber(mes.monto) }}</strong>
-                  </td>
-                  <td class="text-right">
-                    <span [ngClass]="getVariacionClass(mes.variacionPorcentaje)">
-                      @if (mes.variacionPorcentaje !== 0) {
-                        {{ mes.variacionPorcentaje > 0 ? '+' : '' }}{{ mes.variacionPorcentaje }}%
-                        <i [class]="mes.variacionPorcentaje > 0 ? 'pi pi-arrow-up' : 'pi pi-arrow-down'"></i>
-                      } @else {
-                        -
-                      }
-                    </span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge-servicios">{{ mes.serviciosActivos }}</span>
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
+            <!-- Gráfico -->
+            <div class="chart-section">
+                <h4>📈 Proyección de Ingresos Mensuales</h4>
+                @if (chartData()) {
+                <div class="chart-container">
+                    <p-chart type="line" [data]="chartData()!" [options]="chartOptions" [style]="{'height': '100%'}" />
+                </div>
+                }
+            </div>
+
+            <!-- Tabla de datos -->
+            <div class="table-section">
+                <h4>📋 Detalle Mensual</h4>
+                <p-table [value]="ingresosMensuales()" [tableStyle]="{'min-width': '50rem'}"
+                    styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Mes</th>
+                            <th class="text-right">Monto</th>
+                            <th class="text-right">Variación</th>
+                            <th class="text-center">Servicios Activos</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-mes>
+                        <tr>
+                            <td>{{ formatMes(mes.mes) }}</td>
+                            <td class="text-right">
+                                <strong>{{ mes.moneda }} {{ formatNumber(mes.monto) }}</strong>
+                            </td>
+                            <td class="text-right">
+                                <span [ngClass]="getVariacionClass(mes.variacionPorcentaje)">
+                                    @if (mes.variacionPorcentaje !== 0) {
+                                    {{ mes.variacionPorcentaje > 0 ? '+' : '' }}{{ mes.variacionPorcentaje }}%
+                                    <i
+                                        [class]="mes.variacionPorcentaje > 0 ? 'pi pi-arrow-up' : 'pi pi-arrow-down'"></i>
+                                    } @else {
+                                    -
+                                    }
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge-servicios">{{ mes.serviciosActivos }}</span>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
         </p-card>
-      }
+        }
     </div>
-  }
+    }
 
-  <!-- Sin resultados -->
-  @if (!loading() && clientes().length === 0 && filterForm.dirty) {
+    <!-- Sin resultados -->
+    @if (!loading() && clientes().length === 0 && filterForm.dirty) {
     <p-card>
-      <div class="no-results">
-        <i class="pi pi-inbox" style="font-size: 3rem; color: var(--surface-400);"></i>
-        <h3>No se encontraron datos</h3>
-        <p>Intente ajustar los filtros de búsqueda</p>
-      </div>
+        <div class="no-results">
+            <i class="pi pi-inbox" style="font-size: 3rem; color: var(--surface-400);"></i>
+            <h3>No se encontraron datos</h3>
+            <p>Intente ajustar los filtros de búsqueda</p>
+        </div>
     </p-card>
-  }
+    }
 
-  <!-- Dialog de detalle de alerta -->
-  <app-detalle-alerta-dialog />
+    <!-- Dialog de detalle de alerta -->
+    <app-detalle-alerta-dialog />
 </div>
