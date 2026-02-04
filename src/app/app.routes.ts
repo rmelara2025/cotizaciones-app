@@ -46,6 +46,22 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'config/usuarios',
+    loadComponent: () =>
+      import('./features/cmdb/pages/usuarios-list/usuarios-list').then(
+        (m) => m.UsuariosList,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'config/familias-servicios',
+    loadComponent: () =>
+      import('./features/cmdb/pages/familias-servicios-list/familias-servicios-list').then(
+        (m) => m.FamiliasServiciosList,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full',

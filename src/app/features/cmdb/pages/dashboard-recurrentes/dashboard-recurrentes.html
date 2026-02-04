@@ -2,6 +2,21 @@
     <p-card class="px-5">
         <ng-template pTemplate="title">Dashboard Recurrentes</ng-template>
         <ng-template pTemplate="content">
+            <div class="filter-section" style="margin-bottom:1rem;">
+                <label for="familiaFilter" style="display:block;margin-bottom:0.25rem;font-weight:500;">Filtrar por Familia de Servicio:</label>
+                <p-select 
+                    id="familiaFilter"
+                    [(ngModel)]="idFamiliaServicioSelected"
+                    [options]="familias"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Todas las familias"
+                    [showClear]="true"
+                    (onChange)="onFamiliaChange()"
+                    styleClass="w-full max-w-30rem">
+                </p-select>
+            </div>
+
             <div class="controls" style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;">
                 <button pButton type="button" label="Total recurrente" (click)="toggleMetric('totalRecurrente')"
                     [class.p-button-info]="metric==='totalRecurrente'"></button>

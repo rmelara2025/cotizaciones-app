@@ -8,7 +8,9 @@ import { AuthService } from '../core/services/auth.service';
 interface SidenavItem {
   label: string;
   icon: string;
-  route: string;
+  route?: string;
+  children?: SidenavItem[];
+  expanded?: boolean;
 }
 
 @Component({
@@ -31,10 +33,50 @@ interface SidenavItem {
       <nav class="sidenav-nav" role="navigation" aria-label="Main">
         <ul>
           <li *ngFor="let it of items">
-            <a [routerLink]="it.route" (click)="onNavigate()" title="{{ it.label }}">
+            <!-- Item sin hijos (link directo) -->
+            <a 
+              *ngIf="!it.children" 
+              [routerLink]="it.route" 
+              (click)="onNavigate()" 
+              title="{{ it.label }}"
+              routerLinkActive="active"
+            >
               <i class="pi {{ it.icon }}"></i>
               <span class="label" *ngIf="!collapsed()">{{ it.label }}</span>
             </a>
+            
+            <!-- Item con hijos (submenu) -->
+            <div *ngIf="it.children" class="menu-item-with-children">
+              <a 
+                class="menu-parent" 
+                (click)="toggleSubmenu(it)" 
+                title="{{ it.label }}"
+                [class.active]="it.expanded"
+              >
+                <i class="pi {{ it.icon }}"></i>
+                <span class="label" *ngIf="!collapsed()">{{ it.label }}</span>
+                <i 
+                  *ngIf="!collapsed()" 
+                  class="pi submenu-icon"
+                  [class.pi-chevron-down]="!it.expanded"
+                  [class.pi-chevron-up]="it.expanded"
+                ></i>
+              </a>
+              
+              <ul *ngIf="it.expanded && !collapsed()" class="submenu">
+                <li *ngFor="let child of it.children">
+                  <a 
+                    [routerLink]="child.route" 
+                    (click)="onNavigate()" 
+                    title="{{ child.label }}"
+                    routerLinkActive="active"
+                  >
+                    <i class="pi {{ child.icon }}"></i>
+                    <span class="label">{{ child.label }}</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
           </li>
         </ul>
       </nav>
@@ -139,9 +181,36 @@ interface SidenavItem {
         color: inherit;
         padding: 0.5rem;
         border-radius: 6px;
+        cursor: pointer;
       }
       .sidenav-nav a:hover {
         background: rgba(255, 255, 255, 0.03);
+      }
+      .sidenav-nav a.active {
+        background: rgba(255, 255, 255, 0.1);
+        font-weight: 600;
+      }
+      .sidenav-nav .menu-parent {
+        justify-content: space-between;
+      }
+      .sidenav-nav .submenu-icon {
+        font-size: 0.85rem;
+        margin-left: auto;
+        transition: transform 200ms ease;
+      }
+      .sidenav-nav .submenu {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        padding-left: 1.5rem;
+        margin-top: 0.25rem;
+      }
+      .sidenav-nav .submenu li {
+        margin: 0.1rem 0;
+      }
+      .sidenav-nav .submenu a {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.9rem;
       }
       .sidenav-nav i {
         font-size: 1.15rem;
@@ -258,7 +327,15 @@ export class SidenavComponent implements OnInit {
     { label: 'Proveedores', icon: 'pi-box', route: '/proveedores' },
     { label: 'Cadencia Ingresos', icon: 'pi-chart-line', route: '/reportes/cadencia-ingresos' },
     { label: 'Reportes', icon: 'pi-chart-bar', route: '/reportes' },
-    { label: 'Configuración', icon: 'pi-cog', route: '/config' },
+    { 
+      label: 'Configuración', 
+      icon: 'pi-cog', 
+      expanded: false,
+      children: [
+        { label: 'Usuarios', icon: 'pi-user', route: '/config/usuarios' },
+        { label: 'Familias de Servicios', icon: 'pi-sitemap', route: '/config/familias-servicios' }
+      ]
+    },
   ];
 
   ngOnInit(): void {
@@ -272,6 +349,11 @@ export class SidenavComponent implements OnInit {
   toggle() {
     this.collapsed.update((v) => !v);
     this.applyCssVar();
+  }
+
+  toggleSubmenu(item: SidenavItem) {
+    if (this.collapsed()) return;
+    item.expanded = !item.expanded;
   }
 
   onNavigate() {

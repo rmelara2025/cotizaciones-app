@@ -10,7 +10,10 @@ import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
+import { FormsModule } from '@angular/forms';
 import { DashboardService } from '../../../../core/services/dashboard.service';
+import { FamiliaService } from '../../../../core/services/familia.service';
 import { IDashboardContrato } from '../../../../core/models';
 
 interface ISummaryRow {
@@ -23,13 +26,18 @@ interface ISummaryRow {
 @Component({
   selector: 'app-dashboard-recurrentes',
   standalone: true,
-  imports: [CommonModule, ChartModule, TableModule, CardModule, ButtonModule],
+  imports: [CommonModule, ChartModule, TableModule, CardModule, ButtonModule, SelectModule, FormsModule],
   templateUrl: './dashboard-recurrentes.html',
   styleUrl: './dashboard-recurrentes.scss',
 })
 export class DashboardRecurrentes implements OnInit {
   private dashboardService = inject(DashboardService);
+  private familiaService = inject(FamiliaService);
   private cdr = inject(ChangeDetectorRef);
+
+  // Filtros
+  idFamiliaServicioSelected: number | null = null;
+  familias: any[] = [];
 
   // Chart.js data/options
   chartData: any = { labels: [], datasets: [] };
@@ -139,12 +147,27 @@ export class DashboardRecurrentes implements OnInit {
   }
 
   ngOnInit(): void {
-    this.dashboardService.getContratosDashboard().subscribe({
-      next: (rows: IDashboardContrato[]) => {
-        this.process(rows);
+    // Cargar familias para el dropdown
+    this.familiaService.getFamilias().subscribe({
+      next: (familias) => {
+        setTimeout(() => {
+          this.familias = [
+            { label: 'Todas las Familias', value: null },
+            ...familias.map(f => ({
+              label: f.nombreFamilia,
+              value: f.idFamilia
+            }))
+          ];
+          this.cdr.detectChanges();
+        });
       },
-      error: (err) => console.error('Error loading dashboard data', err),
+      error: (error) => {
+        console.error('Error cargando familias:', error);
+      }
     });
+
+    // Cargar datos iniciales sin filtro
+    this.loadDashboardData();
 
     this.chartOptions = {
       responsive: true,
@@ -158,6 +181,46 @@ export class DashboardRecurrentes implements OnInit {
         y: { stacked: true },
       },
     };
+  }
+
+  loadDashboardData(): void {
+    const filter: any = {};
+    
+    if (this.idFamiliaServicioSelected !== null) {
+      filter.idFamiliaServicio = this.idFamiliaServicioSelected;
+    }
+
+    // Si no hay filtro, usar endpoint simple
+    if (Object.keys(filter).length === 0) {
+      this.dashboardService.getContratosDashboard().subscribe({
+        next: (rows: IDashboardContrato[]) => {
+          this.process(rows);
+        },
+        error: (err) => console.error('Error loading dashboard data', err),
+      });
+    } else {
+      // Con filtro, usar endpoint custom
+      this.dashboardService.loadResumenRecurrentes(filter);
+      
+      // Suscribirse al signal para procesar los datos
+      const subscription = this.dashboardService.resumenRecurrentes.asReadonly();
+      // Procesar inmediatamente si ya hay datos, sino esperar al cambio
+      if (subscription().length > 0) {
+        this.process(subscription() as any);
+      }
+      
+      // Suscribirse a cambios futuros
+      setTimeout(() => {
+        const data = this.dashboardService.resumenRecurrentes();
+        if (data.length > 0) {
+          this.process(data as any);
+        }
+      }, 500);
+    }
+  }
+
+  onFamiliaChange(): void {
+    this.loadDashboardData();
   }
 
   private process(rows: IDashboardContrato[]) {
@@ -182,6 +245,16 @@ export class DashboardRecurrentes implements OnInit {
 
     // Ensure labels in fixed order and only those three currencies
     const monedas = this.monedasOrder.slice();
+
+    // Ensure all 3 estados exist for each moneda (Option B - always show 3 categories)
+    for (const mon of monedas) {
+      if (!agg[mon]) agg[mon] = {};
+      for (const est of this.estados) {
+        if (!agg[mon][est]) {
+          agg[mon][est] = { totalRecurrente: 0, countContratos: 0 };
+        }
+      }
+    }
 
     const buildDatasets = (metric: 'totalRecurrente' | 'countContratos') => {
       return this.estados.map((estado) => {

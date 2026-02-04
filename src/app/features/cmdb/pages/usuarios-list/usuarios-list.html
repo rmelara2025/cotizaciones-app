@@ -1,0 +1,137 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="usuarios-container pl-3 pt-3">
+    <div class="card">
+        <div class="header-section">
+            <h2>Gestión de Usuarios</h2>
+            <button pButton type="button" icon="pi pi-plus" label="Nuevo Usuario" class="p-button-success"
+                (click)="abrirDialogNuevo()"></button>
+        </div>
+
+        <p-table [value]="usuarios()" [loading]="loading()" [paginator]="true" [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} usuarios"
+            styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="idUsuario">
+                        ID Usuario <p-sortIcon field="idUsuario" />
+                    </th>
+                    <th pSortableColumn="nombreUsuario">
+                        Nombre <p-sortIcon field="nombreUsuario" />
+                    </th>
+                    <th pSortableColumn="emailUsuario">
+                        Email <p-sortIcon field="emailUsuario" />
+                    </th>
+                    <th style="width: 150px">Acciones</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-usuario>
+                <tr>
+                    <td>{{ usuario.idUsuario }}</td>
+                    <td>{{ usuario.nombreUsuario }}</td>
+                    <td>{{ usuario.emailUsuario }}</td>
+                    <td>
+                        <button pButton type="button" icon="pi pi-pencil"
+                            class="p-button-rounded p-button-text p-button-info" (click)="abrirDialogEditar(usuario)"
+                            title="Editar"></button>
+                        <button pButton type="button" icon="pi pi-users"
+                            class="p-button-rounded p-button-text p-button-warning" (click)="abrirDialogRoles(usuario)"
+                            title="Gestionar Roles"></button>
+                        <button pButton type="button" icon="pi pi-trash"
+                            class="p-button-rounded p-button-text p-button-danger" (click)="confirmarEliminar(usuario)"
+                            title="Eliminar"></button>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="4" style="text-align: center">No se encontraron usuarios</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <!-- Dialog para crear/editar usuario -->
+    <p-dialog [(visible)]="displayDialog" [header]="isEditMode() ? 'Editar Usuario' : 'Nuevo Usuario'" [modal]="true"
+        [style]="{ width: '500px' }" [draggable]="false" [resizable]="false">
+        <div class="form-container">
+            <div class="field">
+                <label for="idUsuario">ID Usuario *</label>
+                <input pInputText id="idUsuario" [(ngModel)]="usuarioForm.idUsuario" [disabled]="isEditMode()"
+                    class="w-full" maxlength="20" />
+            </div>
+
+            <div class="field">
+                <label for="nombreUsuario">Nombre *</label>
+                <input pInputText id="nombreUsuario" [(ngModel)]="usuarioForm.nombreUsuario" class="w-full"
+                    maxlength="100" />
+            </div>
+
+            <div class="field">
+                <label for="emailUsuario">Email</label>
+                <input pInputText id="emailUsuario" type="email" [(ngModel)]="usuarioForm.emailUsuario" class="w-full"
+                    maxlength="200" />
+            </div>
+
+            <div class="field">
+                <label for="claveUsuario">
+                    Contraseña {{ isEditMode() ? '(dejar vacío para no cambiar)' : '*' }}
+                </label>
+                <input pInputText id="claveUsuario" type="password" [(ngModel)]="usuarioForm.claveUsuario"
+                    class="w-full" maxlength="100" />
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-text"
+                (click)="cerrarDialog()"></button>
+            <button pButton type="button" label="Guardar" icon="pi pi-check" (click)="guardar()"
+                [loading]="loading()"></button>
+        </ng-template>
+    </p-dialog>
+
+    <!-- Dialog para gestionar roles -->
+    <p-dialog [(visible)]="displayRolesDialog" header="Gestionar Roles de Usuario" [modal]="true" [blockScroll]="true"
+        [style]="{ width: '600px' }" [contentStyle]="{ overflow: 'visible' }" [draggable]="false" [resizable]="false">
+        <div class="roles-container">
+            <h4>Usuario: {{ usuarioSeleccionado }}</h4>
+
+            <div class="field">
+                <label>Roles Actuales:</label>
+                <div class="roles-badges" *ngIf="rolesUsuario().length > 0">
+                    <p-tag *ngFor="let rol of rolesUsuario()" [value]="rol.nombreRol" severity="info"
+                        styleClass="mr-2 mb-2"></p-tag>
+                </div>
+                <p *ngIf="rolesUsuario().length === 0" class="text-muted">
+                    Sin roles asignados
+                </p>
+            </div>
+
+            <div class="field mt-4">
+                <label for="roles">Seleccionar Roles:</label>
+                <p-multiSelect id="roles" [(ngModel)]="rolesSeleccionados" [options]="rolesDisponibles()"
+                    optionLabel="nombreRol" optionValue="idRol" placeholder="Seleccione roles" [filter]="true"
+                    filterPlaceHolder="Buscar rol" display="chip" styleClass="w-full" appendTo="body"
+                    [showToggleAll]="false">
+                    <ng-template let-rol pTemplate="item">
+                        <div>
+                            <div class="font-bold">{{ rol.nombreRol }}</div>
+                            <small class="text-muted" *ngIf="rol.descripcionRol">{{ rol.descripcionRol }}</small>
+                        </div>
+                    </ng-template>
+                </p-multiSelect>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-text"
+                (click)="cerrarDialogRoles()"></button>
+            <button pButton type="button" label="Guardar Roles" icon="pi pi-check" (click)="guardarRoles()"
+                [loading]="loading()"></button>
+        </ng-template>
+    </p-dialog>
+</div>

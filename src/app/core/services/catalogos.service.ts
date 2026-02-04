@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface IServicio {
@@ -9,6 +10,22 @@ export interface IServicio {
     idFamilia: number;
     nombreFamilia: string;
     atributosSchema: string; // JSON schema para validar atributos
+}
+
+export interface IFamilia {
+    idFamilia?: number;
+    nombreFamilia: string;
+    descripcion: string;
+}
+
+export interface IServicioDetalle {
+    idServicio?: number;
+    idFamilia: number;
+    nombre: string;  // Changed from nombreServicio to nombre
+    nombreFamilia?: string;
+    descripcion: string;
+    atributosSchema?: string;  // Changed from atributos to atributosSchema
+    idProveedor?: number;
 }
 
 export interface ITipoMoneda {
@@ -79,5 +96,56 @@ export class CatalogosService {
                 this.loadingPeriodicidades.set(false);
             }
         });
+    }
+
+    // CRUD Familias
+    listarFamilias(): Observable<IFamilia[]> {
+        return this.http.get<IFamilia[]>(`${this.API_URL}/catalogos/familias`);
+    }
+
+    crearFamilia(familia: IFamilia): Observable<IFamilia> {
+        return this.http.post<IFamilia>(`${this.API_URL}/catalogos/familias`, familia);
+    }
+
+    actualizarFamilia(idFamilia: number, familia: IFamilia): Observable<IFamilia> {
+        return this.http.put<IFamilia>(`${this.API_URL}/catalogos/familias/${idFamilia}`, familia);
+    }
+
+    eliminarFamilia(idFamilia: number): Observable<void> {
+        return this.http.delete<void>(`${this.API_URL}/catalogos/familias/${idFamilia}`);
+    }
+
+    // CRUD Servicios
+    listarServicios(): Observable<IServicioDetalle[]> {
+        return this.http.get<IServicioDetalle[]>(`${this.API_URL}/catalogos/servicios`);
+    }
+
+    crearServicio(servicio: IServicioDetalle): Observable<any> {
+        // Convert to backend DTO format
+        const dto = {
+            idFamilia: servicio.idFamilia,
+            nombreServicio: servicio.nombre,
+            descripcion: servicio.descripcion,
+            atributos: servicio.atributosSchema,
+            idProveedor: servicio.idProveedor
+        };
+        return this.http.post<any>(`${this.API_URL}/catalogos/servicios`, dto);
+    }
+
+    actualizarServicio(idServicio: number, servicio: IServicioDetalle): Observable<any> {
+        // Convert to backend DTO format
+        const dto = {
+            idServicio: idServicio,
+            idFamilia: servicio.idFamilia,
+            nombreServicio: servicio.nombre,
+            descripcion: servicio.descripcion,
+            atributos: servicio.atributosSchema,
+            idProveedor: servicio.idProveedor
+        };
+        return this.http.put<any>(`${this.API_URL}/catalogos/servicios/${idServicio}`, dto);
+    }
+
+    eliminarServicio(idServicio: number): Observable<void> {
+        return this.http.delete<void>(`${this.API_URL}/catalogos/servicios/${idServicio}`);
     }
 }

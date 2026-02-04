@@ -20,6 +20,7 @@ export interface IDashboardResumen {
 export interface IDashboardFilter {
     rut?: string;
     nombre?: string;
+    idFamiliaServicio?: number;
 }
 
 @Injectable({ providedIn: 'root' })
