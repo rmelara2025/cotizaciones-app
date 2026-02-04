@@ -49,7 +49,7 @@ export class CadenciaIngresosComponent implements OnInit {
     private readonly reportesService = inject(ReportesService);
     private readonly clientesService = inject(ClientesService);
     private readonly familiaService = inject(FamiliaService);
-    // private readonly catalogosService = inject(CatalogosService);
+    private readonly catalogosService = inject(CatalogosService);
 
     // Signals
     loading = signal(false);
@@ -58,6 +58,8 @@ export class CadenciaIngresosComponent implements OnInit {
     clientesDisponibles = signal<any[]>([]);
     monedas = signal<any[]>([]);
     familias = signal<any[]>([]);
+    servicios = signal<any[]>([]);
+    serviciosFiltrados = signal<any[]>([]);
 
     // Dialog
     detalleDialog = viewChild.required(DetalleAlertaDialogComponent);
@@ -133,7 +135,8 @@ export class CadenciaIngresosComponent implements OnInit {
             fechaDesde: [hoy],
             fechaHasta: [enUnAno],
             idTipoMoneda: [null],
-            idFamiliaServicio: [null]
+            idFamiliaServicio: [null],
+            idServicio: [null]
         });
     }
 
@@ -183,8 +186,33 @@ export class CadenciaIngresosComponent implements OnInit {
             }
         });
 
+        // Cargar servicios
+        this.catalogosService.listarServicios().subscribe({
+            next: (servicios) => {
+                this.servicios.set(servicios);
+                this.serviciosFiltrados.set([...servicios]);
+            },
+            error: (error) => {
+                console.error('Error cargando servicios:', error);
+            }
+        });
+
         // Tipos de moneda: No es necesario cargar por ahora (filtro oculto)
         // this.catalogosService.obtenerTiposMoneda().subscribe(...);
+    }
+
+    onFamiliaChange(idFamilia: number | null): void {
+        // Resetear servicio cuando cambia la familia
+        this.filterForm.patchValue({ idServicio: null });
+        
+        // Filtrar servicios por familia
+        if (idFamilia !== null && idFamilia !== undefined) {
+            const filtrados = this.servicios().filter(s => s.idFamilia === idFamilia);
+            this.serviciosFiltrados.set(filtrados);
+        } else {
+            // Mostrar todos los servicios si no hay familia seleccionada
+            this.serviciosFiltrados.set([...this.servicios()]);
+        }
     }
 
     buscar(): void {
@@ -198,6 +226,7 @@ export class CadenciaIngresosComponent implements OnInit {
             fechaDesde: formValue.fechaDesde ? this.formatDate(formValue.fechaDesde) : undefined,
             fechaHasta: formValue.fechaHasta ? this.formatDate(formValue.fechaHasta) : undefined,
             idFamiliaServicio: formValue.idFamiliaServicio || undefined,
+            idServicio: formValue.idServicio || undefined,
             // idTipoMoneda no se envía por ahora (filtro oculto)
         };
 
@@ -557,6 +586,7 @@ export class CadenciaIngresosComponent implements OnInit {
             fechaDesde: formValue.fechaDesde ? this.formatDate(formValue.fechaDesde) : undefined,
             fechaHasta: formValue.fechaHasta ? this.formatDate(formValue.fechaHasta) : undefined,
             idFamiliaServicio: formValue.idFamiliaServicio || undefined,
+            idServicio: formValue.idServicio || undefined,
         };
 
         this.loading.set(true);

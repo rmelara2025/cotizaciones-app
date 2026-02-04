@@ -327,9 +327,9 @@ export class SidenavComponent implements OnInit {
     { label: 'Proveedores', icon: 'pi-box', route: '/proveedores' },
     { label: 'Cadencia Ingresos', icon: 'pi-chart-line', route: '/reportes/cadencia-ingresos' },
     { label: 'Reportes', icon: 'pi-chart-bar', route: '/reportes' },
-    { 
-      label: 'Configuración', 
-      icon: 'pi-cog', 
+    {
+      label: 'Configuración',
+      icon: 'pi-cog',
       expanded: false,
       children: [
         { label: 'Usuarios', icon: 'pi-user', route: '/config/usuarios' },

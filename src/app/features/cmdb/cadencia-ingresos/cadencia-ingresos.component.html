@@ -21,7 +21,14 @@
                     <label for="idFamiliaServicio">Familia de Servicio</label>
                     <p-select id="idFamiliaServicio" formControlName="idFamiliaServicio" [options]="familias()"
                         placeholder="Todas las familias" [showClear]="true" [filter]="true" filterBy="label"
-                        optionLabel="label" optionValue="value" />
+                        optionLabel="label" optionValue="value" (onChange)="onFamiliaChange($event.value)" />
+                </div>
+
+                <div class="field">
+                    <label for="idServicio">Servicio</label>
+                    <p-select id="idServicio" formControlName="idServicio" [options]="serviciosFiltrados()"
+                        placeholder="Todos los servicios" [showClear]="true" [filter]="true" filterBy="nombre"
+                        optionLabel="nombre" optionValue="idServicio" />
                 </div>
 
                 <div class="field">

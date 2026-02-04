@@ -32,6 +32,9 @@ export class ReportesService {
         if (filter.idFamiliaServicio !== undefined && filter.idFamiliaServicio !== null) {
             params = params.set('idFamiliaServicio', filter.idFamiliaServicio.toString());
         }
+        if (filter.idServicio !== undefined && filter.idServicio !== null) {
+            params = params.set('idServicio', filter.idServicio.toString());
+        }
 
         return this.http.get<ICadenciaIngresosResponse>(`${this.apiUrl}/cadencia-ingresos`, { params });
     }
@@ -57,6 +60,9 @@ export class ReportesService {
         }
         if (filter.idFamiliaServicio !== undefined && filter.idFamiliaServicio !== null) {
             params = params.set('idFamiliaServicio', filter.idFamiliaServicio.toString());
+        }
+        if (filter.idServicio !== undefined && filter.idServicio !== null) {
+            params = params.set('idServicio', filter.idServicio.toString());
         }
 
         return this.http.get(`${this.apiUrl}/cadencia-ingresos/exportar-excel`, {

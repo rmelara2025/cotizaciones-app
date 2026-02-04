@@ -1,273 +1,153 @@
 <div class="familias-servicios-container">
-  <p-toast />
-  <p-confirmDialog />
+    <p-toast />
+    <p-confirmDialog />
 
-  <div class="card">
-    <div class="header-section">
-      <h2>Familias de Servicios</h2>
-    </div>
-
-    <!-- Tab Navigation -->
-    <div class="tab-navigation">
-      <button
-        pButton
-        type="button"
-        [label]="'Familias'"
-        [class]="activeTab() === 'familias' ? 'p-button' : 'p-button-outlined'"
-        (click)="activeTab.set('familias')"
-      ></button>
-      <button
-        pButton
-        type="button"
-        [label]="'Servicios'"
-        [class]="activeTab() === 'servicios' ? 'p-button' : 'p-button-outlined'"
-        (click)="activeTab.set('servicios')"
-      ></button>
-    </div>
-
-    <!-- Tab Content Familias -->
-    <div *ngIf="activeTab() === 'familias'" class="tab-content">
-        <div class="tab-header">
-          <button
-            pButton
-            type="button"
-            label="Nueva Familia"
-            icon="pi pi-plus"
-            (click)="abrirDialogFamiliaNueva()"
-          ></button>
+    <div class="card">
+        <div class="header-section">
+            <h2>Familias de Servicios</h2>
         </div>
 
-        <p-table
-          [value]="familias()"
-          [loading]="loading()"
-          [paginator]="true"
-          [rows]="10"
-          [rowsPerPageOptions]="[10, 25, 50]"
-          [showCurrentPageReport]="true"
-          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} familias"
-          [globalFilterFields]="['nombreFamilia', 'descripcion']"
-          responsiveLayout="scroll"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              <th pSortableColumn="nombreFamilia">Nombre <p-sortIcon field="nombreFamilia" /></th>
-              <th pSortableColumn="descripcion">Descripción <p-sortIcon field="descripcion" /></th>
-              <th style="width: 150px">Acciones</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-familia>
-            <tr>
-              <td>{{ familia.nombreFamilia }}</td>
-              <td>{{ familia.descripcion }}</td>
-              <td>
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-pencil"
-                  class="p-button-rounded p-button-text p-button-info"
-                  (click)="abrirDialogFamiliaEditar(familia)"
-                  pTooltip="Editar"
-                ></button>
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-trash"
-                  class="p-button-rounded p-button-text p-button-danger"
-                  (click)="confirmarEliminarFamilia(familia)"
-                  pTooltip="Eliminar"
-                ></button>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-    </div>
-
-    <!-- Tab Content Servicios -->
-    <div *ngIf="activeTab() === 'servicios'" class="tab-content">
-        <div class="tab-header">
-          <button
-            pButton
-            type="button"
-            label="Nuevo Servicio"
-            icon="pi pi-plus"
-            (click)="abrirDialogServicioNuevo()"
-          ></button>
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button pButton type="button" [label]="'Familias'"
+                [class]="activeTab() === 'familias' ? 'p-button' : 'p-button-outlined'"
+                (click)="activeTab.set('familias')"></button>
+            <button pButton type="button" [label]="'Servicios'"
+                [class]="activeTab() === 'servicios' ? 'p-button' : 'p-button-outlined'"
+                (click)="activeTab.set('servicios')"></button>
         </div>
 
-        <p-table
-          [value]="servicios()"
-          [loading]="loading()"
-          [paginator]="true"
-          [rows]="10"
-          [rowsPerPageOptions]="[10, 25, 50]"
-          [showCurrentPageReport]="true"
-          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} servicios"
-          [globalFilterFields]="['nombre', 'descripcion']"
-          responsiveLayout="scroll"
-        >
-          <ng-template pTemplate="header">
-            <tr>
-              <th pSortableColumn="nombreFamilia">Familia <p-sortIcon field="nombreFamilia" /></th>
-              <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre" /></th>
-              <th pSortableColumn="descripcion">Descripción <p-sortIcon field="descripcion" /></th>
-              <th style="width: 150px">Acciones</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-servicio>
-            <tr>
-              <td>{{ servicio['nombreFamilia'] || getNombreFamilia(servicio.idFamilia) }}</td>
-              <td>{{ servicio.nombre }}</td>
-              <td>{{ servicio.descripcion }}</td>
-              <td>
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-pencil"
-                  class="p-button-rounded p-button-text p-button-info"
-                  (click)="abrirDialogServicioEditar(servicio)"
-                  pTooltip="Editar"
-                ></button>
-                <button
-                  pButton
-                  type="button"
-                  icon="pi pi-trash"
-                  class="p-button-rounded p-button-text p-button-danger"
-                  (click)="confirmarEliminarServicio(servicio)"
-                  pTooltip="Eliminar"
-                ></button>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-    </div>
-  </div>
+        <!-- Tab Content Familias -->
+        <div *ngIf="activeTab() === 'familias'" class="tab-content">
+            <div class="tab-header">
+                <button pButton type="button" label="Nueva Familia" icon="pi pi-plus"
+                    (click)="abrirDialogFamiliaNueva()"></button>
+            </div>
 
-  <!-- Dialog Familia -->
-  <p-dialog
-    [(visible)]="displayFamiliaDialog"
-    [header]="isEditMode() ? 'Editar Familia' : 'Nueva Familia'"
-    [modal]="true"
-    [style]="{ width: '500px' }"
-    [draggable]="false"
-    [resizable]="false"
-  >
-    <div class="form-container">
-      <div class="field">
-        <label for="nombreFamilia">Nombre *</label>
-        <input
-          id="nombreFamilia"
-          type="text"
-          pInputText
-          [(ngModel)]="familiaForm.nombreFamilia"
-          class="w-full"
-        />
-      </div>
+            <p-table [value]="familias()" [loading]="loading()" [paginator]="true" [rows]="10"
+                [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} familias"
+                [globalFilterFields]="['nombreFamilia', 'descripcion']" responsiveLayout="scroll">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="nombreFamilia">Nombre <p-sortIcon field="nombreFamilia" /></th>
+                        <th pSortableColumn="descripcion">Descripción <p-sortIcon field="descripcion" /></th>
+                        <th style="width: 150px">Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-familia>
+                    <tr>
+                        <td>{{ familia.nombreFamilia }}</td>
+                        <td>{{ familia.descripcion }}</td>
+                        <td>
+                            <button pButton type="button" icon="pi pi-pencil"
+                                class="p-button-rounded p-button-text p-button-info"
+                                (click)="abrirDialogFamiliaEditar(familia)" pTooltip="Editar"></button>
+                            <button pButton type="button" icon="pi pi-trash"
+                                class="p-button-rounded p-button-text p-button-danger"
+                                (click)="confirmarEliminarFamilia(familia)" pTooltip="Eliminar"></button>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
 
-      <div class="field">
-        <label for="descripcionFamilia">Descripción</label>
-        <textarea
-          id="descripcionFamilia"
-          pTextarea
-          [(ngModel)]="familiaForm.descripcion"
-          [rows]="3"
-          class="w-full"
-        ></textarea>
-      </div>
+        <!-- Tab Content Servicios -->
+        <div *ngIf="activeTab() === 'servicios'" class="tab-content">
+            <div class="tab-header">
+                <button pButton type="button" label="Nuevo Servicio" icon="pi pi-plus"
+                    (click)="abrirDialogServicioNuevo()"></button>
+            </div>
+
+            <p-table [value]="servicios()" [loading]="loading()" [paginator]="true" [rows]="10"
+                [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} servicios"
+                [globalFilterFields]="['nombre', 'descripcion']" responsiveLayout="scroll">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="nombreFamilia">Familia <p-sortIcon field="nombreFamilia" /></th>
+                        <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre" /></th>
+                        <th pSortableColumn="descripcion">Descripción <p-sortIcon field="descripcion" /></th>
+                        <th style="width: 150px">Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-servicio>
+                    <tr>
+                        <td>{{ servicio['nombreFamilia'] || getNombreFamilia(servicio.idFamilia) }}</td>
+                        <td>{{ servicio.nombre }}</td>
+                        <td>{{ servicio.descripcion }}</td>
+                        <td>
+                            <button pButton type="button" icon="pi pi-pencil"
+                                class="p-button-rounded p-button-text p-button-info"
+                                (click)="abrirDialogServicioEditar(servicio)" pTooltip="Editar"></button>
+                            <button pButton type="button" icon="pi pi-trash"
+                                class="p-button-rounded p-button-text p-button-danger"
+                                (click)="confirmarEliminarServicio(servicio)" pTooltip="Eliminar"></button>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
     </div>
 
-    <ng-template pTemplate="footer">
-      <button
-        pButton
-        type="button"
-        label="Cancelar"
-        icon="pi pi-times"
-        class="p-button-text"
-        (click)="cerrarDialog()"
-      ></button>
-      <button
-        pButton
-        type="button"
-        [label]="isEditMode() ? 'Actualizar' : 'Guardar'"
-        icon="pi pi-check"
-        (click)="guardarFamilia()"
-      ></button>
-    </ng-template>
-  </p-dialog>
+    <!-- Dialog Familia -->
+    <p-dialog [(visible)]="displayFamiliaDialog" [header]="isEditMode() ? 'Editar Familia' : 'Nueva Familia'"
+        [modal]="true" [style]="{ width: '500px' }" [draggable]="false" [resizable]="false">
+        <div class="form-container">
+            <div class="field">
+                <label for="nombreFamilia">Nombre *</label>
+                <input id="nombreFamilia" type="text" pInputText [(ngModel)]="familiaForm.nombreFamilia"
+                    class="w-full" />
+            </div>
 
-  <!-- Dialog Servicio -->
-  <p-dialog
-    [(visible)]="displayServicioDialog"
-    [header]="isEditMode() ? 'Editar Servicio' : 'Nuevo Servicio'"
-    [modal]="true"
-    [style]="{ width: '600px' }"
-    [draggable]="false"
-    [resizable]="false"
-  >
-    <div class="form-container">
-      <div class="field">
-        <label for="idFamilia">Familia *</label>
-        <p-select
-          id="idFamilia"
-          [(ngModel)]="servicioForm.idFamilia"
-          [options]="familias()"
-          optionLabel="nombreFamilia"
-          optionValue="idFamilia"
-          placeholder="Seleccione una familia"
-          [filter]="true"
-          filterBy="nombreFamilia"
-          class="w-full"
-        ></p-select>
-      </div>
+            <div class="field">
+                <label for="descripcionFamilia">Descripción</label>
+                <textarea id="descripcionFamilia" pTextarea [(ngModel)]="familiaForm.descripcion" [rows]="3"
+                    class="w-full"></textarea>
+            </div>
+        </div>
 
-      <div class="field">
-        <label for="nombreServicio">Nombre *</label>
-        <input
-          id="nombreServicio"
-          type="text"
-          pInputText
-          [(ngModel)]="servicioForm.nombre"
-          class="w-full"
-        />
-      </div>
+        <ng-template pTemplate="footer">
+            <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-text"
+                (click)="cerrarDialog()"></button>
+            <button pButton type="button" [label]="isEditMode() ? 'Actualizar' : 'Guardar'" icon="pi pi-check"
+                (click)="guardarFamilia()"></button>
+        </ng-template>
+    </p-dialog>
 
-      <div class="field">
-        <label for="descripcionServicio">Descripción</label>
-        <textarea
-          id="descripcionServicio"
-          pTextarea
-          [(ngModel)]="servicioForm.descripcion"
-          [rows]="3"
-          class="w-full"
-        ></textarea>
-      </div>
+    <!-- Dialog Servicio -->
+    <p-dialog [(visible)]="displayServicioDialog" [header]="isEditMode() ? 'Editar Servicio' : 'Nuevo Servicio'"
+        [modal]="true" [style]="{ width: '600px' }" [draggable]="false" [resizable]="false">
+        <div class="form-container">
+            <div class="field">
+                <label for="idFamilia">Familia *</label>
+                <p-select id="idFamilia" [(ngModel)]="servicioForm.idFamilia" [options]="familias()"
+                    optionLabel="nombreFamilia" optionValue="idFamilia" placeholder="Seleccione una familia"
+                    [filter]="true" filterBy="nombreFamilia" class="w-full"></p-select>
+            </div>
 
-      <div class="field">
-        <label for="atributos">Atributos (JSON Schema)</label>
-        <textarea
-          id="atributos"
-          pTextarea
-          [(ngModel)]="servicioForm.atributosSchema"
-          [rows]="5"
-          class="w-full font-mono"
-        ></textarea>
-      </div>
-    </div>
+            <div class="field">
+                <label for="nombreServicio">Nombre *</label>
+                <input id="nombreServicio" type="text" pInputText [(ngModel)]="servicioForm.nombre" class="w-full" />
+            </div>
 
-    <ng-template pTemplate="footer">
-      <button
-        pButton
-        type="button"
-        label="Cancelar"
-        icon="pi pi-times"
-        class="p-button-text"
-        (click)="cerrarDialog()"
-      ></button>
-      <button
-        pButton
-        type="button"
-        [label]="isEditMode() ? 'Actualizar' : 'Guardar'"
-        icon="pi pi-check"
-        (click)="guardarServicio()"
-      ></button>
-    </ng-template>
-  </p-dialog>
+            <div class="field">
+                <label for="descripcionServicio">Descripción</label>
+                <textarea id="descripcionServicio" pTextarea [(ngModel)]="servicioForm.descripcion" [rows]="3"
+                    class="w-full"></textarea>
+            </div>
+
+            <div class="field">
+                <label for="atributos">Atributos (JSON Schema)</label>
+                <textarea id="atributos" pTextarea [(ngModel)]="servicioForm.atributosSchema" [rows]="5"
+                    class="w-full font-mono"></textarea>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-text"
+                (click)="cerrarDialog()"></button>
+            <button pButton type="button" [label]="isEditMode() ? 'Actualizar' : 'Guardar'" icon="pi pi-check"
+                (click)="guardarServicio()"></button>
+        </ng-template>
+    </p-dialog>

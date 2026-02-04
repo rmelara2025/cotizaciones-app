@@ -4,6 +4,7 @@ import {
   inject,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
@@ -14,6 +15,7 @@ import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { DashboardService } from '../../../../core/services/dashboard.service';
 import { FamiliaService } from '../../../../core/services/familia.service';
+import { CatalogosService } from '../../../../core/services/catalogos.service';
 import { IDashboardContrato } from '../../../../core/models';
 
 interface ISummaryRow {
@@ -33,15 +35,30 @@ interface ISummaryRow {
 export class DashboardRecurrentes implements OnInit {
   private dashboardService = inject(DashboardService);
   private familiaService = inject(FamiliaService);
+  private catalogosService = inject(CatalogosService);
   private cdr = inject(ChangeDetectorRef);
 
   // Filtros
   idFamiliaServicioSelected: number | null = null;
+  idServicioSelected: number | null = null;
   familias: any[] = [];
+  servicios: any[] = [];
+  serviciosFiltrados: any[] = [];
 
   // Chart.js data/options
   chartData: any = { labels: [], datasets: [] };
   chartOptions: any = {};
+
+  constructor() {
+    // Effect para reaccionar automáticamente cuando cambian los datos del signal
+    effect(() => {
+      const data = this.dashboardService.resumenRecurrentes();
+      console.log('effect triggered - data length:', data.length);
+      // Siempre procesar, incluso si no hay datos (para limpiar la vista)
+      this.process(data as any);
+      this.cdr.detectChanges();
+    });
+  }
 
   // Table summary
   summary: ISummaryRow[] = [];
@@ -166,6 +183,16 @@ export class DashboardRecurrentes implements OnInit {
       }
     });
 
+    // Cargar servicios para el dropdown
+    this.catalogosService.listarServicios().subscribe({
+      next: (servicios) => {
+        this.servicios = servicios;
+      },
+      error: (error) => {
+        console.error('Error cargando servicios:', error);
+      }
+    });
+
     // Cargar datos iniciales sin filtro
     this.loadDashboardData();
 
@@ -185,42 +212,44 @@ export class DashboardRecurrentes implements OnInit {
 
   loadDashboardData(): void {
     const filter: any = {};
-    
-    if (this.idFamiliaServicioSelected !== null) {
+
+    if (this.idFamiliaServicioSelected !== null && this.idFamiliaServicioSelected !== undefined) {
       filter.idFamiliaServicio = this.idFamiliaServicioSelected;
     }
-
-    // Si no hay filtro, usar endpoint simple
-    if (Object.keys(filter).length === 0) {
-      this.dashboardService.getContratosDashboard().subscribe({
-        next: (rows: IDashboardContrato[]) => {
-          this.process(rows);
-        },
-        error: (err) => console.error('Error loading dashboard data', err),
-      });
-    } else {
-      // Con filtro, usar endpoint custom
-      this.dashboardService.loadResumenRecurrentes(filter);
-      
-      // Suscribirse al signal para procesar los datos
-      const subscription = this.dashboardService.resumenRecurrentes.asReadonly();
-      // Procesar inmediatamente si ya hay datos, sino esperar al cambio
-      if (subscription().length > 0) {
-        this.process(subscription() as any);
-      }
-      
-      // Suscribirse a cambios futuros
-      setTimeout(() => {
-        const data = this.dashboardService.resumenRecurrentes();
-        if (data.length > 0) {
-          this.process(data as any);
-        }
-      }, 500);
+    
+    if (this.idServicioSelected !== null && this.idServicioSelected !== undefined) {
+      filter.idServicio = this.idServicioSelected;
     }
+
+    // Si no hay filtros, pasar undefined para cargar todo el universo
+    const hasFilters = Object.keys(filter).length > 0;
+    console.log('loadDashboardData - hasFilters:', hasFilters, 'filter:', filter);
+    
+    // El effect() se encargará de procesar los datos cuando el signal cambie
+    this.dashboardService.loadResumenRecurrentes(hasFilters ? filter : undefined);
   }
 
   onFamiliaChange(): void {
-    this.loadDashboardData();
+    // Resetear el servicio seleccionado cuando cambia la familia
+    this.idServicioSelected = null;
+    
+    // Actualizar la lista de servicios filtrados
+    if (this.idFamiliaServicioSelected !== null && this.idFamiliaServicioSelected !== undefined) {
+      this.serviciosFiltrados = this.servicios.filter(s => s.idFamilia === this.idFamiliaServicioSelected);
+    } else {
+      // Cuando se selecciona "Todas las Familias" o se limpia, mostrar todos los servicios
+      this.serviciosFiltrados = [...this.servicios];
+    }
+    
+    // Forzar detección de cambios y recargar datos
+    this.cdr.detectChanges();
+    setTimeout(() => this.loadDashboardData(), 0);
+  }
+
+  onServicioChange(): void {
+    // Forzar detección de cambios y recargar datos
+    this.cdr.detectChanges();
+    setTimeout(() => this.loadDashboardData(), 0);
   }
 
   private process(rows: IDashboardContrato[]) {

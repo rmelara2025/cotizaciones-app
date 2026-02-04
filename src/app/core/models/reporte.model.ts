@@ -4,6 +4,7 @@ export interface ICadenciaIngresosFilter {
     fechaHasta?: string; // formato: YYYY-MM-DD
     idTipoMoneda?: number;
     idFamiliaServicio?: number;
+    idServicio?: number;
 }
 
 export interface ICadenciaIngresosResponse {

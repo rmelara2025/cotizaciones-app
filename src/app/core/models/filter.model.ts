@@ -8,6 +8,8 @@ export interface IContratoFilters {
     codSap: string;
     codSison: string;
     estado: 'todos' | 'vigente' | 'por-expirar' | 'expirado';
+    idFamiliaServicio?: number | null;
+    idServicio?: number | null;
 }
 
 /**
@@ -20,4 +22,6 @@ export const DEFAULT_CONTRATO_FILTER: IContratoFilters = {
   codSap: '',
   codSison: '',
   estado: 'todos',
+  idFamiliaServicio: null,
+  idServicio: null,
 };
