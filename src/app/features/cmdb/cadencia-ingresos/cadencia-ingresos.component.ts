@@ -204,7 +204,7 @@ export class CadenciaIngresosComponent implements OnInit {
     onFamiliaChange(idFamilia: number | null): void {
         // Resetear servicio cuando cambia la familia
         this.filterForm.patchValue({ idServicio: null });
-        
+
         // Filtrar servicios por familia
         if (idFamilia !== null && idFamilia !== undefined) {
             const filtrados = this.servicios().filter(s => s.idFamilia === idFamilia);
@@ -241,8 +241,9 @@ export class CadenciaIngresosComponent implements OnInit {
                         const clienteFiltrado = response.clientes.find(c => c.rutCliente === formValue.rutCliente);
                         this.clienteSeleccionado.set(clienteFiltrado || response.clientes[0]);
                     } else {
-                        // Si no hay filtro (cadencia total), seleccionar el único resultado (TODOS)
-                        this.clienteSeleccionado.set(response.clientes[0]);
+                        // Si no hay filtro de cliente, crear/buscar el consolidado "TODOS"
+                        const consolidado = this.crearClienteConsolidado(response.clientes);
+                        this.clienteSeleccionado.set(consolidado);
                     }
                 } else {
                     this.clienteSeleccionado.set(null);
@@ -344,27 +345,263 @@ export class CadenciaIngresosComponent implements OnInit {
     }
 
     /**
-     * Exporta el reporte a Excel usando estrategia híbrida
+     * Crea un cliente consolidado "TODOS" agrupando todos los clientes individuales
+     */
+    private crearClienteConsolidado(clientes: ICadenciaCliente[]): ICadenciaCliente {
+        // Mapear todos los meses únicos
+        const mesesMap = new Map<string, { monto: number, moneda: string, nombreMoneda: string, serviciosActivos: number }>();
+
+        clientes.forEach(cliente => {
+            cliente.ingresosMensuales.forEach(mes => {
+                const key = mes.mes;
+                if (mesesMap.has(key)) {
+                    const existing = mesesMap.get(key)!;
+                    existing.monto += mes.monto;
+                    existing.serviciosActivos += mes.serviciosActivos;
+                } else {
+                    mesesMap.set(key, {
+                        monto: mes.monto,
+                        moneda: mes.moneda,
+                        nombreMoneda: mes.nombreMoneda,
+                        serviciosActivos: mes.serviciosActivos
+                    });
+                }
+            });
+        });
+
+        // Convertir a array y ordenar por mes
+        const ingresosMensuales: ICadenciaMes[] = Array.from(mesesMap.entries())
+            .map(([mes, data]) => ({
+                mes,
+                monto: data.monto,
+                moneda: data.moneda,
+                nombreMoneda: data.nombreMoneda,
+                variacionPorcentaje: 0,
+                serviciosActivos: data.serviciosActivos
+            }))
+            .sort((a, b) => a.mes.localeCompare(b.mes));
+
+        // Consolidar alertas (las alertas no tienen mucho sentido en consolidado, pero por completitud)
+        const alertas: ICadenciaAlerta[] = [];
+
+        return {
+            rutCliente: 'TODOS',
+            nombreCliente: 'TODOS LOS CLIENTES (CONSOLIDADO)',
+            ingresosMensuales,
+            alertas
+        };
+    }
+
+    /**
+     * Exporta el reporte a Excel - Incluye matriz de detalle según filtros
      */
     async exportarExcel(): Promise<void> {
         const cliente = this.clienteSeleccionado();
-        const todosClientes = this.clientes();
 
         if (!cliente) {
             alert('No hay datos para exportar');
             return;
         }
 
-        // Estrategia híbrida: frontend para pocos datos, backend para muchos
-        const esCadenciaTotal = cliente.rutCliente === 'TODOS';
-        const cantidadDatos = this.ingresosMensuales().length;
+        const formValue = this.filterForm.value;
+        const hayFiltroCliente = formValue.rutCliente && formValue.rutCliente.trim() !== '';
 
-        // Si es cadencia total O tiene más de 500 registros → Backend
-        if (esCadenciaTotal || cantidadDatos > 500) {
-            this.exportarDesdeBackend();
-        } else {
-            // Exportación rápida desde frontend
-            await this.exportarConExcelJS(cliente);
+        // Si hay filtro de cliente específico, usar solo ese cliente
+        if (hayFiltroCliente) {
+            console.log('📋 Exportando Excel con cliente específico:', cliente.nombreCliente);
+            await this.generarExcelDirecto(cliente);
+            return;
+        }
+
+        // Si NO hay filtro de cliente, obtener TODOS los clientes con los filtros aplicados
+        this.loading.set(true);
+
+        const filterTodosClientes: ICadenciaIngresosFilter = {
+            rutCliente: undefined, // Sin filtro de cliente - obtener TODOS
+            fechaDesde: formValue.fechaDesde ? this.formatDate(formValue.fechaDesde) : undefined,
+            fechaHasta: formValue.fechaHasta ? this.formatDate(formValue.fechaHasta) : undefined,
+            idFamiliaServicio: formValue.idFamiliaServicio || undefined,
+            idServicio: formValue.idServicio || undefined,
+        };
+
+        console.log('🔍 Obteniendo todos los clientes para matriz detalle...');
+
+        this.reportesService.obtenerCadenciaIngresos(filterTodosClientes).subscribe({
+            next: async (response) => {
+                try {
+                    // Filtrar solo clientes individuales (excluir TODOS)
+                    const clientesIndividuales = response.clientes.filter(c => c.rutCliente !== 'TODOS');
+                    console.log('✅ Clientes individuales obtenidos:', clientesIndividuales.length);
+
+                    const workbook = new ExcelJS.Workbook();
+                    workbook.creator = 'CMDB Chile';
+                    workbook.created = new Date();
+
+                    // Hoja 1: Resumen del cliente actual
+                    this.crearHojaResumen(workbook, cliente);
+
+                    // Hoja 2: Ingresos Mensuales del cliente actual
+                    this.crearHojaIngresos(workbook, cliente);
+
+                    // Hoja 3: Alertas del cliente actual (solo si hay)
+                    if (cliente.alertas.length > 0) {
+                        this.crearHojaAlertas(workbook, cliente);
+                    }
+
+                    // Hoja 4: DETALLE POR CLIENTE - TODOS los clientes
+                    if (clientesIndividuales.length > 0) {
+                        console.log('📊 Creando matriz detalle con', clientesIndividuales.length, 'clientes');
+                        this.crearHojaDetalleClientes(workbook, clientesIndividuales);
+                    } else {
+                        console.warn('⚠️ No hay clientes individuales - matriz estará vacía');
+                    }
+
+                    // Generar y descargar
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    const blob = new Blob([buffer], {
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
+
+                    const nombreArchivo = `Cadencia_Ingresos_Todos_${this.getFechaActual()}.xlsx`;
+                    saveAs(blob, nombreArchivo);
+
+                    console.log('📥 Excel generado exitosamente:', nombreArchivo);
+                    this.loading.set(false);
+                } catch (error) {
+                    console.error('❌ Error al generar Excel:', error);
+                    alert('Error al generar el archivo Excel');
+                    this.loading.set(false);
+                }
+            },
+            error: (error) => {
+                console.error('❌ Error obteniendo clientes:', error);
+                alert('Error al obtener datos del servidor');
+                this.loading.set(false);
+            }
+        });
+    }
+
+    /**
+     * Genera Excel directo con el cliente específico seleccionado
+     */
+    private async generarExcelDirecto(cliente: ICadenciaCliente): Promise<void> {
+        try {
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'CMDB Chile';
+            workbook.created = new Date();
+
+            // Hoja 1: Resumen
+            this.crearHojaResumen(workbook, cliente);
+
+            // Hoja 2: Ingresos Mensuales
+            this.crearHojaIngresos(workbook, cliente);
+
+            // Hoja 3: Alertas (solo si hay)
+            if (cliente.alertas.length > 0) {
+                this.crearHojaAlertas(workbook, cliente);
+            }
+
+            // Hoja 4: DETALLE POR CLIENTE - Solo este cliente
+            console.log('📊 Creando matriz detalle con 1 cliente:', cliente.nombreCliente);
+            this.crearHojaDetalleClientes(workbook, [cliente]);
+
+            // Generar y descargar
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            const nombreArchivo = `Cadencia_Ingresos_${this.sanitizeFilename(cliente.nombreCliente)}_${this.getFechaActual()}.xlsx`;
+            saveAs(blob, nombreArchivo);
+
+            console.log('📥 Excel generado exitosamente:', nombreArchivo);
+        } catch (error) {
+            console.error('❌ Error al generar Excel:', error);
+            alert('Error al generar el archivo Excel');
+        }
+    }
+
+    /**
+     * Exporta con hoja detalle obteniendo todos los clientes según filtros
+     */
+    private async exportarConDetalleCompleto(clienteActual: ICadenciaCliente): Promise<void> {
+        this.loading.set(true);
+
+        // Obtener TODOS los clientes aplicando los filtros actuales (familia, servicio)
+        const formValue = this.filterForm.value;
+        const filter: ICadenciaIngresosFilter = {
+            rutCliente: undefined, // Sin filtro de cliente para obtener todos
+            fechaDesde: formValue.fechaDesde ? this.formatDate(formValue.fechaDesde) : undefined,
+            fechaHasta: formValue.fechaHasta ? this.formatDate(formValue.fechaHasta) : undefined,
+            idFamiliaServicio: formValue.idFamiliaServicio || undefined,
+            idServicio: formValue.idServicio || undefined,
+        };
+
+        console.log('Obteniendo todos los clientes con filtros:', filter);
+
+        this.reportesService.obtenerCadenciaIngresos(filter).subscribe({
+            next: async (response) => {
+                this.loading.set(false);
+
+                // Filtrar solo clientes reales (no TODOS)
+                const clientesReales = response.clientes.filter(c => c.rutCliente !== 'TODOS');
+
+                console.log('Clientes para matriz obtenidos:', clientesReales.length);
+
+                // Exportar con la matriz de clientes
+                await this.exportarConExcelJSCompleto(clienteActual, clientesReales);
+            },
+            error: (error) => {
+                console.error('Error obteniendo clientes:', error);
+                this.loading.set(false);
+                alert('Error al obtener datos para exportar');
+            }
+        });
+    }
+
+    /**
+     * Exportación completa con hoja detalle
+     */
+    private async exportarConExcelJSCompleto(clienteActual: ICadenciaCliente, todosLosClientes: ICadenciaCliente[]): Promise<void> {
+        try {
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'CMDB Chile';
+            workbook.created = new Date();
+
+            const esConsolidado = clienteActual.rutCliente === 'TODOS';
+
+            // Hoja 1: Resumen del cliente actual
+            this.crearHojaResumen(workbook, clienteActual);
+
+            // Hoja 2: Ingresos Mensuales del cliente actual
+            this.crearHojaIngresos(workbook, clienteActual);
+
+            // Hoja 3: Alertas (solo si hay alertas)
+            if (clienteActual.alertas.length > 0) {
+                this.crearHojaAlertas(workbook, clienteActual);
+            }
+
+            // Hoja 4: SIEMPRE crear matriz de detalle por cliente
+            if (todosLosClientes.length > 0) {
+                console.log('Creando hoja "Detalle por Cliente" con', todosLosClientes.length, 'clientes');
+                this.crearHojaDetalleClientes(workbook, todosLosClientes);
+            } else {
+                console.warn('No hay clientes para la matriz detalle');
+            }
+
+            // Generar y descargar
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            const nombreBase = esConsolidado ? 'Consolidado' : this.sanitizeFilename(clienteActual.nombreCliente);
+            const nombreArchivo = `Cadencia_Ingresos_${nombreBase}_${this.getFechaActual()}.xlsx`;
+            saveAs(blob, nombreArchivo);
+
+        } catch (error) {
+            console.error('Error al exportar a Excel:', error);
+            alert('Error al generar el archivo Excel');
         }
     }
 
@@ -386,6 +623,20 @@ export class CadenciaIngresosComponent implements OnInit {
             // Hoja 3: Alertas (solo si hay alertas)
             if (cliente.alertas.length > 0) {
                 this.crearHojaAlertas(workbook, cliente);
+            }
+
+            // Hoja 4: Detalle por Cliente (solo si hay múltiples clientes)
+            const todosClientes = this.clientes();
+            console.log('Exportando Excel - Total clientes:', todosClientes.length);
+            console.log('Clientes:', todosClientes.map(c => ({ rut: c.rutCliente, nombre: c.nombreCliente })));
+
+            // Siempre crear la hoja si hay clientes (excepto cuando es solo el consolidado TODOS)
+            const clientesSinTodos = todosClientes.filter(c => c.rutCliente !== 'TODOS');
+            if (clientesSinTodos.length > 0) {
+                console.log('Creando hoja detalle con', clientesSinTodos.length, 'clientes');
+                this.crearHojaDetalleClientes(workbook, todosClientes);
+            } else {
+                console.log('No se crea hoja detalle - solo hay cliente TODOS');
             }
 
             // Generar y descargar
@@ -576,7 +827,149 @@ export class CadenciaIngresosComponent implements OnInit {
     }
 
     /**
-     * Exportación backend (para reportes grandes)
+     * Crea la hoja de detalle con matriz clientes vs meses
+     */
+    private crearHojaDetalleClientes(workbook: ExcelJS.Workbook, clientes: ICadenciaCliente[]): void {
+        const sheet = workbook.addWorksheet('Detalle por Cliente');
+
+        console.log('📋 Creando matriz - Clientes recibidos:', clientes.length);
+
+        // Filtrar el cliente "TODOS" si existe
+        const clientesFiltrados = clientes.filter(c => c.rutCliente !== 'TODOS');
+
+        console.log('📋 Clientes después de filtrar TODOS:', clientesFiltrados.length);
+
+        if (clientesFiltrados.length === 0) {
+            // Crear hoja vacía con mensaje
+            sheet.mergeCells('A1:D1');
+            const cell = sheet.getCell('A1');
+            cell.value = 'No hay clientes individuales para mostrar';
+            cell.font = { size: 14, italic: true };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            return;
+        }
+
+        // Obtener todos los meses únicos de todos los clientes (ordenados)
+        const mesesSet = new Set<string>();
+        clientesFiltrados.forEach(cliente => {
+            cliente.ingresosMensuales.forEach(mes => mesesSet.add(mes.mes));
+        });
+        const mesesOrdenados = Array.from(mesesSet).sort();
+
+        console.log('📅 Meses únicos encontrados:', mesesOrdenados.length, mesesOrdenados);
+
+        // Crear headers dinámicos
+        const columns: any[] = [
+            { header: 'CLIENTE', key: 'cliente', width: 30 },
+            { header: 'RUT', key: 'rut', width: 15 }
+        ];
+
+        // Agregar columna por cada mes
+        mesesOrdenados.forEach(mes => {
+            columns.push({
+                header: this.formatMesCorto(mes).toUpperCase(),
+                key: mes,
+                width: 15
+            });
+        });
+
+        sheet.columns = columns;
+
+        // Estilo del header
+        const headerRow = sheet.getRow(1);
+        headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
+        headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+        headerRow.height = 25;
+
+        // Datos de cada cliente
+        clientesFiltrados.forEach((cliente, idx) => {
+            const rowData: any = {
+                cliente: cliente.nombreCliente,
+                rut: cliente.rutCliente
+            };
+
+            // Crear un mapa de mes -> monto para acceso rápido
+            const montoPorMes = new Map<string, { monto: number, moneda: string }>();
+            cliente.ingresosMensuales.forEach(mes => {
+                montoPorMes.set(mes.mes, { monto: mes.monto, moneda: mes.moneda });
+            });
+
+            // Llenar cada columna de mes
+            mesesOrdenados.forEach(mes => {
+                const data = montoPorMes.get(mes);
+                rowData[mes] = data ? data.monto : 0;
+            });
+
+            const row = sheet.addRow(rowData);
+
+            // Aplicar formato de moneda a las columnas de meses
+            mesesOrdenados.forEach((mes, index) => {
+                const cellIndex = index + 3; // +3 porque las primeras 2 columnas son cliente y rut
+                const cell = row.getCell(cellIndex);
+                cell.numFmt = '#,##0';
+                cell.alignment = { horizontal: 'right' };
+            });
+
+            // Alineación de las primeras columnas
+            row.getCell('cliente').alignment = { horizontal: 'left' };
+            row.getCell('rut').alignment = { horizontal: 'center' };
+
+            if (idx === 0) {
+                console.log('📊 Primera fila de datos:', rowData);
+            }
+        });
+
+        // Fila de totales al final
+        const totalRowData: any = {
+            cliente: 'TOTAL',
+            rut: ''
+        };
+
+        mesesOrdenados.forEach(mes => {
+            let totalMes = 0;
+            clientesFiltrados.forEach(cliente => {
+                const mesData = cliente.ingresosMensuales.find(m => m.mes === mes);
+                if (mesData) {
+                    totalMes += mesData.monto;
+                }
+            });
+            totalRowData[mes] = totalMes;
+        });
+
+        const totalRow = sheet.addRow(totalRowData);
+        totalRow.font = { bold: true };
+        totalRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } };
+
+        // Formato de moneda para totales
+        mesesOrdenados.forEach((mes, index) => {
+            const cellIndex = index + 3;
+            const cell = totalRow.getCell(cellIndex);
+            cell.numFmt = '#,##0';
+            cell.alignment = { horizontal: 'right' };
+        });
+
+        // Bordes para toda la tabla
+        sheet.eachRow((row, rowNumber) => {
+            row.eachCell(cell => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            });
+        });
+
+        // Congelar la primera fila y las dos primeras columnas
+        sheet.views = [
+            { state: 'frozen', xSplit: 2, ySplit: 1 }
+        ];
+
+        console.log('✅ Matriz creada con', clientesFiltrados.length, 'filas y', mesesOrdenados.length, 'meses');
+    }
+
+    /**     * Exportación backend (para reportes grandes)
      */
     private exportarDesdeBackend(): void {
         const formValue = this.filterForm.value;

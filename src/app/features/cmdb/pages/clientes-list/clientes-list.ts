@@ -135,11 +135,11 @@ export class ClientesList implements OnInit {
      * Navegar a la lista de contactos del cliente
      */
     verContactos(cliente: ICliente) {
-        // Obtener el RUT sin formato (solo números y guión)
-        const rutSinFormato = cliente.rutCliente.replace(/\./g, '');
+        // Limpiar el RUT (remover puntos, espacios, mantener guion)
+        const rutLimpio = cleanRut(cliente.rutCliente);
         this.router.navigate(['/contactos'], {
             queryParams: {
-                rut: rutSinFormato,
+                rut: rutLimpio,
                 nombre: cliente.nombreCliente
             }
         });

@@ -58,11 +58,12 @@ export function formatRut(rut: string): string {
 }
 
 /**
- * Clean RUT: remove formatting, keep hyphen separator
- * Format: XXXXXXXX-K (no dots)
+ * Clean RUT: remove formatting (dots, spaces, non-breaking spaces), keep hyphen separator
+ * Format: XXXXXXXX-K (no dots, no spaces)
  */
 export function cleanRut(rut: string): string {
-  return rut.replace(/\./g, '');
+  // Remove dots, regular spaces, non-breaking spaces (U+00A0), and other whitespace
+  return rut.replace(/\./g, '').replace(/\s/g, '').replace(/\u00A0/g, '');
 }
 
 /**

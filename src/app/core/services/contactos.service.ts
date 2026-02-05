@@ -2,6 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { IContacto, IContactoCreate, IContactoUpdate } from '../models';
+import { cleanRut } from '../utils/rut.utils';
 
 @Injectable({
     providedIn: 'root',
@@ -22,7 +23,10 @@ export class ContactosService {
         this.loading.set(true);
         this.error.set(null);
 
-        this.http.get<IContacto[]>(`${this.apiUrl}/cliente/${rut}`)
+        // Limpiar el RUT antes de hacer la petición
+        const rutLimpio = cleanRut(rut);
+
+        this.http.get<IContacto[]>(`${this.apiUrl}/cliente/${rutLimpio}`)
             .subscribe({
                 next: (data) => {
                     console.log('Contactos recibidos:', data);

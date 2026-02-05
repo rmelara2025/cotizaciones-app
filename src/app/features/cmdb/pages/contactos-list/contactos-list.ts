@@ -13,6 +13,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ContactosService } from '../../../../core/services/contactos.service';
 import { IContacto, IContactoCreate, IContactoUpdate, CARGO_OPTIONS } from '../../../../core/models';
+import { cleanRut } from '../../../../core/utils/rut.utils';
 
 @Component({
     selector: 'app-contactos-list',
@@ -82,9 +83,11 @@ export class ContactosList implements OnInit {
             const rut = params['rut'];
             const nombre = params['nombre'];
             if (rut) {
-                this.rutCliente.set(rut);
+                // Limpiar el RUT antes de usarlo (remover puntos, espacios, mantener guion)
+                const rutLimpio = cleanRut(rut);
+                this.rutCliente.set(rutLimpio);
                 this.nombreCliente.set(nombre || '');
-                this.contactosService.loadContactosByRut(rut);
+                this.contactosService.loadContactosByRut(rutLimpio);
             } else {
                 // Si no hay RUT, redirigir a la lista de clientes
                 this.router.navigate(['/cmdb/clientes']);
@@ -99,7 +102,7 @@ export class ContactosList implements OnInit {
         this.isEditMode.set(false);
         this.dialogTitle.set('Agregar Contacto');
         this.contactoForm.set({
-            rutCliente: this.rutCliente(),
+            rutCliente: cleanRut(this.rutCliente()),
             nombre: '',
             email: '',
             telefono: '',

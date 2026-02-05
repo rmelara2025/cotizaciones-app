@@ -216,7 +216,7 @@ export class DashboardRecurrentes implements OnInit {
     if (this.idFamiliaServicioSelected !== null && this.idFamiliaServicioSelected !== undefined) {
       filter.idFamiliaServicio = this.idFamiliaServicioSelected;
     }
-    
+
     if (this.idServicioSelected !== null && this.idServicioSelected !== undefined) {
       filter.idServicio = this.idServicioSelected;
     }
@@ -224,7 +224,7 @@ export class DashboardRecurrentes implements OnInit {
     // Si no hay filtros, pasar undefined para cargar todo el universo
     const hasFilters = Object.keys(filter).length > 0;
     console.log('loadDashboardData - hasFilters:', hasFilters, 'filter:', filter);
-    
+
     // El effect() se encargará de procesar los datos cuando el signal cambie
     this.dashboardService.loadResumenRecurrentes(hasFilters ? filter : undefined);
   }
@@ -232,7 +232,7 @@ export class DashboardRecurrentes implements OnInit {
   onFamiliaChange(): void {
     // Resetear el servicio seleccionado cuando cambia la familia
     this.idServicioSelected = null;
-    
+
     // Actualizar la lista de servicios filtrados
     if (this.idFamiliaServicioSelected !== null && this.idFamiliaServicioSelected !== undefined) {
       this.serviciosFiltrados = this.servicios.filter(s => s.idFamilia === this.idFamiliaServicioSelected);
@@ -240,7 +240,7 @@ export class DashboardRecurrentes implements OnInit {
       // Cuando se selecciona "Todas las Familias" o se limpia, mostrar todos los servicios
       this.serviciosFiltrados = [...this.servicios];
     }
-    
+
     // Forzar detección de cambios y recargar datos
     this.cdr.detectChanges();
     setTimeout(() => this.loadDashboardData(), 0);

@@ -18,8 +18,7 @@ import { CotizacionesService } from '../../../../core/services/cotizaciones.serv
 import { ExpiryService } from '../../../../core/services/expiry.service';
 import { CurrencyService } from '../../../../core/services/currency.service';
 import { DashboardService } from '../../../../core/services/dashboard.service';
-import { CatalogosService } from '../../../../core/services/catalogos.service';
-import { FamiliaService } from '../../../../core/services/familia.service';
+
 import { CotizacionesPorContrato } from '../cotizaciones-por-contrato/cotizaciones-por-contrato';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { RutInputDirective } from '../../../../core/pipes/rut-only.directive';
@@ -63,18 +62,11 @@ export class CotizacionesList implements OnInit {
   private expiryService = inject(ExpiryService);
   private currencyService = inject(CurrencyService);
   private dashboardService = inject(DashboardService);
-  private catalogosService = inject(CatalogosService);
-  private familiaService = inject(FamiliaService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
   // Typed filters
   filters: IContratoFilters = { ...DEFAULT_CONTRATO_FILTER };
-  
-  // Dropdown data
-  familias: any[] = [];
-  servicios: any[] = [];
-  serviciosFiltrados: any[] = [];
 
   // UI state for dialog
   showDetalleDialog = false;
@@ -191,26 +183,6 @@ export class CotizacionesList implements OnInit {
   }
 
   ngOnInit() {
-    // Cargar familias para el dropdown
-    this.familiaService.getFamilias().subscribe({
-      next: (familias) => {
-        this.familias = familias;
-      },
-      error: (error) => {
-        console.error('Error cargando familias:', error);
-      }
-    });
-
-    // Cargar servicios para el dropdown
-    this.catalogosService.listarServicios().subscribe({
-      next: (servicios) => {
-        this.servicios = servicios;
-      },
-      error: (error) => {
-        console.error('Error cargando servicios:', error);
-      }
-    });
-
     // Suscribirse a cambios en query params para mantener filtros al volver
     this.route.queryParams.subscribe(queryParams => {
       let hayFiltros = false;
@@ -371,17 +343,7 @@ export class CotizacionesList implements OnInit {
     });
   }
 
-  /**
-   * Handler para cambios en el select 'familia'
-   */
-  onFamiliaChange(): void {
-    this.filters.idServicio = null;
-    if (this.filters.idFamiliaServicio !== null && this.filters.idFamiliaServicio !== undefined) {
-      this.serviciosFiltrados = this.servicios.filter(s => s.idFamilia === this.filters.idFamiliaServicio);
-    } else {
-      this.serviciosFiltrados = [];
-    }
-  }
+
 
   /**
    * Carga el resumen de recurrentes aplicando filtros
