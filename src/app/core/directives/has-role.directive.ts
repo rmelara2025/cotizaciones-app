@@ -26,7 +26,7 @@ export class HasRoleDirective {
   private templateRef = inject(TemplateRef<any>);
   private viewContainer = inject(ViewContainerRef);
   private hasView = false;
-  
+
   // Signal para manejar el input reactivamente
   private actionOrRoleSignal = signal<RoleAction | string | string[] | null>(null);
 

@@ -194,17 +194,17 @@ export class CotizacionesPorContrato implements OnInit {
      */
     private shouldShowAction(accion: IAccionDisponible): boolean {
         const userRoles = this.authService.userRoles().map(r => r.nombreRol);
-        
+
         // Transiciones que SOLO Gerencial/TeamLeader puede realizar
         // Transición 3: EN_REVISIÓN → APROBADA (Aprobar cotización)
         // Transición 4: EN_REVISIÓN → RECHAZADA (Rechazar cotización)
         // Transición 5: EN_REVISIÓN → BORRADOR (Devolver a borrador)
         const gerencialOnlyTransitions = [3, 4, 5];
-        
+
         if (gerencialOnlyTransitions.includes(accion.idTransicion)) {
             return userRoles.includes('Gerencial/TeamLeader') || userRoles.includes('Owner');
         }
-        
+
         // Resto de transiciones son visibles según backend
         return true;
     }

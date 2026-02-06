@@ -326,7 +326,7 @@ export class SidenavComponent implements OnInit {
   canCreateQuote = computed(() => this.authService.can('CREAR_COTIZACIONES'));
   canSeeProveedores = computed(() => this.authService.can('VER_PROVEEDORES'));
   // Configuración visible si puede ver Familias de Servicios O Gestionar Usuarios
-  canSeeConfig = computed(() => 
+  canSeeConfig = computed(() =>
     this.authService.can('VER_FAMILIA_SERVICIOS') || this.authService.can('GESTIONAR_USUARIOS')
   );
   isOwner = computed(() => this.authService.hasRole('Owner'));

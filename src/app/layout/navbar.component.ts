@@ -60,7 +60,7 @@ export class NavbarComponent {
   canSeeDashboard = computed(() => this.authService.can('VER_DASHBOARD'));
   canSeeReports = computed(() => this.authService.can('VER_REPORTES'));
   // Configuración visible si puede ver Familias de Servicios O Gestionar Usuarios
-  canSeeConfig = computed(() => 
+  canSeeConfig = computed(() =>
     this.authService.can('VER_FAMILIA_SERVICIOS') || this.authService.can('GESTIONAR_USUARIOS')
   );
 
