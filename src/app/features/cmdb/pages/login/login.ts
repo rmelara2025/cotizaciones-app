@@ -54,7 +54,8 @@ export class LoginComponent {
         const success = await this.authService.login({ idUsuario, clave });
 
         if (success) {
-            this.router.navigate(['/dashboard']);
+            // Redirigir a cotizaciones (disponible para todos) en lugar de dashboard
+            this.router.navigate(['/cotizaciones']);
         }
     }
 

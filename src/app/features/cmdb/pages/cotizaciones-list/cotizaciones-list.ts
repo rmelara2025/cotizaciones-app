@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
@@ -13,6 +13,7 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { DrawerModule } from 'primeng/drawer';
 import { ContratosService } from '../../../../core/services/contratos.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
 import { ExpiryService } from '../../../../core/services/expiry.service';
@@ -62,11 +63,16 @@ export class CotizacionesList implements OnInit {
   private expiryService = inject(ExpiryService);
   private currencyService = inject(CurrencyService);
   private dashboardService = inject(DashboardService);
+  private authService = inject(AuthService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
   // Typed filters
   filters: IContratoFilters = { ...DEFAULT_CONTRATO_FILTER };
+
+  // Permisos
+  canCreateContract = computed(() => this.authService.hasPermission('CREAR_COTIZACIONES'));
+  canExportExcel = computed(() => this.authService.hasPermission('EXPORTAR_REPORTES'));
 
   // UI state for dialog
   showDetalleDialog = false;

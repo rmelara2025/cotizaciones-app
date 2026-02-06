@@ -26,8 +26,8 @@ export const loginGuard: CanActivateFn = () => {
     const router = inject(Router);
 
     if (authService.isAuthenticated()) {
-        // Si ya está autenticado, redirigir al dashboard
-        router.navigate(['/dashboard']);
+        // Si ya está autenticado, redirigir a cotizaciones
+        router.navigate(['/cotizaciones']);
         return false;
     }
 

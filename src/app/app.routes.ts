@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, loginGuard } from './core/utils/auth.guard';
+import { roleGuard, permissionGuard } from './core/utils/role.guard';
 
 export const routes: Routes = [
   {
@@ -14,7 +15,7 @@ export const routes: Routes = [
       import('./features/cmdb/pages/dashboard-recurrentes/dashboard-recurrentes').then(
         (m) => m.DashboardRecurrentes,
       ),
-    canActivate: [authGuard],
+    canActivate: [authGuard, permissionGuard(['VER_DASHBOARD'])],
   },
   {
     path: 'clientes',
@@ -43,7 +44,7 @@ export const routes: Routes = [
       import('./features/cmdb/cadencia-ingresos/cadencia-ingresos.component').then(
         (m) => m.CadenciaIngresosComponent,
       ),
-    canActivate: [authGuard],
+    canActivate: [authGuard, permissionGuard(['VER_REPORTES'])],
   },
   {
     path: 'config/usuarios',
@@ -51,7 +52,7 @@ export const routes: Routes = [
       import('./features/cmdb/pages/usuarios-list/usuarios-list').then(
         (m) => m.UsuariosList,
       ),
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard(['Owner'])],
   },
   {
     path: 'config/familias-servicios',

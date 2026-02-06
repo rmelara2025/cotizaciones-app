@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem, MessageService } from 'primeng/api';
@@ -11,7 +11,7 @@ import { ButtonModule } from 'primeng/button';
   selector: 'app-navbar',
   imports: [CommonModule, MenubarModule, AvatarModule, ButtonModule],
   template: `
-    <p-menubar [model]="items">
+    <p-menubar [model]="items()">
       <ng-template pTemplate="end">
         @if (currentUser()) {
           <div class="flex align-items-center gap-2">
@@ -54,37 +54,99 @@ export class NavbarComponent {
 
   currentUser = this.authService.currentUser;
   userRoles = this.authService.userRoles;
+  userPermissions = this.authService.userPermissions;
 
-  items: MenuItem[] = [
-    {
-      label: 'Dashboard',
-      icon: 'pi pi-fw pi-home',
-      command: () => this.router.navigate(['/dashboard']),
-    },
-    {
+  // Computed para verificar permisos
+  canSeeDashboard = computed(() => this.authService.hasPermission('VER_DASHBOARD'));
+  canSeeReports = computed(() => this.authService.hasPermission('VER_REPORTES'));
+  canSeeConfig = computed(() => 
+    this.authService.hasRole('Owner') || this.authService.hasPermission('GESTIONAR_USUARIOS')
+  );
+
+  // Ítems del menú filtrados por permisos
+  items = computed<MenuItem[]>(() => {
+    const menuItems: MenuItem[] = [];
+
+    // Dashboard - Solo si tiene permiso
+    if (this.canSeeDashboard()) {
+      menuItems.push({
+        label: 'Dashboard',
+        icon: 'pi pi-fw pi-home',
+        command: () => this.router.navigate(['/dashboard']),
+      });
+    }
+
+    // Cotizaciones - Todos los roles pueden ver
+    menuItems.push({
       label: 'Cotizaciones',
       icon: 'pi pi-fw pi-file',
       command: () => this.router.navigate(['/cotizaciones']),
-    },
-    {
+    });
+
+    // Clientes - Todos los roles pueden ver
+    menuItems.push({
       label: 'Clientes',
       icon: 'pi pi-fw pi-users',
       command: () => this.router.navigate(['/clientes']),
-    },
-    {
-      label: 'Contactos',
-      icon: 'pi pi-fw pi-address-book',
-      command: () => this.router.navigate(['/contactos']),
-    },
-    {
-      label: 'Reportes',
-      icon: 'pi pi-fw pi-chart-bar',
-    },
-    {
-      label: 'Configuración',
-      icon: 'pi pi-fw pi-cog',
-    },
-  ];
+    });
+
+    // Contactos - Oculto para rol "Vista"
+    if (this.authService.hasAnyPermission(['VER_TODO', 'GESTIONAR_CLIENTES', 'VER_CLIENTES'])) {
+      menuItems.push({
+        label: 'Contactos',
+        icon: 'pi pi-fw pi-address-book',
+        command: () => this.router.navigate(['/contactos']),
+      });
+    }
+
+    // Reportes - Solo si tiene permiso
+    if (this.canSeeReports()) {
+      menuItems.push({
+        label: 'Reportes',
+        icon: 'pi pi-fw pi-chart-bar',
+        items: [
+          {
+            label: 'Cadencia de Ingresos',
+            icon: 'pi pi-fw pi-chart-line',
+            command: () => this.router.navigate(['/reportes/cadencia-ingresos']),
+          },
+        ],
+      });
+    }
+
+    // Configuración - Solo Owner y algunos roles
+    if (this.canSeeConfig()) {
+      const configItems: MenuItem[] = [];
+
+      // Familias y Servicios - Visible para Owner y Administrativo
+      if (this.authService.hasAnyPermission(['VER_TODO', 'MODIFICAR'])) {
+        configItems.push({
+          label: 'Familias y Servicios',
+          icon: 'pi pi-fw pi-sitemap',
+          command: () => this.router.navigate(['/config/familias-servicios']),
+        });
+      }
+
+      // Usuarios - Solo Owner
+      if (this.authService.hasRole('Owner')) {
+        configItems.push({
+          label: 'Usuarios',
+          icon: 'pi pi-fw pi-users',
+          command: () => this.router.navigate(['/config/usuarios']),
+        });
+      }
+
+      if (configItems.length > 0) {
+        menuItems.push({
+          label: 'Configuración',
+          icon: 'pi pi-fw pi-cog',
+          items: configItems,
+        });
+      }
+    }
+
+    return menuItems;
+  });
 
   getUserInitials(): string {
     const user = this.currentUser();

@@ -32,7 +32,7 @@ interface SidenavItem {
 
       <nav class="sidenav-nav" role="navigation" aria-label="Main">
         <ul>
-          <li *ngFor="let it of items">
+          <li *ngFor="let it of items()">
             <!-- Item sin hijos (link directo) -->
             <a 
               *ngIf="!it.children" 
@@ -318,25 +318,81 @@ export class SidenavComponent implements OnInit {
   currentUser = this.authService.currentUser;
   timeRemaining = this.authService.sessionTimeRemaining;
   userRoles = this.authService.userRoles;
+  userPermissions = this.authService.userPermissions;
 
-  items: SidenavItem[] = [
-    { label: 'Dashboard', icon: 'pi-clock', route: '/dashboard' },
-    { label: 'Cotizaciones', icon: 'pi-folder', route: '/cotizaciones' },
-    { label: 'Nueva cotización', icon: 'pi-plus', route: '/cotizaciones/wizard-contrato' },
-    { label: 'Clientes', icon: 'pi-users', route: '/clientes' },
-    { label: 'Proveedores', icon: 'pi-box', route: '/proveedores' },
-    { label: 'Cadencia Ingresos', icon: 'pi-chart-line', route: '/reportes/cadencia-ingresos' },
-    { label: 'Reportes', icon: 'pi-chart-bar', route: '/reportes' },
-    {
-      label: 'Configuración',
-      icon: 'pi-cog',
-      expanded: false,
-      children: [
-        { label: 'Usuarios', icon: 'pi-user', route: '/config/usuarios' },
-        { label: 'Familias de Servicios', icon: 'pi-sitemap', route: '/config/familias-servicios' }
-      ]
-    },
-  ];
+  // Computed para verificar permisos
+  canSeeDashboard = computed(() => this.authService.hasPermission('VER_DASHBOARD'));
+  canSeeReports = computed(() => this.authService.hasPermission('VER_REPORTES'));
+  canCreateQuote = computed(() => this.authService.hasPermission('CREAR_COTIZACIONES'));
+  canSeeProveedores = computed(() => 
+    this.authService.hasAnyPermission(['VER_TODO', 'GESTIONAR_CLIENTES'])
+  );
+  canSeeConfig = computed(() => 
+    this.authService.hasRole('Owner') || this.authService.hasPermission('GESTIONAR_USUARIOS')
+  );
+  isOwner = computed(() => this.authService.hasRole('Owner'));
+
+  // Items filtrados dinámicamente según permisos
+  items = computed<SidenavItem[]>(() => {
+    const menuItems: SidenavItem[] = [];
+
+    // Dashboard - Solo si tiene permiso VER_DASHBOARD
+    if (this.canSeeDashboard()) {
+      menuItems.push({ label: 'Dashboard', icon: 'pi-clock', route: '/dashboard' });
+    }
+
+    // Cotizaciones - Todos pueden ver
+    menuItems.push({ label: 'Cotizaciones', icon: 'pi-folder', route: '/cotizaciones' });
+
+    // Nueva cotización - Solo si puede crear
+    if (this.canCreateQuote()) {
+      menuItems.push({ label: 'Nueva cotización', icon: 'pi-plus', route: '/cotizaciones/wizard-contrato' });
+    }
+
+    // Clientes - Todos pueden ver
+    menuItems.push({ label: 'Clientes', icon: 'pi-users', route: '/clientes' });
+
+    // Proveedores - Oculto para Vista
+    if (this.canSeeProveedores()) {
+      menuItems.push({ label: 'Proveedores', icon: 'pi-box', route: '/proveedores' });
+    }
+
+    // Cadencia Ingresos - Solo si tiene VER_REPORTES
+    if (this.canSeeReports()) {
+      menuItems.push({ label: 'Cadencia Ingresos', icon: 'pi-chart-line', route: '/reportes/cadencia-ingresos' });
+    }
+
+    // Reportes - Solo si tiene VER_REPORTES
+    if (this.canSeeReports()) {
+      menuItems.push({ label: 'Reportes', icon: 'pi-chart-bar', route: '/reportes' });
+    }
+
+    // Configuración - Menú con hijos
+    if (this.canSeeConfig()) {
+      const configChildren: SidenavItem[] = [];
+
+      // Familias de Servicios - Visible para Owner y Administrativo
+      if (this.authService.hasAnyPermission(['VER_TODO', 'MODIFICAR'])) {
+        configChildren.push({ label: 'Familias de Servicios', icon: 'pi-sitemap', route: '/config/familias-servicios' });
+      }
+
+      // Usuarios - Solo Owner
+      if (this.isOwner()) {
+        configChildren.push({ label: 'Usuarios', icon: 'pi-user', route: '/config/usuarios' });
+      }
+
+      if (configChildren.length > 0) {
+        menuItems.push({
+          label: 'Configuración',
+          icon: 'pi-cog',
+          expanded: false,
+          children: configChildren
+        });
+      }
+    }
+
+    return menuItems;
+  });
 
   ngOnInit(): void {
     this.applyCssVar();

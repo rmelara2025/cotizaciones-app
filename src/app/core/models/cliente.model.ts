@@ -6,6 +6,19 @@ export interface ICliente {
     estado: number;
 }
 
+export interface IClienteCreate {
+    rutCliente: string;
+    nombreCliente: string;
+    nombreComercial: string;
+    razonSocial: string;
+}
+
+export interface IClienteUpdate {
+    nombreCliente: string;
+    nombreComercial: string;
+    razonSocial: string;
+}
+
 export interface IPaginatedClienteResponse {
     content: ICliente[];
     totalElements: number;

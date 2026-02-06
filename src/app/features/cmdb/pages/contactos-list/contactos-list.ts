@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +14,7 @@ import { ToastModule } from 'primeng/toast';
 import { ContactosService } from '../../../../core/services/contactos.service';
 import { IContacto, IContactoCreate, IContactoUpdate, CARGO_OPTIONS } from '../../../../core/models';
 import { cleanRut } from '../../../../core/utils/rut.utils';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
     selector: 'app-contactos-list',
@@ -40,6 +41,10 @@ export class ContactosList implements OnInit {
     private router = inject(Router);
     private confirmationService = inject(ConfirmationService);
     private messageService = inject(MessageService);
+    private authService = inject(AuthService);
+
+    // Permisos
+    canEditContactos = computed(() => this.authService.hasPermission('GESTIONAR_CLIENTES'));
 
     // Estado del diálogo
     displayDialog = signal<boolean>(false);

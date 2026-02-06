@@ -63,7 +63,7 @@
                 <p-button label="Limpiar" icon="pi pi-times" severity="secondary" (onClick)="limpiar()"
                     [disabled]="loading()" />
                 @if (clienteSeleccionado()) {
-                <p-button label="Exportar Excel" icon="pi pi-download" severity="success" (onClick)="exportarExcel()"
+                <p-button *hasPermission="'EXPORTAR_REPORTES'" label="Exportar Excel" icon="pi pi-download" severity="success" (onClick)="exportarExcel()"
                     [disabled]="loading()" />
                 }
             </div>

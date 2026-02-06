@@ -14,7 +14,9 @@ import { ReportesService } from '../../../core/services/reportes.service';
 import { ClientesService } from '../../../core/services/clientes.service';
 import { CatalogosService } from '../../../core/services/catalogos.service';
 import { FamiliaService } from '../../../core/services/familia.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { DetalleAlertaDialogComponent } from './detalle-alerta-dialog.component';
+import { HasPermissionDirective } from '../../../core/directives/has-permission.directive';
 import {
     ICadenciaIngresosFilter,
     ICadenciaCliente,
@@ -38,7 +40,8 @@ import { saveAs } from 'file-saver';
         ChartModule,
         MessageModule,
         ProgressSpinnerModule,
-        DetalleAlertaDialogComponent
+        DetalleAlertaDialogComponent,
+        HasPermissionDirective
     ],
     templateUrl: './cadencia-ingresos.component.html',
     styleUrl: './cadencia-ingresos.component.scss',
@@ -50,6 +53,7 @@ export class CadenciaIngresosComponent implements OnInit {
     private readonly clientesService = inject(ClientesService);
     private readonly familiaService = inject(FamiliaService);
     private readonly catalogosService = inject(CatalogosService);
+    private readonly authService = inject(AuthService);
 
     // Signals
     loading = signal(false);
@@ -58,6 +62,9 @@ export class CadenciaIngresosComponent implements OnInit {
     clientesDisponibles = signal<any[]>([]);
     monedas = signal<any[]>([]);
     familias = signal<any[]>([]);
+
+    // Permisos
+    canExportExcel = computed(() => this.authService.hasPermission('EXPORTAR_REPORTES'));
     servicios = signal<any[]>([]);
     serviciosFiltrados = signal<any[]>([]);
 

@@ -1,7 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ICliente, IPaginatedClienteResponse } from '../models';
+import { ICliente, IPaginatedClienteResponse, IClienteCreate, IClienteUpdate } from '../models';
 import { environment } from '../../../environments/environment';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable({
     providedIn: 'root',
@@ -85,5 +86,29 @@ export class ClientesService {
             .set('sort', 'nombreCliente,asc');
 
         return this.http.get<IPaginatedClienteResponse>(`${this.API_URL}/clientes`, { params });
+    }
+
+    /**
+     * Crea un nuevo cliente
+     */
+    async createCliente(cliente: IClienteCreate): Promise<ICliente> {
+        const url = `${this.API_URL}/clientes`;
+        return lastValueFrom(this.http.post<ICliente>(url, cliente));
+    }
+
+    /**
+     * Actualiza un cliente existente
+     */
+    async updateCliente(rutCliente: string, cliente: IClienteUpdate): Promise<ICliente> {
+        const url = `${this.API_URL}/clientes/${rutCliente}`;
+        return lastValueFrom(this.http.put<ICliente>(url, cliente));
+    }
+
+    /**
+     * Elimina un cliente
+     */
+    async deleteCliente(rutCliente: string): Promise<void> {
+        const url = `${this.API_URL}/clientes/${rutCliente}`;
+        return lastValueFrom(this.http.delete<void>(url));
     }
 }
