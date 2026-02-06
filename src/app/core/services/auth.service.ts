@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import type { IUsuario, IUsuarioLogin, IRol } from '../models';
 import { catchError, tap } from 'rxjs/operators';
 import { of, firstValueFrom } from 'rxjs';
+import { ROLE_PERMISSIONS, type RoleAction } from '../config/role-permissions.config';
 
 const SESSION_KEY = 'cmdb_user_session';
 const SESSION_TIMESTAMP_KEY = 'cmdb_session_timestamp';
@@ -349,5 +350,34 @@ export class AuthService {
      */
     hasRole(roleName: string): boolean {
         return this.userRoles().some(rol => rol.nombreRol === roleName);
+    }
+
+    /**
+     * Verifica si el usuario tiene al menos uno de los roles especificados
+     */
+    hasAnyRole(roleNames: readonly string[]): boolean {
+        const userRoleNames = this.userRoles().map(rol => rol.nombreRol);
+        return roleNames.some(role => userRoleNames.includes(role));
+    }
+
+    /**
+     * Verifica si el usuario puede realizar una acción basándose en su rol.
+     * Usa la configuración centralizada de ROLE_PERMISSIONS.
+     * 
+     * @param action - La acción a verificar (ej: 'EXPORTAR_REPORTES', 'CREAR_COTIZACIONES')
+     * @returns true si el usuario tiene un rol que permite la acción
+     * 
+     * @example
+     * ```typescript
+     * canExport = computed(() => this.authService.can('EXPORTAR_REPORTES'));
+     * ```
+     */
+    can(action: RoleAction): boolean {
+        const allowedRoles = ROLE_PERMISSIONS[action];
+        if (!allowedRoles) {
+            console.warn(`⚠️ Acción no definida en ROLE_PERMISSIONS: ${action}`);
+            return false;
+        }
+        return this.hasAnyRole(allowedRoles);
     }
 }

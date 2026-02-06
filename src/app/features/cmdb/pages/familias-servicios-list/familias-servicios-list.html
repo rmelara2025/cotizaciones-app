@@ -19,10 +19,12 @@
 
         <!-- Tab Content Familias -->
         <div *ngIf="activeTab() === 'familias'" class="tab-content">
+            @if (canManage()) {
             <div class="tab-header">
                 <button pButton type="button" label="Nueva Familia" icon="pi pi-plus"
                     (click)="abrirDialogFamiliaNueva()"></button>
             </div>
+            }
 
             <p-table [value]="familias()" [loading]="loading()" [paginator]="true" [rows]="10"
                 [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
@@ -40,12 +42,14 @@
                         <td>{{ familia.nombreFamilia }}</td>
                         <td>{{ familia.descripcion }}</td>
                         <td>
+                            @if (canManage()) {
                             <button pButton type="button" icon="pi pi-pencil"
                                 class="p-button-rounded p-button-text p-button-info"
                                 (click)="abrirDialogFamiliaEditar(familia)" pTooltip="Editar"></button>
                             <button pButton type="button" icon="pi pi-trash"
                                 class="p-button-rounded p-button-text p-button-danger"
                                 (click)="confirmarEliminarFamilia(familia)" pTooltip="Eliminar"></button>
+                            }
                         </td>
                     </tr>
                 </ng-template>
@@ -54,10 +58,12 @@
 
         <!-- Tab Content Servicios -->
         <div *ngIf="activeTab() === 'servicios'" class="tab-content">
+            @if (canManage()) {
             <div class="tab-header">
                 <button pButton type="button" label="Nuevo Servicio" icon="pi pi-plus"
                     (click)="abrirDialogServicioNuevo()"></button>
             </div>
+            }
 
             <p-table [value]="servicios()" [loading]="loading()" [paginator]="true" [rows]="10"
                 [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
@@ -77,12 +83,14 @@
                         <td>{{ servicio.nombre }}</td>
                         <td>{{ servicio.descripcion }}</td>
                         <td>
+                            @if (canManage()) {
                             <button pButton type="button" icon="pi pi-pencil"
                                 class="p-button-rounded p-button-text p-button-info"
                                 (click)="abrirDialogServicioEditar(servicio)" pTooltip="Editar"></button>
                             <button pButton type="button" icon="pi pi-trash"
                                 class="p-button-rounded p-button-text p-button-danger"
                                 (click)="confirmarEliminarServicio(servicio)" pTooltip="Eliminar"></button>
+                            }
                         </td>
                     </tr>
                 </ng-template>

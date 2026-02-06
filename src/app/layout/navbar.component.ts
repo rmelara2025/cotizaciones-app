@@ -56,11 +56,12 @@ export class NavbarComponent {
   userRoles = this.authService.userRoles;
   userPermissions = this.authService.userPermissions;
 
-  // Computed para verificar permisos
-  canSeeDashboard = computed(() => this.authService.hasPermission('VER_DASHBOARD'));
-  canSeeReports = computed(() => this.authService.hasPermission('VER_REPORTES'));
-  canSeeConfig = computed(() =>
-    this.authService.hasRole('Owner') || this.authService.hasPermission('GESTIONAR_USUARIOS')
+  // Computed para verificar permisos por rol
+  canSeeDashboard = computed(() => this.authService.can('VER_DASHBOARD'));
+  canSeeReports = computed(() => this.authService.can('VER_REPORTES'));
+  // Configuración visible si puede ver Familias de Servicios O Gestionar Usuarios
+  canSeeConfig = computed(() => 
+    this.authService.can('VER_FAMILIA_SERVICIOS') || this.authService.can('GESTIONAR_USUARIOS')
   );
 
   // Ítems del menú filtrados por permisos
@@ -99,18 +100,26 @@ export class NavbarComponent {
       });
     }
 
-    // Reportes - Solo si tiene permiso
-    if (this.canSeeReports()) {
+    // Reportes - Dividido según permisos
+    const reporteItems: MenuItem[] = [];
+
+    // Cadencia de Ingresos - Owner, Gerencial, VIP (NO Administrativo)
+    if (this.authService.can('VER_CADENCIA')) {
+      reporteItems.push({
+        label: 'Cadencia de Ingresos',
+        icon: 'pi pi-fw pi-chart-line',
+        command: () => this.router.navigate(['/reportes/cadencia-ingresos']),
+      });
+    }
+
+    // Otros reportes podrían ir aquí en el futuro
+
+    // Solo mostrar menú de Reportes si hay items disponibles
+    if (reporteItems.length > 0) {
       menuItems.push({
         label: 'Reportes',
         icon: 'pi pi-fw pi-chart-bar',
-        items: [
-          {
-            label: 'Cadencia de Ingresos',
-            icon: 'pi pi-fw pi-chart-line',
-            command: () => this.router.navigate(['/reportes/cadencia-ingresos']),
-          },
-        ],
+        items: reporteItems,
       });
     }
 
@@ -119,7 +128,7 @@ export class NavbarComponent {
       const configItems: MenuItem[] = [];
 
       // Familias y Servicios - Visible para Owner y Administrativo
-      if (this.authService.hasAnyPermission(['VER_TODO', 'MODIFICAR'])) {
+      if (this.authService.can('VER_FAMILIA_SERVICIOS')) {
         configItems.push({
           label: 'Familias y Servicios',
           icon: 'pi pi-fw pi-sitemap',

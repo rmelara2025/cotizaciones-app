@@ -77,7 +77,7 @@ export class ClientesList implements OnInit {
     editingRutCliente = '';
 
     // Permisos
-    canCreateClient = computed(() => this.authService.hasPermission('GESTIONAR_CLIENTES'));
+    canCreateClient = computed(() => this.authService.can('GESTIONAR_CLIENTES'));
     // Todos pueden ver contactos excepto rol "Vista"
     canSeeContactos = computed(() => !this.authService.hasRole('Vista'));
 

@@ -44,7 +44,7 @@ export class ContactosList implements OnInit {
     private authService = inject(AuthService);
 
     // Permisos
-    canEditContactos = computed(() => this.authService.hasPermission('GESTIONAR_CLIENTES'));
+    canEditContactos = computed(() => this.authService.can('GESTIONAR_CLIENTES'));
 
     // Estado del diálogo
     displayDialog = signal<boolean>(false);

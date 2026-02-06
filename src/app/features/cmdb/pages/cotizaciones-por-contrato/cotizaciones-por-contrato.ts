@@ -11,6 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { CotizacionesService } from '../../../../core/services/cotizaciones.service';
 import { ContratosService } from '../../../../core/services/contratos.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ICotizacion, IContrato, IAccionDisponible } from '../../../../core/models';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { getEstadoSeverity, getIconEstado, getTextEstado } from '../../../../core/utils/commons';
@@ -36,6 +37,7 @@ import { getEstadoSeverity, getIconEstado, getTextEstado } from '../../../../cor
 export class CotizacionesPorContrato implements OnInit {
     private cotizacionesService = inject(CotizacionesService);
     private contratosService = inject(ContratosService);
+    private authService = inject(AuthService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
 
@@ -187,10 +189,32 @@ export class CotizacionesPorContrato implements OnInit {
     }
 
     /**
+     * Determina si el usuario actual puede ver una acción específica
+     * basándose en su rol y las reglas de negocio
+     */
+    private shouldShowAction(accion: IAccionDisponible): boolean {
+        const userRoles = this.authService.userRoles().map(r => r.nombreRol);
+        
+        // Transiciones que SOLO Gerencial/TeamLeader puede realizar
+        // Transición 3: EN_REVISIÓN → APROBADA (Aprobar cotización)
+        // Transición 4: EN_REVISIÓN → RECHAZADA (Rechazar cotización)
+        // Transición 5: EN_REVISIÓN → BORRADOR (Devolver a borrador)
+        const gerencialOnlyTransitions = [3, 4, 5];
+        
+        if (gerencialOnlyTransitions.includes(accion.idTransicion)) {
+            return userRoles.includes('Gerencial/TeamLeader') || userRoles.includes('Owner');
+        }
+        
+        // Resto de transiciones son visibles según backend
+        return true;
+    }
+
+    /**
      * Obtiene las acciones disponibles para una cotización específica
      */
     obtenerAcciones(cotizacion: ICotizacion): IAccionDisponible[] {
-        return this.accionesDisponibles().get(cotizacion.idCotizacion) || [];
+        const allAcciones = this.accionesDisponibles().get(cotizacion.idCotizacion) || [];
+        return allAcciones.filter(accion => this.shouldShowAction(accion));
     }
 
     /**

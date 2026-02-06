@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -12,6 +12,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CatalogosService, IFamilia, IServicioDetalle } from '../../../../core/services/catalogos.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
     selector: 'app-familias-servicios-list',
@@ -36,6 +37,10 @@ export class FamiliasServiciosList implements OnInit {
     private catalogosService = inject(CatalogosService);
     private confirmationService = inject(ConfirmationService);
     private messageService = inject(MessageService);
+    private authService = inject(AuthService);
+
+    // Permisos
+    canManage = computed(() => this.authService.can('GESTIONAR_FAMILIA_SERVICIOS'));
 
     // Signals
     familias = signal<IFamilia[]>([]);

@@ -320,15 +320,14 @@ export class SidenavComponent implements OnInit {
   userRoles = this.authService.userRoles;
   userPermissions = this.authService.userPermissions;
 
-  // Computed para verificar permisos
-  canSeeDashboard = computed(() => this.authService.hasPermission('VER_DASHBOARD'));
-  canSeeReports = computed(() => this.authService.hasPermission('VER_REPORTES'));
-  canCreateQuote = computed(() => this.authService.hasPermission('CREAR_COTIZACIONES'));
-  canSeeProveedores = computed(() =>
-    this.authService.hasAnyPermission(['VER_TODO', 'GESTIONAR_CLIENTES'])
-  );
-  canSeeConfig = computed(() =>
-    this.authService.hasRole('Owner') || this.authService.hasPermission('GESTIONAR_USUARIOS')
+  // Computed para verificar permisos por rol
+  canSeeDashboard = computed(() => this.authService.can('VER_DASHBOARD'));
+  canSeeReports = computed(() => this.authService.can('VER_REPORTES'));
+  canCreateQuote = computed(() => this.authService.can('CREAR_COTIZACIONES'));
+  canSeeProveedores = computed(() => this.authService.can('VER_PROVEEDORES'));
+  // Configuración visible si puede ver Familias de Servicios O Gestionar Usuarios
+  canSeeConfig = computed(() => 
+    this.authService.can('VER_FAMILIA_SERVICIOS') || this.authService.can('GESTIONAR_USUARIOS')
   );
   isOwner = computed(() => this.authService.hasRole('Owner'));
 
@@ -357,8 +356,8 @@ export class SidenavComponent implements OnInit {
       menuItems.push({ label: 'Proveedores', icon: 'pi-box', route: '/proveedores' });
     }
 
-    // Cadencia Ingresos - Solo si tiene VER_REPORTES
-    if (this.canSeeReports()) {
+    // Cadencia Ingresos - Owner, Gerencial, VIP (NO Administrativo)
+    if (this.authService.can('VER_CADENCIA')) {
       menuItems.push({ label: 'Cadencia Ingresos', icon: 'pi-chart-line', route: '/reportes/cadencia-ingresos' });
     }
 
@@ -372,7 +371,7 @@ export class SidenavComponent implements OnInit {
       const configChildren: SidenavItem[] = [];
 
       // Familias de Servicios - Visible para Owner y Administrativo
-      if (this.authService.hasAnyPermission(['VER_TODO', 'MODIFICAR'])) {
+      if (this.authService.can('VER_FAMILIA_SERVICIOS')) {
         configChildren.push({ label: 'Familias de Servicios', icon: 'pi-sitemap', route: '/config/familias-servicios' });
       }
 

@@ -71,8 +71,8 @@ export class CotizacionesList implements OnInit {
   filters: IContratoFilters = { ...DEFAULT_CONTRATO_FILTER };
 
   // Permisos
-  canCreateContract = computed(() => this.authService.hasPermission('CREAR_COTIZACIONES'));
-  canExportExcel = computed(() => this.authService.hasPermission('EXPORTAR_REPORTES'));
+  canCreateContract = computed(() => this.authService.can('CREAR_COTIZACIONES'));
+  canExportExcel = computed(() => this.authService.can('EXPORTAR_REPORTES'));
 
   // UI state for dialog
   showDetalleDialog = false;
