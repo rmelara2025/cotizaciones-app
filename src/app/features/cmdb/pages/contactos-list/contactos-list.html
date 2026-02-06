@@ -12,7 +12,7 @@
                 <p-button label="Volver" icon="pi pi-arrow-left" severity="secondary" (click)="volver()"
                     class="mr-2"></p-button>
                 @if (canEditContactos()) {
-                    <p-button label="Nuevo Contacto" icon="pi pi-plus" (click)="openNewContactoDialog()"></p-button>
+                <p-button label="Nuevo Contacto" icon="pi pi-plus" (click)="openNewContactoDialog()"></p-button>
                 }
             </div>
         </div>
@@ -48,15 +48,15 @@
                 </td>
                 <td style="text-align: center">
                     @if (canEditContactos()) {
-                        <p-button icon="pi pi-pencil" [raised]="true" severity="warn" pTooltip="Editar"
-                            (click)="openEditContactoDialog(contacto)" class="mr-2">
-                        </p-button>
-                        <p-button icon="pi pi-trash" [raised]="true" severity="danger" pTooltip="Eliminar"
-                            (click)="confirmDelete(contacto)">
-                        </p-button>
+                    <p-button icon="pi pi-pencil" [raised]="true" severity="warn" pTooltip="Editar"
+                        (click)="openEditContactoDialog(contacto)" class="mr-2">
+                    </p-button>
+                    <p-button icon="pi pi-trash" [raised]="true" severity="danger" pTooltip="Eliminar"
+                        (click)="confirmDelete(contacto)">
+                    </p-button>
                     }
                     @if (!canEditContactos()) {
-                        <span class="text-color-secondary text-sm">Solo lectura</span>
+                    <span class="text-color-secondary text-sm">Solo lectura</span>
                     }
                 </td>
             </tr>

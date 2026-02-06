@@ -59,7 +59,7 @@ export class NavbarComponent {
   // Computed para verificar permisos
   canSeeDashboard = computed(() => this.authService.hasPermission('VER_DASHBOARD'));
   canSeeReports = computed(() => this.authService.hasPermission('VER_REPORTES'));
-  canSeeConfig = computed(() => 
+  canSeeConfig = computed(() =>
     this.authService.hasRole('Owner') || this.authService.hasPermission('GESTIONAR_USUARIOS')
   );
 

@@ -58,7 +58,7 @@ export class ClientesList implements OnInit {
     displayDialog = false;
     isEditMode = false;
     dialogTitle = '';
-    
+
     // Formulario del cliente - separar para crear y actualizar
     clienteFormCreate: IClienteCreate = {
         rutCliente: '',
@@ -66,13 +66,13 @@ export class ClientesList implements OnInit {
         nombreComercial: '',
         razonSocial: '',
     };
-    
+
     clienteFormUpdate: IClienteUpdate = {
         nombreCliente: '',
         nombreComercial: '',
         razonSocial: '',
     };
-    
+
     // RUT del cliente en edición (solo para modo editar)
     editingRutCliente = '';
 
@@ -234,7 +234,7 @@ export class ClientesList implements OnInit {
                 // Crear nuevo cliente - limpiar el RUT antes de enviar
                 const clienteCreate = { ...this.clienteFormCreate };
                 clienteCreate.rutCliente = cleanRut(clienteCreate.rutCliente);
-                
+
                 await this.clientesService.createCliente(clienteCreate);
                 this.messageService.add({
                     severity: 'success',

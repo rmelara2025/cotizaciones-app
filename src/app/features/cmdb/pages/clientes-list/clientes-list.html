@@ -3,7 +3,7 @@
         <div class="flex justify-content-between align-items-center mb-3">
             <h2 class="text-2xl font-bold">Gestión de Clientes</h2>
             @if (canCreateClient()) {
-                <p-button label="Nuevo Cliente" icon="pi pi-plus" (click)="openNewClienteDialog()"></p-button>
+            <p-button label="Nuevo Cliente" icon="pi pi-plus" (click)="openNewClienteDialog()"></p-button>
             }
         </div>
 
@@ -90,12 +90,12 @@
                             (click)="verContactos(cliente)">
                         </p-button>
                         @if (canCreateClient()) {
-                            <p-button icon="pi pi-pencil" [raised]="true" severity="warn" pTooltip="Editar"
-                                (click)="openEditClienteDialog(cliente)">
-                            </p-button>
-                            <p-button icon="pi pi-trash" [raised]="true" severity="danger" pTooltip="Eliminar"
-                                (click)="confirmDelete(cliente)">
-                            </p-button>
+                        <p-button icon="pi pi-pencil" [raised]="true" severity="warn" pTooltip="Editar"
+                            (click)="openEditClienteDialog(cliente)">
+                        </p-button>
+                        <p-button icon="pi pi-trash" [raised]="true" severity="danger" pTooltip="Eliminar"
+                            (click)="confirmDelete(cliente)">
+                        </p-button>
                         }
                     </div>
                 </td>
@@ -117,50 +117,53 @@
         [draggable]="false" [resizable]="false">
         <div class="grid p-fluid">
             @if (!isEditMode) {
-                <!-- Modo Crear -->
-                <div class="col-12">
-                    <label for="rutCliente" class="block mb-2 font-semibold">RUT <span class="text-red-500">*</span></label>
-                    <input pInputText id="rutCliente" [(ngModel)]="clienteFormCreate.rutCliente" 
-                           placeholder="12345678-9" appRutInput class="w-full" required />
-                </div>
-                <div class="col-12">
-                    <label for="nombreClienteCreate" class="block mb-2 font-semibold">Nombre Cliente <span class="text-red-500">*</span></label>
-                    <input pInputText id="nombreClienteCreate" [(ngModel)]="clienteFormCreate.nombreCliente" 
-                           placeholder="Ingrese el nombre del cliente" class="w-full" required />
-                </div>
-                <div class="col-12">
-                    <label for="nombreComercialCreate" class="block mb-2 font-semibold">Nombre Comercial</label>
-                    <input pInputText id="nombreComercialCreate" [(ngModel)]="clienteFormCreate.nombreComercial" 
-                           placeholder="Ingrese el nombre comercial" class="w-full" />
-                </div>
-                <div class="col-12">
-                    <label for="razonSocialCreate" class="block mb-2 font-semibold">Razón Social</label>
-                    <input pInputText id="razonSocialCreate" [(ngModel)]="clienteFormCreate.razonSocial" 
-                           placeholder="Ingrese la razón social" class="w-full" />
-                </div>
+            <!-- Modo Crear -->
+            <div class="col-12">
+                <label for="rutCliente" class="block mb-2 font-semibold">RUT <span class="text-red-500">*</span></label>
+                <input pInputText id="rutCliente" [(ngModel)]="clienteFormCreate.rutCliente" placeholder="12345678-9"
+                    appRutInput class="w-full" required />
+            </div>
+            <div class="col-12">
+                <label for="nombreClienteCreate" class="block mb-2 font-semibold">Nombre Cliente <span
+                        class="text-red-500">*</span></label>
+                <input pInputText id="nombreClienteCreate" [(ngModel)]="clienteFormCreate.nombreCliente"
+                    placeholder="Ingrese el nombre del cliente" class="w-full" required />
+            </div>
+            <div class="col-12">
+                <label for="nombreComercialCreate" class="block mb-2 font-semibold">Nombre Comercial</label>
+                <input pInputText id="nombreComercialCreate" [(ngModel)]="clienteFormCreate.nombreComercial"
+                    placeholder="Ingrese el nombre comercial" class="w-full" />
+            </div>
+            <div class="col-12">
+                <label for="razonSocialCreate" class="block mb-2 font-semibold">Razón Social</label>
+                <input pInputText id="razonSocialCreate" [(ngModel)]="clienteFormCreate.razonSocial"
+                    placeholder="Ingrese la razón social" class="w-full" />
+            </div>
             }
             @if (isEditMode) {
-                <!-- Modo Editar -->
-                <div class="col-12">
-                    <label for="nombreClienteEdit" class="block mb-2 font-semibold">Nombre Cliente <span class="text-red-500">*</span></label>
-                    <input pInputText id="nombreClienteEdit" [(ngModel)]="clienteFormUpdate.nombreCliente" 
-                           placeholder="Ingrese el nombre del cliente" class="w-full" required />
-                </div>
-                <div class="col-12">
-                    <label for="nombreComercialEdit" class="block mb-2 font-semibold">Nombre Comercial</label>
-                    <input pInputText id="nombreComercialEdit" [(ngModel)]="clienteFormUpdate.nombreComercial" 
-                           placeholder="Ingrese el nombre comercial" class="w-full" />
-                </div>
-                <div class="col-12">
-                    <label for="razonSocialEdit" class="block mb-2 font-semibold">Razón Social</label>
-                    <input pInputText id="razonSocialEdit" [(ngModel)]="clienteFormUpdate.razonSocial" 
-                           placeholder="Ingrese la razón social" class="w-full" />
-                </div>
+            <!-- Modo Editar -->
+            <div class="col-12">
+                <label for="nombreClienteEdit" class="block mb-2 font-semibold">Nombre Cliente <span
+                        class="text-red-500">*</span></label>
+                <input pInputText id="nombreClienteEdit" [(ngModel)]="clienteFormUpdate.nombreCliente"
+                    placeholder="Ingrese el nombre del cliente" class="w-full" required />
+            </div>
+            <div class="col-12">
+                <label for="nombreComercialEdit" class="block mb-2 font-semibold">Nombre Comercial</label>
+                <input pInputText id="nombreComercialEdit" [(ngModel)]="clienteFormUpdate.nombreComercial"
+                    placeholder="Ingrese el nombre comercial" class="w-full" />
+            </div>
+            <div class="col-12">
+                <label for="razonSocialEdit" class="block mb-2 font-semibold">Razón Social</label>
+                <input pInputText id="razonSocialEdit" [(ngModel)]="clienteFormUpdate.razonSocial"
+                    placeholder="Ingrese la razón social" class="w-full" />
+            </div>
             }
         </div>
 
         <ng-template pTemplate="footer">
-            <p-button label="Cancelar" icon="pi pi-times" severity="secondary" (onClick)="displayDialog = false"></p-button>
+            <p-button label="Cancelar" icon="pi pi-times" severity="secondary"
+                (onClick)="displayDialog = false"></p-button>
             <p-button label="Guardar" icon="pi pi-check" (onClick)="saveCliente()"></p-button>
         </ng-template>
     </p-dialog>

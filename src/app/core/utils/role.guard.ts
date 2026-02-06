@@ -16,7 +16,7 @@ export const roleGuard = (requiredRoles: string[]): CanActivateFn => {
     const router = inject(Router);
 
     const userRoles = authService.userRoles();
-    const hasRole = requiredRoles.some(role => 
+    const hasRole = requiredRoles.some(role =>
       userRoles.some(ur => ur.nombreRol === role)
     );
 
@@ -44,7 +44,7 @@ export const permissionGuard = (requiredPermissions: string[]): CanActivateFn =>
     const router = inject(Router);
 
     const userPermissions = authService.userPermissions();
-    const hasPermission = requiredPermissions.some(permission => 
+    const hasPermission = requiredPermissions.some(permission =>
       userPermissions.includes(permission)
     );
 

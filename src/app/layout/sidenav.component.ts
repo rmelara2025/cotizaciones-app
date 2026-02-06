@@ -324,10 +324,10 @@ export class SidenavComponent implements OnInit {
   canSeeDashboard = computed(() => this.authService.hasPermission('VER_DASHBOARD'));
   canSeeReports = computed(() => this.authService.hasPermission('VER_REPORTES'));
   canCreateQuote = computed(() => this.authService.hasPermission('CREAR_COTIZACIONES'));
-  canSeeProveedores = computed(() => 
+  canSeeProveedores = computed(() =>
     this.authService.hasAnyPermission(['VER_TODO', 'GESTIONAR_CLIENTES'])
   );
-  canSeeConfig = computed(() => 
+  canSeeConfig = computed(() =>
     this.authService.hasRole('Owner') || this.authService.hasPermission('GESTIONAR_USUARIOS')
   );
   isOwner = computed(() => this.authService.hasRole('Owner'));
