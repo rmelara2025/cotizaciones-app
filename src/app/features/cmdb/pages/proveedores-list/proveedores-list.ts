@@ -119,7 +119,7 @@ export class ProveedoresList implements OnInit {
 
     abrirDialogProveedorEditar(proveedor: IProveedor): void {
         this.isEditMode.set(true);
-        
+
         // Cargar detalle con servicios
         if (proveedor.idProveedor) {
             this.catalogosService.obtenerProveedorDetalle(proveedor.idProveedor).subscribe({
