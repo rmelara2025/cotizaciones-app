@@ -63,6 +63,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'config/proveedores',
+    loadComponent: () =>
+      import('./features/cmdb/pages/proveedores-list/proveedores-list').then(
+        (m) => m.ProveedoresList,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full',

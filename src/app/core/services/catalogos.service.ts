@@ -41,6 +41,29 @@ export interface IPeriodicidad {
     descripcion: string;
 }
 
+export interface IProveedor {
+    idProveedor?: number;
+    nombreProveedor: string;
+    razonSocialProveedor?: string;
+    contactoProveedor?: string;
+    telefonoProveedor?: string;
+    emailProveedor?: string;
+    estado?: number;
+    rutProveedor?: string;
+    serviciosIds?: number[];
+}
+
+export interface IProveedorDetalle extends IProveedor {
+    servicios?: IProveedorServicio[];
+}
+
+export interface IProveedorServicio {
+    idProveedorServicio: number;
+    idServicio: number;
+    nombreServicio: string;
+    descripcion: string;
+}
+
 @Injectable({
     providedIn: 'root',
 })
@@ -147,5 +170,34 @@ export class CatalogosService {
 
     eliminarServicio(idServicio: number): Observable<void> {
         return this.http.delete<void>(`${this.API_URL}/catalogos/servicios/${idServicio}`);
+    }
+
+    // CRUD Proveedores
+    listarProveedores(): Observable<IProveedor[]> {
+        return this.http.get<IProveedor[]>(`${this.API_URL}/catalogos/proveedores`);
+    }
+
+    obtenerProveedorDetalle(idProveedor: number): Observable<IProveedorDetalle> {
+        return this.http.get<IProveedorDetalle>(`${this.API_URL}/catalogos/proveedores/${idProveedor}`);
+    }
+
+    crearProveedor(proveedor: IProveedor): Observable<IProveedor> {
+        return this.http.post<IProveedor>(`${this.API_URL}/catalogos/proveedores`, proveedor);
+    }
+
+    actualizarProveedor(idProveedor: number, proveedor: IProveedor): Observable<IProveedor> {
+        return this.http.put<IProveedor>(`${this.API_URL}/catalogos/proveedores/${idProveedor}`, proveedor);
+    }
+
+    eliminarProveedor(idProveedor: number): Observable<void> {
+        return this.http.delete<void>(`${this.API_URL}/catalogos/proveedores/${idProveedor}`);
+    }
+
+    relacionarServicioProveedor(idProveedor: number, idServicio: number): Observable<void> {
+        return this.http.post<void>(`${this.API_URL}/catalogos/proveedores/${idProveedor}/servicios/${idServicio}`, {});
+    }
+
+    eliminarRelacionServicioProveedor(idProveedor: number, idServicio: number): Observable<void> {
+        return this.http.delete<void>(`${this.API_URL}/catalogos/proveedores/${idProveedor}/servicios/${idServicio}`);
     }
 }

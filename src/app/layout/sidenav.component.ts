@@ -351,11 +351,6 @@ export class SidenavComponent implements OnInit {
     // Clientes - Todos pueden ver
     menuItems.push({ label: 'Clientes', icon: 'pi-users', route: '/clientes' });
 
-    // Proveedores - Oculto para Vista
-    if (this.canSeeProveedores()) {
-      menuItems.push({ label: 'Proveedores', icon: 'pi-box', route: '/proveedores' });
-    }
-
     // Cadencia Ingresos - Owner, Gerencial, VIP (NO Administrativo)
     if (this.authService.can('VER_CADENCIA')) {
       menuItems.push({ label: 'Cadencia Ingresos', icon: 'pi-chart-line', route: '/reportes/cadencia-ingresos' });
@@ -373,6 +368,11 @@ export class SidenavComponent implements OnInit {
       // Familias de Servicios - Visible para Owner y Administrativo
       if (this.authService.can('VER_FAMILIA_SERVICIOS')) {
         configChildren.push({ label: 'Familias de Servicios', icon: 'pi-sitemap', route: '/config/familias-servicios' });
+      }
+
+      // Proveedores - Visible para Owner, Administrativo y Gerencial
+      if (this.canSeeProveedores()) {
+        configChildren.push({ label: 'Proveedores', icon: 'pi-box', route: '/config/proveedores' });
       }
 
       // Usuarios - Solo Owner

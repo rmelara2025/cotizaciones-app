@@ -65,6 +65,12 @@ export const ROLE_PERMISSIONS = {
     VER_PROVEEDORES: ['Owner', 'Administrativo', 'Gerencial/TeamLeader'],
 
     /**
+     * GESTIONAR PROVEEDORES (Crear, editar, eliminar proveedores y relacionar servicios)
+     * Roles: Owner, Administrativo
+     */
+    GESTIONAR_PROVEEDORES: ['Owner', 'Administrativo'],
+
+    /**
      * VER FAMILIA SERVICIOS (Módulo de familias de servicios y servicios)
      * Roles: Owner, Administrativo, Gerencial/TeamLeader
      */
