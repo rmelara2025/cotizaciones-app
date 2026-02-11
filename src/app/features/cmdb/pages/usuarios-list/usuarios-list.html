@@ -81,9 +81,8 @@
                 <label for="claveUsuario">
                     Contraseña {{ isEditMode() ? '(dejar vacío para no cambiar)' : '*' }}
                 </label>
-                <p-password id="claveUsuario" [(ngModel)]="usuarioForm.claveUsuario"
-                    [toggleMask]="true" [feedback]="false" styleClass="w-full"
-                    [inputStyle]="{'width': '100%'}" [maxlength]="100" />
+                <p-password id="claveUsuario" [(ngModel)]="usuarioForm.claveUsuario" [toggleMask]="true"
+                    [feedback]="false" styleClass="w-full" [inputStyle]="{'width': '100%'}" [maxlength]="100" />
             </div>
         </div>
 

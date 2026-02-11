@@ -14,20 +14,20 @@ import { CatalogosService, IProveedor } from '../../../../core/services/catalogo
 import { IndicadoresService } from '../../../../core/services/indicadores.service';
 
 @Component({
-    selector: 'app-wizard-paso4-items',
-    imports: [
-        CommonModule,
-        FormsModule,
-        ButtonModule,
-        TableModule,
-        SelectModule,
-        InputNumberModule,
-        DatePickerModule,
-        InputTextModule,
-        DialogModule,
-        TextareaModule
-    ],
-    template: `
+  selector: 'app-wizard-paso4-items',
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    TableModule,
+    SelectModule,
+    InputNumberModule,
+    DatePickerModule,
+    InputTextModule,
+    DialogModule,
+    TextareaModule
+  ],
+  template: `
     <div class="wizard-paso wizard-paso4">
       <h3 class="mb-4">Items de Servicio</h3>
 
@@ -282,7 +282,7 @@ import { IndicadoresService } from '../../../../core/services/indicadores.servic
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .wizard-paso4 {
       padding: 2rem;
     }
@@ -305,153 +305,153 @@ import { IndicadoresService } from '../../../../core/services/indicadores.servic
   `]
 })
 export class WizardPaso4ItemsComponent implements OnInit {
-    private wizardService = inject(WizardService);
-    private catalogosService = inject(CatalogosService);
-    private indicadoresService = inject(IndicadoresService);
+  private wizardService = inject(WizardService);
+  private catalogosService = inject(CatalogosService);
+  private indicadoresService = inject(IndicadoresService);
 
-    items = signal<IWizardItem[]>([]);
+  items = signal<IWizardItem[]>([]);
 
-    servicios = this.catalogosService.servicios;
-    monedas = this.catalogosService.monedas;
-    periodicidades = this.catalogosService.periodicidades;
+  servicios = this.catalogosService.servicios;
+  monedas = this.catalogosService.monedas;
+  periodicidades = this.catalogosService.periodicidades;
 
-    valorDolar = this.indicadoresService.valorDolar;
-    valorUF = this.indicadoresService.valorUF;
-    fechaDolar = this.indicadoresService.fechaDolar;
-    fechaUF = this.indicadoresService.fechaUF;
+  valorDolar = this.indicadoresService.valorDolar;
+  valorUF = this.indicadoresService.valorUF;
+  fechaDolar = this.indicadoresService.fechaDolar;
+  fechaUF = this.indicadoresService.fechaUF;
 
-    mostrarDialogAtributos = false;
-    itemEditando = signal<IWizardItem | null>(null);
+  mostrarDialogAtributos = false;
+  itemEditando = signal<IWizardItem | null>(null);
 
-    ngOnInit(): void {
-        // Cargar catálogos e indicadores
-        this.catalogosService.loadServicios();
-        this.catalogosService.loadMonedas();
-        this.catalogosService.loadPeriodicidades();
-        this.indicadoresService.cargarIndicadores();
+  ngOnInit(): void {
+    // Cargar catálogos e indicadores
+    this.catalogosService.loadServicios();
+    this.catalogosService.loadMonedas();
+    this.catalogosService.loadPeriodicidades();
+    this.indicadoresService.cargarIndicadores();
 
-        // Cargar items existentes si los hay
-        const itemsExistentes = this.wizardService.items();
-        if (itemsExistentes && itemsExistentes.length > 0) {
-            this.items.set([...itemsExistentes]);
+    // Cargar items existentes si los hay
+    const itemsExistentes = this.wizardService.items();
+    if (itemsExistentes && itemsExistentes.length > 0) {
+      this.items.set([...itemsExistentes]);
+    }
+  }
+
+  agregarItem(): void {
+    const nuevoItem: IWizardItem = {
+      numItem: this.items().length + 1,
+      idServicio: 0,
+      nombreServicio: '',
+      nombreFamilia: '',
+      cantidad: 1,
+      precioUnitario: 0,
+      subtotal: 0,
+      idTipoMoneda: 0,
+      nombreMoneda: '',
+      idPeriodicidad: 0,
+      nombrePeriodicidad: '',
+      fechaInicioFacturacion: null,
+      fechaFinFacturacion: null,
+      atributos: null,
+      observacion: '',
+      idProveedor: undefined,
+      nombreProveedor: undefined,
+      _proveedoresDisponibles: [] as IProveedor[]
+    };
+    this.items.update(items => [...items, nuevoItem]);
+  }
+
+  eliminarItem(index: number): void {
+    this.items.update(items => items.filter((_, i) => i !== index));
+  }
+
+  onServicioChange(item: IWizardItem): void {
+    const servicio = this.servicios().find((s: any) => s.idServicio === item.idServicio);
+    if (servicio) {
+      item.nombreServicio = servicio.nombre;
+      item.nombreFamilia = servicio.nombreFamilia || '';
+
+      // Reiniciar proveedor cuando cambia el servicio
+      item.idProveedor = undefined;
+      item.nombreProveedor = undefined;
+      item._proveedoresDisponibles = [] as IProveedor[];
+
+      // Cargar proveedores del servicio
+      this.catalogosService.obtenerProveedoresPorServicio(item.idServicio).subscribe({
+        next: (proveedores) => {
+          item._proveedoresDisponibles = proveedores;
+        },
+        error: (err) => {
+          console.error('Error cargando proveedores del servicio:', err);
+          item._proveedoresDisponibles = [] as IProveedor[];
         }
+      });
     }
+  }
 
-    agregarItem(): void {
-        const nuevoItem: IWizardItem = {
-            numItem: this.items().length + 1,
-            idServicio: 0,
-            nombreServicio: '',
-            nombreFamilia: '',
-            cantidad: 1,
-            precioUnitario: 0,
-            subtotal: 0,
-            idTipoMoneda: 0,
-            nombreMoneda: '',
-            idPeriodicidad: 0,
-            nombrePeriodicidad: '',
-            fechaInicioFacturacion: null,
-            fechaFinFacturacion: null,
-            atributos: null,
-            observacion: '',
-            idProveedor: undefined,
-            nombreProveedor: undefined,
-            _proveedoresDisponibles: [] as IProveedor[]
-        };
-        this.items.update(items => [...items, nuevoItem]);
+  onProveedorChange(item: IWizardItem): void {
+    if (item.idProveedor) {
+      const proveedor = item._proveedoresDisponibles?.find((p: any) => p.idProveedor === item.idProveedor);
+      if (proveedor) {
+        item.nombreProveedor = proveedor.nombreProveedor;
+      }
+    } else {
+      // Si se limpia el proveedor
+      item.nombreProveedor = undefined;
     }
+  }
 
-    eliminarItem(index: number): void {
-        this.items.update(items => items.filter((_, i) => i !== index));
-    }
+  calcularSubtotal(item: IWizardItem): void {
+    item.subtotal = item.cantidad * item.precioUnitario;
+  }
 
-    onServicioChange(item: IWizardItem): void {
-        const servicio = this.servicios().find((s: any) => s.idServicio === item.idServicio);
-        if (servicio) {
-            item.nombreServicio = servicio.nombre;
-            item.nombreFamilia = servicio.nombreFamilia || '';
+  /**
+   * Calcula el subtotal de un item convertido a pesos
+   */
+  calcularSubtotalEnPesos(item: IWizardItem): number {
+    const subtotal = item.cantidad * item.precioUnitario;
+    return this.indicadoresService.convertirAPesos(subtotal, item.idTipoMoneda);
+  }
 
-            // Reiniciar proveedor cuando cambia el servicio
-            item.idProveedor = undefined;
-            item.nombreProveedor = undefined;
-            item._proveedoresDisponibles = [] as IProveedor[];
+  /**
+   * Calcula el total general en pesos (sumando todos los items convertidos)
+   */
+  calcularTotal(): number {
+    return this.items().reduce((sum, item) => {
+      const subtotalEnPesos = this.calcularSubtotalEnPesos(item);
+      return sum + subtotalEnPesos;
+    }, 0);
+  }
 
-            // Cargar proveedores del servicio
-            this.catalogosService.obtenerProveedoresPorServicio(item.idServicio).subscribe({
-                next: (proveedores) => {
-                    item._proveedoresDisponibles = proveedores;
-                },
-                error: (err) => {
-                    console.error('Error cargando proveedores del servicio:', err);
-                    item._proveedoresDisponibles = [] as IProveedor[];
-                }
-            });
-        }
-    }
+  editarAtributos(item: IWizardItem): void {
+    this.itemEditando.set(item);
+    this.mostrarDialogAtributos = true;
+  }
 
-    onProveedorChange(item: IWizardItem): void {
-        if (item.idProveedor) {
-            const proveedor = item._proveedoresDisponibles?.find((p: any) => p.idProveedor === item.idProveedor);
-            if (proveedor) {
-                item.nombreProveedor = proveedor.nombreProveedor;
-            }
-        } else {
-            // Si se limpia el proveedor
-            item.nombreProveedor = undefined;
-        }
-    }
+  cerrarDialogAtributos(): void {
+    this.mostrarDialogAtributos = false;
+    this.itemEditando.set(null);
+  }
 
-    calcularSubtotal(item: IWizardItem): void {
-        item.subtotal = item.cantidad * item.precioUnitario;
-    }
+  formularioValido(): boolean {
+    const items = this.items();
+    return items.length > 0 && items.every(item =>
+      item.idServicio > 0 &&
+      item.cantidad > 0 &&
+      item.precioUnitario > 0 &&
+      item.idTipoMoneda > 0 &&
+      item.idPeriodicidad > 0
+    );
+  }
 
-    /**
-     * Calcula el subtotal de un item convertido a pesos
-     */
-    calcularSubtotalEnPesos(item: IWizardItem): number {
-        const subtotal = item.cantidad * item.precioUnitario;
-        return this.indicadoresService.convertirAPesos(subtotal, item.idTipoMoneda);
-    }
+  onAtras(): void {
+    this.wizardService.pasoAnterior();
+  }
 
-    /**
-     * Calcula el total general en pesos (sumando todos los items convertidos)
-     */
-    calcularTotal(): number {
-        return this.items().reduce((sum, item) => {
-            const subtotalEnPesos = this.calcularSubtotalEnPesos(item);
-            return sum + subtotalEnPesos;
-        }, 0);
-    }
+  onSiguiente(): void {
+    if (!this.formularioValido()) return;
 
-    editarAtributos(item: IWizardItem): void {
-        this.itemEditando.set(item);
-        this.mostrarDialogAtributos = true;
-    }
-
-    cerrarDialogAtributos(): void {
-        this.mostrarDialogAtributos = false;
-        this.itemEditando.set(null);
-    }
-
-    formularioValido(): boolean {
-        const items = this.items();
-        return items.length > 0 && items.every(item =>
-            item.idServicio > 0 &&
-            item.cantidad > 0 &&
-            item.precioUnitario > 0 &&
-            item.idTipoMoneda > 0 &&
-            item.idPeriodicidad > 0
-        );
-    }
-
-    onAtras(): void {
-        this.wizardService.pasoAnterior();
-    }
-
-    onSiguiente(): void {
-        if (!this.formularioValido()) return;
-
-        // Guardar items en el servicio
-        this.wizardService.setItems(this.items());
-    }
+    // Guardar items en el servicio
+    this.wizardService.setItems(this.items());
+  }
 }
