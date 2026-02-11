@@ -153,11 +153,10 @@
                                 appendTo="body" (onChange)="onServicioChange(item)" class="w-full" />
                         </td>
                         <td>
-                            <p-select [(ngModel)]="item.idProveedor" [options]="item._proveedoresDisponibles || []" 
-                                optionLabel="nombreProveedor" optionValue="idProveedor" 
-                                placeholder="Seleccione proveedor (opcional)" [showClear]="true"
-                                appendTo="body" class="w-full" 
-                                [disabled]="!item.idServicio || !item._proveedoresDisponibles?.length" />
+                            <p-select [(ngModel)]="item.idProveedor" [options]="item._proveedoresDisponibles || []"
+                                optionLabel="nombreProveedor" optionValue="idProveedor"
+                                placeholder="Seleccione proveedor (opcional)" [showClear]="true" appendTo="body"
+                                class="w-full" [disabled]="!item.idServicio || !item._proveedoresDisponibles?.length" />
                         </td>
                         <td>
                             <p-inputNumber [(ngModel)]="item.cantidad" [min]="1" [showButtons]="true"
