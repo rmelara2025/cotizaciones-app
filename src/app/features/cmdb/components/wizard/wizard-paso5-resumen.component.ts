@@ -122,6 +122,11 @@ import { formatDateForBackend, formatDateForItemBackend } from '../../../../core
                 <div class="col-12 md:col-4">
                   <span class="font-semibold">{{ item.nombreServicio }}</span>
                   <span class="text-sm text-color-secondary ml-2">({{ item.nombreFamilia }})</span>
+                  @if (item.nombreProveedor) {
+                    <div class="text-xs text-color-secondary mt-1">
+                      <i class="pi pi-building text-xs mr-1"></i>Proveedor: {{ item.nombreProveedor }}
+                    </div>
+                  }
                 </div>
                 <div class="col-6 md:col-2">
                   <span class="text-sm text-500">Cantidad:</span> {{ item.cantidad }}
@@ -329,7 +334,8 @@ export class WizardPaso5ResumenComponent {
         fechaInicioFacturacion: formatDateForItemBackend(item.fechaInicioFacturacion),
         fechaFinFacturacion: formatDateForItemBackend(item.fechaFinFacturacion),
         atributos: item.atributos ? JSON.stringify(item.atributos) : null,
-        observacion: item.observacion
+        observacion: item.observacion,
+        idProveedor: item.idProveedor || null
       }));
 
       await this.cotizacionesService.guardarItems(cotizacionCreada.idCotizacion, items);

@@ -37,6 +37,9 @@ export interface IWizardItem {
     fechaFinFacturacion: Date | null;
     atributos: any;
     observacion: string;
+    idProveedor?: number;
+    nombreProveedor?: string;
+    _proveedoresDisponibles?: any[];
 }
 
 export interface IWizardState {

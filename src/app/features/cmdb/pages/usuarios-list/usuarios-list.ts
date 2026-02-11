@@ -9,6 +9,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TagModule } from 'primeng/tag';
+import { PasswordModule } from 'primeng/password';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { UsuarioService, IUsuario, IRol, IUsuarioRol } from '../../../../core/services/usuario.service';
 
@@ -26,6 +27,7 @@ import { UsuarioService, IUsuario, IRol, IUsuarioRol } from '../../../../core/se
         ConfirmDialogModule,
         MultiSelectModule,
         TagModule,
+        PasswordModule,
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './usuarios-list.html',

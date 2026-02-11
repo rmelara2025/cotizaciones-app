@@ -10,7 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { WizardService, IWizardItem } from '../../services/wizard.service';
-import { CatalogosService } from '../../../../core/services/catalogos.service';
+import { CatalogosService, IProveedor } from '../../../../core/services/catalogos.service';
 import { IndicadoresService } from '../../../../core/services/indicadores.service';
 
 @Component({
@@ -54,6 +54,7 @@ import { IndicadoresService } from '../../../../core/services/indicadores.servic
           <tr>
             <th style="width: 50px">#</th>
             <th style="min-width: 200px">Servicio</th>
+            <th style="width: 180px">Proveedor</th>
             <th style="width: 100px">Cantidad</th>
             <th style="width: 150px">Precio Unit.</th>
             <th style="width: 120px">Moneda</th>
@@ -80,6 +81,20 @@ import { IndicadoresService } from '../../../../core/services/indicadores.servic
                 filterBy="nombre"
                 appendTo="body"
                 class="w-full"
+              />
+            </td>
+            <td>
+              <p-select
+                [(ngModel)]="item.idProveedor"
+                [options]="item._proveedoresDisponibles || []"
+                optionLabel="nombreProveedor"
+                optionValue="idProveedor"
+                placeholder="Seleccionar (opcional)"
+                [showClear]="true"
+                appendTo="body"
+                class="w-full"
+                [disabled]="!item.idServicio || !item._proveedoresDisponibles?.length"
+                (ngModelChange)="onProveedorChange(item)"
               />
             </td>
             <td>
@@ -170,7 +185,7 @@ import { IndicadoresService } from '../../../../core/services/indicadores.servic
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="10" class="text-center p-4">
+            <td colspan="11" class="text-center p-4">
               No hay items agregados. Haga clic en "Agregar Item" para comenzar.
             </td>
           </tr>
@@ -178,7 +193,7 @@ import { IndicadoresService } from '../../../../core/services/indicadores.servic
 
         <ng-template pTemplate="footer">
           <tr>
-            <td colspan="8" class="text-right font-bold">TOTAL (CLP):</td>
+            <td colspan="9" class="text-right font-bold">TOTAL (CLP):</td>
             <td class="font-bold text-primary" style="font-size: 1.1rem">
               {{ calcularTotal() | number: '1.0-0' }}
             </td>
@@ -338,7 +353,10 @@ export class WizardPaso4ItemsComponent implements OnInit {
             fechaInicioFacturacion: null,
             fechaFinFacturacion: null,
             atributos: null,
-            observacion: ''
+            observacion: '',
+            idProveedor: undefined,
+            nombreProveedor: undefined,
+            _proveedoresDisponibles: [] as IProveedor[]
         };
         this.items.update(items => [...items, nuevoItem]);
     }
@@ -352,6 +370,34 @@ export class WizardPaso4ItemsComponent implements OnInit {
         if (servicio) {
             item.nombreServicio = servicio.nombre;
             item.nombreFamilia = servicio.nombreFamilia || '';
+
+            // Reiniciar proveedor cuando cambia el servicio
+            item.idProveedor = undefined;
+            item.nombreProveedor = undefined;
+            item._proveedoresDisponibles = [] as IProveedor[];
+
+            // Cargar proveedores del servicio
+            this.catalogosService.obtenerProveedoresPorServicio(item.idServicio).subscribe({
+                next: (proveedores) => {
+                    item._proveedoresDisponibles = proveedores;
+                },
+                error: (err) => {
+                    console.error('Error cargando proveedores del servicio:', err);
+                    item._proveedoresDisponibles = [] as IProveedor[];
+                }
+            });
+        }
+    }
+
+    onProveedorChange(item: IWizardItem): void {
+        if (item.idProveedor) {
+            const proveedor = item._proveedoresDisponibles?.find((p: any) => p.idProveedor === item.idProveedor);
+            if (proveedor) {
+                item.nombreProveedor = proveedor.nombreProveedor;
+            }
+        } else {
+            // Si se limpia el proveedor
+            item.nombreProveedor = undefined;
         }
     }
 
