@@ -16,7 +16,7 @@ import { PanelModule } from 'primeng/panel';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { CotizacionesService, ICotizacionDetalleCompleta, ICotizacionDetalleItem } from '../../../../core/services/cotizaciones.service';
-import { CatalogosService, IServicio, ITipoMoneda, IPeriodicidad } from '../../../../core/services/catalogos.service';
+import { CatalogosService, IServicio, ITipoMoneda, IPeriodicidad, IProveedor } from '../../../../core/services/catalogos.service';
 import { IContrato } from '../../../../core/models';
 import { FormatRutPipe } from '../../../../core/pipes/format-rut.pipe';
 import { getEstadoSeverity } from '../../../../core/utils/commons';
@@ -25,6 +25,7 @@ import { formatDateForItemBackend, parseDateFromBackend } from '../../../../core
 interface IItemEditable extends Omit<ICotizacionDetalleItem, 'fechaInicioFacturacion' | 'fechaFinFacturacion'> {
   _isNew?: boolean;
   _atributosObj?: any;
+  _proveedoresDisponibles?: IProveedor[];
   fechaInicioFacturacion: string | Date | null;
   fechaFinFacturacion: string | Date | null;
 }
@@ -170,12 +171,27 @@ export class CotizacionDetalleComponent implements OnInit {
       const converted = {
         ...item,
         fechaInicioFacturacion: item.fechaInicioFacturacion ? this.parseDateForEdit(item.fechaInicioFacturacion) : null,
-        fechaFinFacturacion: item.fechaFinFacturacion ? this.parseDateForEdit(item.fechaFinFacturacion) : null
+        fechaFinFacturacion: item.fechaFinFacturacion ? this.parseDateForEdit(item.fechaFinFacturacion) : null,
+        _proveedoresDisponibles: [] as IProveedor[]
       };
       console.log('📅 Fecha conversión:', {
         original: { inicio: item.fechaInicioFacturacion, fin: item.fechaFinFacturacion },
         convertido: { inicio: converted.fechaInicioFacturacion, fin: converted.fechaFinFacturacion }
       });
+
+      // Cargar proveedores si el item ya tiene un servicio
+      if (converted.idServicio) {
+        this.catalogosService.obtenerProveedoresPorServicio(converted.idServicio).subscribe({
+          next: (proveedores) => {
+            converted._proveedoresDisponibles = proveedores;
+          },
+          error: (err) => {
+            console.error('Error cargando proveedores del servicio:', err);
+            converted._proveedoresDisponibles = [] as IProveedor[];
+          }
+        });
+      }
+
       return converted;
     }));
 
@@ -232,8 +248,11 @@ export class CotizacionDetalleComponent implements OnInit {
       fechaFinFacturacion: null,
       atributos: '',
       observacion: '',
+      idProveedor: undefined,
+      nombreProveedor: undefined,
       _isNew: true,
-      _atributosObj: {}
+      _atributosObj: {},
+      _proveedoresDisponibles: [] as IProveedor[]
     };
     this.items.update(items => [...items, nuevoItem]);
   }
@@ -247,6 +266,22 @@ export class CotizacionDetalleComponent implements OnInit {
     if (servicio) {
       item.nombreServicio = servicio.nombre;
       item.nombreFamilia = servicio.nombreFamilia || '';
+
+      // Reiniciar proveedor cuando cambia el servicio
+      item.idProveedor = undefined;
+      item.nombreProveedor = undefined;
+      item._proveedoresDisponibles = [] as IProveedor[];
+
+      // Cargar proveedores del servicio
+      this.catalogosService.obtenerProveedoresPorServicio(item.idServicio).subscribe({
+        next: (proveedores) => {
+          item._proveedoresDisponibles = proveedores;
+        },
+        error: (err) => {
+          console.error('Error cargando proveedores del servicio:', err);
+          item._proveedoresDisponibles = [] as IProveedor[];
+        }
+      });
 
       // Inicializar atributos según schema
       if (servicio.atributosSchema) {
@@ -290,7 +325,8 @@ export class CotizacionDetalleComponent implements OnInit {
         fechaInicioFacturacion: formatDateForItemBackend(item.fechaInicioFacturacion),
         fechaFinFacturacion: formatDateForItemBackend(item.fechaFinFacturacion),
         atributos: item._atributosObj ? JSON.stringify(item._atributosObj) : item.atributos,
-        observacion: item.observacion
+        observacion: item.observacion,
+        idProveedor: item.idProveedor || null
       }));
       console.log('📦 Items preparados para guardar:', itemsParaGuardar);
 

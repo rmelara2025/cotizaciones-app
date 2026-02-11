@@ -149,8 +149,7 @@ export class CatalogosService {
             idFamilia: servicio.idFamilia,
             nombreServicio: servicio.nombre,
             descripcion: servicio.descripcion,
-            atributos: servicio.atributosSchema,
-            idProveedor: servicio.idProveedor
+            atributos: servicio.atributosSchema?.trim() || null // Enviar null si está vacío
         };
         return this.http.post<any>(`${this.API_URL}/catalogos/servicios`, dto);
     }
@@ -162,7 +161,7 @@ export class CatalogosService {
             idFamilia: servicio.idFamilia,
             nombreServicio: servicio.nombre,
             descripcion: servicio.descripcion,
-            atributos: servicio.atributosSchema,
+            atributos: servicio.atributosSchema?.trim() || null, // Enviar null si está vacío
             idProveedor: servicio.idProveedor
         };
         return this.http.put<any>(`${this.API_URL}/catalogos/servicios/${idServicio}`, dto);
@@ -199,5 +198,10 @@ export class CatalogosService {
 
     eliminarRelacionServicioProveedor(idProveedor: number, idServicio: number): Observable<void> {
         return this.http.delete<void>(`${this.API_URL}/catalogos/proveedores/${idProveedor}/servicios/${idServicio}`);
+    }
+
+    // Obtener proveedores por servicio
+    obtenerProveedoresPorServicio(idServicio: number): Observable<IProveedor[]> {
+        return this.http.get<IProveedor[]>(`${this.API_URL}/catalogos/servicios/${idServicio}/proveedores`);
     }
 }

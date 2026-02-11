@@ -82,6 +82,8 @@ export interface ICotizacionDetalleItem {
     fechaFinFacturacion: string;
     atributos: string;
     observacion: string;
+    idProveedor?: number;
+    nombreProveedor?: string;
 }
 
 export interface ICotizacionTotal {

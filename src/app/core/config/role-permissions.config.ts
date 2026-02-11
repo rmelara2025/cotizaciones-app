@@ -29,6 +29,18 @@ export const ROLE_PERMISSIONS = {
     VER_REPORTES: ['Owner', 'Administrativo', 'Gerencial/TeamLeader', 'VIP'],
 
     /**
+     * VER REPORTE AUDITORIA LOGIN
+        * Roles: Owner, Gerencial/TeamLeader, VIP
+     */
+        VER_REPORTE_LOGIN_AUDIT: ['Owner', 'Gerencial/TeamLeader', 'VIP'],
+
+    /**
+     * VER REPORTE HISTORIAL COTIZACIONES
+     * Roles: Owner, Gerencial/TeamLeader, VIP
+     */
+    VER_REPORTE_HISTORIAL_COTIZACIONES: ['Owner', 'Gerencial/TeamLeader', 'VIP'],
+
+    /**
      * CREAR COTIZACIONES (incluye nueva cotización desde contrato)
      * Roles: Owner, Administrativo
      */

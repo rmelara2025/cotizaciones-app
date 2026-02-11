@@ -32,6 +32,7 @@ export class App {
   }
 
   private updateLayoutVisibility(url: string): void {
-    this.showLayout.set(!url.includes('/login'));
+    const path = url.split('?')[0];
+    this.showLayout.set(path !== '/login');
   }
 }

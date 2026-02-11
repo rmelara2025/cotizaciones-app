@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ICadenciaIngresosFilter, ICadenciaIngresosResponse } from '../models/reporte.model';
@@ -68,6 +68,26 @@ export class ReportesService {
         return this.http.get(`${this.apiUrl}/cadencia-ingresos/exportar-excel`, {
             params,
             responseType: 'blob'
+        });
+    }
+
+    /**
+     * Exporta la auditoria de logins de los ultimos 6 meses a Excel
+     */
+    exportarLoginAuditExcel(): Observable<HttpResponse<Blob>> {
+        return this.http.get(`${this.apiUrl}/login-audit/exportar-excel`, {
+            responseType: 'blob',
+            observe: 'response'
+        });
+    }
+
+    /**
+     * Exporta el historial de cambios de cotizaciones de los ultimos 6 meses a Excel
+     */
+    exportarHistorialCotizacionesExcel(): Observable<HttpResponse<Blob>> {
+        return this.http.get(`${this.apiUrl}/cotizaciones-historial/exportar-excel`, {
+            responseType: 'blob',
+            observe: 'response'
         });
     }
 }

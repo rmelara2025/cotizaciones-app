@@ -47,6 +47,14 @@ export const routes: Routes = [
     canActivate: [authGuard, permissionGuard(['VER_REPORTES'])],
   },
   {
+    path: 'reportes/auditoria',
+    loadComponent: () =>
+      import('./features/cmdb/pages/auditoria-report/auditoria-report').then(
+        (m) => m.AuditoriaReportComponent,
+      ),
+    canActivate: [authGuard, roleGuard(['Owner', 'Gerencial/TeamLeader', 'VIP'])],
+  },
+  {
     path: 'config/usuarios',
     loadComponent: () =>
       import('./features/cmdb/pages/usuarios-list/usuarios-list').then(

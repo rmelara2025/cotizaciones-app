@@ -85,6 +85,7 @@
                         <th style="width: 60px">#</th>
                         <th>Servicio</th>
                         <th>Familia</th>
+                        <th>Proveedor</th>
                         <th style="width: 100px">Cantidad</th>
                         <th style="width: 120px">Precio Unit.</th>
                         <th style="width: 120px">Subtotal</th>
@@ -101,6 +102,7 @@
                         <td>{{ item.numItem }}</td>
                         <td>{{ item.nombreServicio }}</td>
                         <td>{{ item.nombreFamilia }}</td>
+                        <td>{{ item.nombreProveedor || '-' }}</td>
                         <td class="text-right">{{ item.cantidad }}</td>
                         <td class="text-right">{{ item.precioUnitario | number:'1.2-2' }}</td>
                         <td class="text-right">{{ item.subtotal | number:'1.2-2' }}</td>
@@ -129,6 +131,7 @@
                     <tr>
                         <th style="width: 60px">#</th>
                         <th style="width: 250px">Servicio *</th>
+                        <th style="width: 200px">Proveedor</th>
                         <th style="width: 100px">Cant. *</th>
                         <th style="width: 120px">Precio Unit. *</th>
                         <th style="width: 120px">Subtotal</th>
@@ -148,6 +151,13 @@
                             <p-select [(ngModel)]="item.idServicio" [options]="servicios()" optionLabel="nombre"
                                 optionValue="idServicio" placeholder="Seleccione servicio" [showClear]="false"
                                 appendTo="body" (onChange)="onServicioChange(item)" class="w-full" />
+                        </td>
+                        <td>
+                            <p-select [(ngModel)]="item.idProveedor" [options]="item._proveedoresDisponibles || []" 
+                                optionLabel="nombreProveedor" optionValue="idProveedor" 
+                                placeholder="Seleccione proveedor (opcional)" [showClear]="true"
+                                appendTo="body" class="w-full" 
+                                [disabled]="!item.idServicio || !item._proveedoresDisponibles?.length" />
                         </td>
                         <td>
                             <p-inputNumber [(ngModel)]="item.cantidad" [min]="1" [showButtons]="true"

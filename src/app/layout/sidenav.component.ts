@@ -323,6 +323,10 @@ export class SidenavComponent implements OnInit {
   // Computed para verificar permisos por rol
   canSeeDashboard = computed(() => this.authService.can('VER_DASHBOARD'));
   canSeeReports = computed(() => this.authService.can('VER_REPORTES'));
+  canSeeLoginAuditReport = computed(() => this.authService.can('VER_REPORTE_LOGIN_AUDIT'));
+  canSeeHistorialCotizacionesReport = computed(() =>
+    this.authService.can('VER_REPORTE_HISTORIAL_COTIZACIONES')
+  );
   canCreateQuote = computed(() => this.authService.can('CREAR_COTIZACIONES'));
   canSeeProveedores = computed(() => this.authService.can('VER_PROVEEDORES'));
   // Configuración visible si puede ver Familias de Servicios O Gestionar Usuarios
@@ -351,14 +355,32 @@ export class SidenavComponent implements OnInit {
     // Clientes - Todos pueden ver
     menuItems.push({ label: 'Clientes', icon: 'pi-users', route: '/clientes' });
 
-    // Cadencia Ingresos - Owner, Gerencial, VIP (NO Administrativo)
+    // Reportes
+    const reportChildren: SidenavItem[] = [];
+
     if (this.authService.can('VER_CADENCIA')) {
-      menuItems.push({ label: 'Cadencia Ingresos', icon: 'pi-chart-line', route: '/reportes/cadencia-ingresos' });
+      reportChildren.push({
+        label: 'Cadencia Ingresos',
+        icon: 'pi-chart-line',
+        route: '/reportes/cadencia-ingresos'
+      });
     }
 
-    // Reportes - Solo si tiene VER_REPORTES
-    if (this.canSeeReports()) {
-      menuItems.push({ label: 'Reportes', icon: 'pi-chart-bar', route: '/reportes' });
+    if (this.canSeeLoginAuditReport() || this.canSeeHistorialCotizacionesReport()) {
+      reportChildren.push({
+        label: 'Auditoria',
+        icon: 'pi-shield',
+        route: '/reportes/auditoria'
+      });
+    }
+
+    if (reportChildren.length > 0 && this.canSeeReports()) {
+      menuItems.push({
+        label: 'Reportes',
+        icon: 'pi-chart-bar',
+        expanded: false,
+        children: reportChildren
+      });
     }
 
     // Configuración - Menú con hijos
