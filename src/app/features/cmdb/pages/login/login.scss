@@ -23,9 +23,9 @@
         height: 100%;
         animation: fadeIn 0.6s ease-in;
 
-        // Lado IZQUIERDO - 50% con imagen alineada a la DERECHA
+        // Lado IZQUIERDO - más espacio para empujar card a la izquierda
         .login-image {
-            flex: 1;
+            flex: 1.5;
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -40,13 +40,13 @@
             }
         }
 
-        // Lado DERECHO - 50% con card alineado a la IZQUIERDA
+        // Lado DERECHO - menos espacio para que card quede más a la izquierda
         .login-card-wrapper {
-            flex: 1;
+            flex: 0.8;
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            padding-left: 0.5rem;
+            padding-left: 0;
             animation: slideInRight 0.6s ease-out;
         }
 
@@ -58,6 +58,8 @@
             width: 450px;
             max-width: 100%;
             overflow: hidden;
+            transform: translateX(-300px);
+            transition: transform 0.3s ease;
 
             .login-header {
                 background: linear-gradient(135deg, #8b7ac4 0%, #6b5b9a 100%);
