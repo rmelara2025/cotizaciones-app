@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
@@ -18,7 +17,6 @@ interface LoginForm {
     imports: [
         ReactiveFormsModule,
         ButtonModule,
-        CardModule,
         InputTextModule,
         PasswordModule,
         MessageModule,

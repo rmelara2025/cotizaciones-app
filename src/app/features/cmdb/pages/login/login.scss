@@ -14,100 +14,244 @@
     justify-content: center;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 1rem;
+    background: #2B8DDF;
+    overflow: hidden;
 
-    .login-wrapper {
+    .login-content {
+        display: flex;
         width: 100%;
-        max-width: 400px;
+        height: 100%;
+        animation: fadeIn 0.6s ease-in;
 
-        ::ng-deep {
-            .p-card {
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-                border-radius: 12px;
-                overflow: hidden;
+        // Lado IZQUIERDO - 50% con imagen alineada a la DERECHA
+        .login-image {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 3rem;
+            animation: slideInLeft 0.6s ease-out;
 
-                .p-card-header {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 2rem;
-                }
-
-                .p-card-body {
-                    padding: 2rem;
-                }
+            img {
+                height: 80vh;
+                width: auto;
+                max-height: 650px;
+                object-fit: contain;
             }
         }
 
-        .login-header {
-            text-align: center;
-
-            h2 {
-                margin: 0 0 0.5rem;
-                font-size: 2rem;
-                font-weight: 700;
-            }
-
-            p {
-                margin: 0;
-                opacity: 0.9;
-                font-size: 1.1rem;
-            }
+        // Lado DERECHO - 50% con card alineado a la IZQUIERDA
+        .login-card-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding-left: 0.5rem;
+            animation: slideInRight 0.6s ease-out;
         }
 
-        .login-form {
-            .field {
-                margin-bottom: 1.5rem;
+        // Login card
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+            width: 450px;
+            max-width: 100%;
+            overflow: hidden;
 
-                label {
-                    font-weight: 600;
-                    color: #495057;
+            .login-header {
+                background: linear-gradient(135deg, #8b7ac4 0%, #6b5b9a 100%);
+                color: white;
+                text-align: center;
+                padding: 2.5rem;
+
+                h2 {
+                    margin: 0 0 0.5rem;
+                    font-size: 2.25rem;
+                    font-weight: 700;
                 }
 
-                small.p-error {
-                    display: block;
-                    margin-top: 0.25rem;
-                }
-
-                &:last-of-type {
-                    margin-bottom: 2rem;
+                p {
+                    margin: 0;
+                    opacity: 0.95;
+                    font-size: 1.1rem;
+                    font-weight: 500;
                 }
             }
 
-            ::ng-deep {
+            .login-form {
+                padding: 2.5rem;
 
-                .p-inputtext,
-                .p-password input {
-                    width: 100%;
+                .field {
+                    margin-bottom: 1.75rem;
 
-                    &:focus {
-                        border-color: #667eea;
-                        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+                    label {
+                        font-weight: 600;
+                        color: #4a5568;
+                        font-size: 1rem;
+                    }
+
+                    small.p-error {
+                        display: block;
+                        margin-top: 0.25rem;
+                    }
+
+                    &:last-of-type {
+                        margin-bottom: 2rem;
                     }
                 }
 
-                .p-password {
-                    width: 100%;
-                }
+                ::ng-deep {
 
-                .p-button {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    border: none;
-                    padding: 0.75rem;
-                    font-size: 1rem;
-                    font-weight: 600;
-                    transition: all 0.3s ease;
+                    .p-inputtext,
+                    .p-password input {
+                        width: 100%;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        padding: 0.85rem;
+                        font-size: 1rem;
+                        transition: all 0.2s ease;
 
-                    &:hover:not(:disabled) {
-                        transform: translateY(-2px);
-                        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+                        &:focus {
+                            border-color: #8b7ac4;
+                            box-shadow: 0 0 0 3px rgba(139, 122, 196, 0.1);
+                        }
                     }
 
-                    &:active:not(:disabled) {
-                        transform: translateY(0);
+                    .p-password {
+                        width: 100%;
+                    }
+
+                    .p-button {
+                        background: linear-gradient(135deg, #8b7ac4 0%, #6b5b9a 100%);
+                        border: none;
+                        border-radius: 8px;
+                        padding: 1rem;
+                        font-size: 1.05rem;
+                        font-weight: 600;
+                        text-transform: none;
+                        transition: all 0.3s ease;
+                        margin-top: 0.75rem;
+
+                        &:hover:not(:disabled) {
+                            background: linear-gradient(135deg, #7a69b3 0%, #5a4a89 100%);
+                            transform: translateY(-2px);
+                            box-shadow: 0 8px 20px rgba(139, 122, 196, 0.4);
+                        }
+
+                        &:active:not(:disabled) {
+                            transform: translateY(0);
+                        }
+
+                        &:disabled {
+                            opacity: 0.6;
+                        }
+                    }
+
+                    .p-message {
+                        border-radius: 8px;
                     }
                 }
             }
         }
+    }
+
+    // Responsive design
+    @media (max-width: 968px) {
+        .login-content {
+            flex-direction: column;
+            padding: 2rem 1rem;
+
+            .login-image {
+                flex: 0;
+                justify-content: center;
+                padding-right: 0;
+                padding-bottom: 2rem;
+
+                img {
+                    height: 40vh;
+                    max-height: 350px;
+                }
+            }
+
+            .login-card-wrapper {
+                flex: 0;
+                justify-content: center;
+                padding-left: 0;
+            }
+
+            .login-card {
+                width: 100%;
+                max-width: 450px;
+            }
+        }
+    }
+
+    @media (max-width: 640px) {
+        .login-content {
+            padding: 1.5rem 1rem;
+
+            .login-image {
+                padding-bottom: 1.5rem;
+
+                img {
+                    height: 30vh;
+                    max-height: 250px;
+                }
+            }
+
+            .login-card {
+                .login-header {
+                    padding: 1.5rem;
+
+                    h2 {
+                        font-size: 1.5rem;
+                    }
+
+                    p {
+                        font-size: 0.95rem;
+                    }
+                }
+
+                .login-form {
+                    padding: 1.5rem;
+                }
+            }
+        }
+    }
+}
+
+// Animations
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
     }
 }
